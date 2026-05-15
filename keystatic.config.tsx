@@ -5,7 +5,6 @@ export default config({
     ? {
         kind: "github" as const,
         repo: { owner: "wave8-maker", name: "janestherapy" },
-        branchPrefix: "keystatic/",
       }
     : { kind: "local" as const },
 
