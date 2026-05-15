@@ -24,7 +24,10 @@ export default async function BlogPostPage({
 }) {
   const { slug } = await params;
   const post = getBlogPost(slug);
-  const html = marked.parse(post.content) as string;
+  // Content from the rich editor is HTML; legacy posts may be markdown
+  const html = post.content.trimStart().startsWith("<")
+    ? post.content
+    : (marked.parse(post.content) as string);
   const dateStr = new Date(post.date).toLocaleDateString("en-US", {
     year: "numeric",
     month: "long",

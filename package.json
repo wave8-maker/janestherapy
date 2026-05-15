@@ -8,6 +8,12 @@
     "start": "next start"
   },
   "dependencies": {
+    "@tiptap/extension-image": "^3.23.4",
+    "@tiptap/extension-link": "^3.23.4",
+    "@tiptap/extension-placeholder": "^3.23.4",
+    "@tiptap/pm": "^3.23.4",
+    "@tiptap/react": "^3.23.4",
+    "@tiptap/starter-kit": "^3.23.4",
     "gray-matter": "^4.0.3",
     "marked": "^18.0.3",
     "next": "16.2.6",

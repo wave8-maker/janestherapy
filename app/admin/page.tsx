@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
+import RichEditor from "./RichEditor";
 
 // ── types ────────────────────────────────────────────────────────────────────
 interface Pricing { duration: string; price: string }
@@ -372,10 +373,12 @@ function BlogTab() {
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [editorKey, setEditorKey] = useState(0);
 
   const loadList = useCallback(async () => {
-    const { files } = await ghGet("content/blog");
-    setPosts(files.filter((f: { name: string }) => f.name.endsWith(".md")).map((f: { name: string; sha: string }) => ({
+    const res = await ghGet("content/blog");
+    if (!res.files) return;
+    setPosts(res.files.filter((f: { name: string }) => f.name.endsWith(".md")).map((f: { name: string; sha: string }) => ({
       name: f.name,
       slug: f.name.replace(/\.md$/, ""),
       sha: f.sha,
@@ -391,6 +394,7 @@ function BlogTab() {
     setEditing({ slug, title: get("title"), date: get("date"), excerpt: get("excerpt"), content: body.trim() });
     setEditSha(sha);
     setIsNew(false);
+    setEditorKey(k => k + 1);
   }
 
   function newPost() {
@@ -398,13 +402,14 @@ function BlogTab() {
     setEditing({ slug: "", title: "", date: today, excerpt: "", content: "" });
     setEditSha(undefined);
     setIsNew(true);
+    setEditorKey(k => k + 1);
   }
 
   async function savePost() {
     if (!editing) return;
     setSaving(true); setSaved(false);
     const slug = isNew
-      ? editing.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+      ? editing.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `post-${Date.now()}`
       : editing.slug;
     const fm = `---\ntitle: "${editing.title}"\ndate: ${editing.date}\nexcerpt: "${editing.excerpt}"\n---\n\n`;
     await ghSave(`content/blog/${slug}.md`, fm + editing.content, editSha);
@@ -429,7 +434,14 @@ function BlogTab() {
           <Field label="日期 Date" value={editing.date} onChange={v => setEditing(p => p ? { ...p, date: v } : p)} placeholder="YYYY-MM-DD" />
         </div>
         <TextArea label="摘要（显示在博客列表）Excerpt" value={editing.excerpt} onChange={v => setEditing(p => p ? { ...p, excerpt: v } : p)} rows={2} />
-        <TextArea label="内容（Markdown 格式）Content" value={editing.content} onChange={v => setEditing(p => p ? { ...p, content: v } : p)} rows={16} mono />
+        <div>
+          <label className="block text-sm font-medium text-bark mb-1">内容 Content</label>
+          <RichEditor
+            key={editorKey}
+            initialContent={editing.content}
+            onChange={v => setEditing(p => p ? { ...p, content: v } : p)}
+          />
+        </div>
         <SaveBar onSave={savePost} saving={saving} saved={saved} />
       </div>
     );
