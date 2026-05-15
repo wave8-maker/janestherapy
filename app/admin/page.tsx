@@ -55,9 +55,9 @@ function SaveBar({ onSave, saving, saved }: { onSave: () => void; saving: boolea
   return (
     <div className="flex items-center gap-3">
       <Btn onClick={onSave} disabled={saving}>
-        {saving ? "Saving…" : "Save & Publish"}
+        {saving ? "保存中… Saving…" : "保存并发布 Save & Publish"}
       </Btn>
-      {saved && <span className="text-sage text-sm">✓ Saved! Site updates in ~2 min.</span>}
+      {saved && <span className="text-sage text-sm">✓ 已保存！网站将在约2分钟后更新。</span>}
     </div>
   );
 }
@@ -90,20 +90,20 @@ function SettingsTab() {
   return (
     <div className="space-y-8">
       <div>
-        <label className="block text-sm font-medium text-bark mb-2">Announcement Banner</label>
+        <label className="block text-sm font-medium text-bark mb-2">公告横幅 <span className="font-normal text-bark-light">Announcement Banner</span></label>
         <textarea value={announcement} onChange={e => setAnnouncement(e.target.value)} rows={3}
-          placeholder="Leave blank to hide the banner"
+          placeholder="留空则隐藏公告 / Leave blank to hide the banner"
           className="w-full border border-brand-light rounded-lg px-4 py-2.5 text-bark focus:outline-none focus:ring-2 focus:ring-brand resize-none" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-bark mb-3">Business Hours</label>
+        <label className="block text-sm font-medium text-bark mb-3">营业时间 <span className="font-normal text-bark-light">Business Hours</span></label>
         <div className="space-y-2">
           {hours.map((h, i) => (
             <div key={i} className="flex items-center gap-3">
               <span className="w-28 text-sm text-bark font-medium">{h.day}</span>
               <input value={h.time} onChange={e => {
                 const next = [...hours]; next[i] = { ...h, time: e.target.value }; setHours(next);
-              }} placeholder='e.g. 9:30 AM – 8:00 PM or "Closed"'
+              }} placeholder='如：9:30 AM – 8:00 PM 或 "Closed"'
                 className="flex-1 border border-brand-light rounded-lg px-3 py-1.5 text-sm text-bark focus:outline-none focus:ring-2 focus:ring-brand" />
             </div>
           ))}
@@ -144,7 +144,7 @@ function ServicesTab() {
     setOpen(services.length);
   }
   function removeService(i: number) {
-    if (!confirm("Remove this service?")) return;
+    if (!confirm("确认删除此服务？Remove this service?")) return;
     setServices(s => s.filter((_, idx) => idx !== i));
     setOpen(null);
   }
@@ -155,33 +155,33 @@ function ServicesTab() {
         <div key={i} className="border border-brand-light rounded-xl overflow-hidden">
           <button onClick={() => setOpen(open === i ? null : i)}
             className="w-full flex items-center justify-between px-5 py-3 bg-white hover:bg-brand-light text-left">
-            <span className="font-medium text-bark">{svc.name || "Untitled"}</span>
+            <span className="font-medium text-bark">{svc.name || "未命名 Untitled"}</span>
             <span className="text-bark-light text-sm">{open === i ? "▲" : "▼"}</span>
           </button>
           {open === i && (
             <div className="p-5 bg-white border-t border-brand-light space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="Service Name" value={svc.name} onChange={v => update(i, { name: v })} />
-                <Field label="Badge (optional)" value={svc.badge} onChange={v => update(i, { badge: v })} placeholder="e.g. Signature 👍" />
+                <Field label="服务名称 Service Name" value={svc.name} onChange={v => update(i, { name: v })} />
+                <Field label="标签（可选）Badge" value={svc.badge} onChange={v => update(i, { badge: v })} placeholder="如：Signature 👍" />
               </div>
-              <TextArea label="Description" value={svc.description} onChange={v => update(i, { description: v })} />
+              <TextArea label="描述 Description" value={svc.description} onChange={v => update(i, { description: v })} />
               <div>
-                <label className="block text-sm font-medium text-bark mb-2">Pricing</label>
+                <label className="block text-sm font-medium text-bark mb-2">价格 <span className="font-normal text-bark-light">Pricing</span></label>
                 {svc.pricing.map((p, pi) => (
                   <div key={pi} className="flex gap-2 mb-2">
                     <input value={p.duration} onChange={e => {
                       const next = [...svc.pricing]; next[pi] = { ...p, duration: e.target.value }; update(i, { pricing: next });
-                    }} placeholder="60 minutes" className={inputCls} />
+                    }} placeholder="时长 / 60 minutes" className={inputCls} />
                     <input value={p.price} onChange={e => {
                       const next = [...svc.pricing]; next[pi] = { ...p, price: e.target.value }; update(i, { pricing: next });
-                    }} placeholder="$120" className={inputCls} />
+                    }} placeholder="价格 / $120" className={inputCls} />
                     <Btn small variant="danger" onClick={() => update(i, { pricing: svc.pricing.filter((_, x) => x !== pi) })}>✕</Btn>
                   </div>
                 ))}
-                <Btn small variant="secondary" onClick={() => update(i, { pricing: [...svc.pricing, { duration: "", price: "" }] })}>+ Add Price</Btn>
+                <Btn small variant="secondary" onClick={() => update(i, { pricing: [...svc.pricing, { duration: "", price: "" }] })}>+ 添加价格 Add Price</Btn>
               </div>
               <div>
-                <label className="block text-sm font-medium text-bark mb-2">Extra Details (optional)</label>
+                <label className="block text-sm font-medium text-bark mb-2">附加说明（可选）<span className="font-normal text-bark-light">Extra Details</span></label>
                 {svc.details.map((d, di) => (
                   <div key={di} className="flex gap-2 mb-2">
                     <input value={d} onChange={e => {
@@ -190,15 +190,15 @@ function ServicesTab() {
                     <Btn small variant="danger" onClick={() => update(i, { details: svc.details.filter((_, x) => x !== di) })}>✕</Btn>
                   </div>
                 ))}
-                <Btn small variant="secondary" onClick={() => update(i, { details: [...svc.details, ""] })}>+ Add Detail</Btn>
+                <Btn small variant="secondary" onClick={() => update(i, { details: [...svc.details, ""] })}>+ 添加说明 Add Detail</Btn>
               </div>
-              <Btn variant="danger" small onClick={() => removeService(i)}>Remove Service</Btn>
+              <Btn variant="danger" small onClick={() => removeService(i)}>删除服务 Remove Service</Btn>
             </div>
           )}
         </div>
       ))}
       <div className="flex flex-wrap gap-3">
-        <Btn variant="secondary" onClick={addService}>+ Add Service</Btn>
+        <Btn variant="secondary" onClick={addService}>+ 添加服务 Add Service</Btn>
         <SaveBar onSave={save} saving={saving} saved={saved} />
       </div>
     </div>
@@ -230,7 +230,7 @@ function AddonsTab() {
     setAddons(a => a.map((x, idx) => idx === i ? { ...x, ...patch } : x));
   }
   function removeAddon(i: number) {
-    if (!confirm("Remove this add-on?")) return;
+    if (!confirm("确认删除此附加服务？Remove this add-on?")) return;
     setAddons(a => a.filter((_, idx) => idx !== i));
     setOpen(null);
   }
@@ -241,29 +241,29 @@ function AddonsTab() {
         <div key={i} className="border border-brand-light rounded-xl overflow-hidden">
           <button onClick={() => setOpen(open === i ? null : i)}
             className="w-full flex items-center justify-between px-5 py-3 bg-white hover:bg-brand-light text-left">
-            <span className="font-medium text-bark">{addon.name || "Untitled"}</span>
+            <span className="font-medium text-bark">{addon.name || "未命名 Untitled"}</span>
             <span className="text-bark-light text-sm">{open === i ? "▲" : "▼"}</span>
           </button>
           {open === i && (
             <div className="p-5 bg-white border-t border-brand-light space-y-4">
-              <Field label="Add-on Name" value={addon.name} onChange={v => update(i, { name: v })} />
-              <TextArea label="Description" value={addon.description} onChange={v => update(i, { description: v })} />
+              <Field label="附加服务名称 Add-on Name" value={addon.name} onChange={v => update(i, { name: v })} />
+              <TextArea label="描述 Description" value={addon.description} onChange={v => update(i, { description: v })} />
               <div>
-                <label className="block text-sm font-medium text-bark mb-2">Pricing</label>
+                <label className="block text-sm font-medium text-bark mb-2">价格 <span className="font-normal text-bark-light">Pricing</span></label>
                 {addon.pricing.map((p, pi) => (
                   <div key={pi} className="flex gap-2 mb-2">
                     <input value={p.duration} onChange={e => {
                       const next = [...addon.pricing]; next[pi] = { ...p, duration: e.target.value }; update(i, { pricing: next });
-                    }} placeholder="Duration (leave blank if none)" className={inputCls} />
+                    }} placeholder="时长（无则留空）/ Duration" className={inputCls} />
                     <input value={p.price} onChange={e => {
                       const next = [...addon.pricing]; next[pi] = { ...p, price: e.target.value }; update(i, { pricing: next });
-                    }} placeholder="$30" className={inputCls} />
+                    }} placeholder="价格 / $30" className={inputCls} />
                     <Btn small variant="danger" onClick={() => update(i, { pricing: addon.pricing.filter((_, x) => x !== pi) })}>✕</Btn>
                   </div>
                 ))}
-                <Btn small variant="secondary" onClick={() => update(i, { pricing: [...addon.pricing, { duration: "", price: "" }] })}>+ Add Price</Btn>
+                <Btn small variant="secondary" onClick={() => update(i, { pricing: [...addon.pricing, { duration: "", price: "" }] })}>+ 添加价格 Add Price</Btn>
               </div>
-              <Btn variant="danger" small onClick={() => removeAddon(i)}>Remove Add-on</Btn>
+              <Btn variant="danger" small onClick={() => removeAddon(i)}>删除附加服务 Remove Add-on</Btn>
             </div>
           )}
         </div>
@@ -272,7 +272,7 @@ function AddonsTab() {
         <Btn variant="secondary" onClick={() => {
           setAddons(a => [...a, { name: "New Add-on", description: "", pricing: [{ duration: "", price: "" }] }]);
           setOpen(addons.length);
-        }}>+ Add Add-on</Btn>
+        }}>+ 添加附加服务 Add Add-on</Btn>
         <SaveBar onSave={save} saving={saving} saved={saved} />
       </div>
     </div>
@@ -329,7 +329,7 @@ function BlogTab() {
   }
 
   async function deletePost(slug: string, sha: string) {
-    if (!confirm(`Delete "${slug}"?`)) return;
+    if (!confirm(`确认删除 "${slug}"？`)) return;
     await ghDelete(`content/blog/${slug}.md`, sha);
     if (editing?.slug === slug) setEditing(null);
     await loadList();
@@ -338,13 +338,13 @@ function BlogTab() {
   if (editing) {
     return (
       <div className="space-y-4">
-        <button onClick={() => setEditing(null)} className="text-brand text-sm hover:underline">← Back to posts</button>
+        <button onClick={() => setEditing(null)} className="text-brand text-sm hover:underline">← 返回文章列表 Back to posts</button>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="Title" value={editing.title} onChange={v => setEditing(p => p ? { ...p, title: v } : p)} />
-          <Field label="Date" value={editing.date} onChange={v => setEditing(p => p ? { ...p, date: v } : p)} placeholder="YYYY-MM-DD" />
+          <Field label="标题 Title" value={editing.title} onChange={v => setEditing(p => p ? { ...p, title: v } : p)} />
+          <Field label="日期 Date" value={editing.date} onChange={v => setEditing(p => p ? { ...p, date: v } : p)} placeholder="YYYY-MM-DD" />
         </div>
-        <TextArea label="Excerpt (shown on blog list)" value={editing.excerpt} onChange={v => setEditing(p => p ? { ...p, excerpt: v } : p)} rows={2} />
-        <TextArea label="Content (Markdown)" value={editing.content} onChange={v => setEditing(p => p ? { ...p, content: v } : p)} rows={16} mono />
+        <TextArea label="摘要（显示在博客列表）Excerpt" value={editing.excerpt} onChange={v => setEditing(p => p ? { ...p, excerpt: v } : p)} rows={2} />
+        <TextArea label="内容（Markdown 格式）Content" value={editing.content} onChange={v => setEditing(p => p ? { ...p, content: v } : p)} rows={16} mono />
         <SaveBar onSave={savePost} saving={saving} saved={saved} />
       </div>
     );
@@ -352,14 +352,14 @@ function BlogTab() {
 
   return (
     <div className="space-y-4">
-      <Btn onClick={newPost}>+ New Post</Btn>
-      {posts.length === 0 && <p className="text-bark-light text-sm">No posts yet.</p>}
+      <Btn onClick={newPost}>+ 新建文章 New Post</Btn>
+      {posts.length === 0 && <p className="text-bark-light text-sm">暂无文章。No posts yet.</p>}
       {posts.map(p => (
         <div key={p.slug} className="flex items-center justify-between bg-white border border-brand-light rounded-xl px-5 py-3">
           <span className="text-bark font-medium">{p.slug}</span>
           <div className="flex gap-2">
-            <Btn small variant="secondary" onClick={() => openPost(p.slug)}>Edit</Btn>
-            <Btn small variant="danger" onClick={() => deletePost(p.slug, p.sha)}>Delete</Btn>
+            <Btn small variant="secondary" onClick={() => openPost(p.slug)}>编辑 Edit</Btn>
+            <Btn small variant="danger" onClick={() => deletePost(p.slug, p.sha)}>删除 Delete</Btn>
           </div>
         </div>
       ))}
@@ -392,11 +392,11 @@ function TextArea({ label, value, onChange, rows = 4, mono, placeholder }: {
 }
 
 // ── ROOT PAGE ─────────────────────────────────────────────────────────────────
-const TABS = ["Settings", "Services", "Add-ons", "Blog"] as const;
+const TABS = ["设置 Settings", "服务项目 Services", "附加服务 Add-ons", "博客 Blog"] as const;
 type Tab = typeof TABS[number];
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<Tab>("Settings");
+  const [tab, setTab] = useState<Tab>("设置 Settings");
   const router = useRouter();
 
   async function logout() {
@@ -407,8 +407,8 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-cream">
       <header className="bg-white border-b border-brand-light px-6 py-4 flex items-center justify-between">
-        <h1 className="font-semibold text-bark">Jane&apos;s Therapy Admin</h1>
-        <button onClick={logout} className="text-sm text-bark-light hover:text-brand">Log out</button>
+        <h1 className="font-semibold text-bark">Jane&apos;s Therapy 管理后台</h1>
+        <button onClick={logout} className="text-sm text-bark-light hover:text-brand">退出登录 Log out</button>
       </header>
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="flex gap-1 mb-8 bg-white border border-brand-light rounded-xl p-1">
@@ -420,10 +420,10 @@ export default function AdminPage() {
           ))}
         </div>
         <div className="bg-white border border-brand-light rounded-xl p-6">
-          {tab === "Settings" && <SettingsTab />}
-          {tab === "Services" && <ServicesTab />}
-          {tab === "Add-ons" && <AddonsTab />}
-          {tab === "Blog" && <BlogTab />}
+          {tab === "设置 Settings" && <SettingsTab />}
+          {tab === "服务项目 Services" && <ServicesTab />}
+          {tab === "附加服务 Add-ons" && <AddonsTab />}
+          {tab === "博客 Blog" && <BlogTab />}
         </div>
       </div>
     </div>
