@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -15,12 +16,12 @@ export default function LoginPage() {
     const res = await fetch("/api/admin/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ password }),
+      body: JSON.stringify({ username, password }),
     });
     if (res.ok) {
       router.push("/admin");
     } else {
-      setError("Incorrect password.");
+      setError("Incorrect username or password.");
       setLoading(false);
     }
   }
@@ -32,12 +33,21 @@ export default function LoginPage() {
         <p className="text-bark-light text-sm text-center mb-6">Admin</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="Username"
+            autoComplete="username"
+            className="w-full border border-brand-light rounded-lg px-4 py-2.5 text-bark focus:outline-none focus:ring-2 focus:ring-brand"
+            autoFocus
+          />
+          <input
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Password"
+            autoComplete="current-password"
             className="w-full border border-brand-light rounded-lg px-4 py-2.5 text-bark focus:outline-none focus:ring-2 focus:ring-brand"
-            autoFocus
           />
           {error && <p className="text-red-500 text-sm">{error}</p>}
           <button

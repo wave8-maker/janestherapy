@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
-  const { password } = await req.json();
-  if (password !== process.env.ADMIN_PASSWORD) {
+  const { username, password } = await req.json();
+  if (username !== process.env.ADMIN_USERNAME || password !== process.env.ADMIN_PASSWORD) {
     return NextResponse.json({ error: "Incorrect password" }, { status: 401 });
   }
   const res = NextResponse.json({ ok: true });
