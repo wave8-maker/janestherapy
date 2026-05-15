@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { services } from "../lib/services";
+import { getServices, getAddons } from "../lib/content";
 import AddonsSection from "../components/AddonsSection";
 
 export const metadata: Metadata = {
@@ -10,6 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default function ServicesPage() {
+  const services = getServices();
+  const addons = getAddons();
+
   return (
     <div className="max-w-5xl mx-auto px-6 py-16">
       <div className="text-center mb-12">
@@ -17,8 +20,7 @@ export default function ServicesPage() {
           Massage Services at Jane&apos;s Therapy
         </h1>
         <p className="text-bark-light max-w-xl mx-auto">
-          All sessions are one-on-one with Jane. Add cupping or Gua Sha to any
-          treatment.
+          All sessions are one-on-one with Jane. Add cupping or Gua Sha to any treatment.
         </p>
         <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
           <Link
@@ -64,15 +66,11 @@ export default function ServicesPage() {
                 </span>
               ))}
             </div>
-            <p className="text-sm text-bark-light leading-relaxed">
-              {svc.description}
-            </p>
-            {svc.details && (
+            <p className="text-sm text-bark-light leading-relaxed">{svc.description}</p>
+            {svc.details && svc.details.length > 0 && (
               <ul className="mt-3 space-y-1">
                 {svc.details.map((d) => (
-                  <li key={d} className="text-xs text-bark-light">
-                    • {d}
-                  </li>
+                  <li key={d} className="text-xs text-bark-light">• {d}</li>
                 ))}
               </ul>
             )}
@@ -80,7 +78,7 @@ export default function ServicesPage() {
         ))}
       </div>
 
-      <AddonsSection />
+      <AddonsSection addons={addons} />
     </div>
   );
 }

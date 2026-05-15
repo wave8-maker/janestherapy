@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { services } from "./lib/services";
+import { getSiteConfig, getServices, getAddons } from "./lib/content";
 import AddonsSection from "./components/AddonsSection";
 import ReviewsGallery from "./components/ReviewsGallery";
 
@@ -32,15 +32,18 @@ const highlights = [
 ];
 
 export default function HomePage() {
+  const { announcement } = getSiteConfig();
+  const services = getServices();
+  const addons = getAddons();
+
   return (
     <>
-      {/* Notice banner */}
-      <div className="bg-brand text-white text-center text-sm py-3 px-4">
-        <strong>Jane is back and accepting new clients.</strong> Online booking
-        is now open—schedule your next session today.
-      </div>
+      {announcement && (
+        <div className="bg-brand text-white text-center text-sm py-3 px-4">
+          <strong>{announcement}</strong>
+        </div>
+      )}
 
-      {/* Hero */}
       <section className="relative min-h-[560px] flex items-center justify-end">
         <Image
           src="/hero-banner.webp"
@@ -73,7 +76,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Intro */}
       <section className="max-w-5xl mx-auto px-6 py-16 text-center">
         <h1 className="text-3xl sm:text-4xl font-semibold text-bark mb-4">
           Welcome to Jane&apos;s Therapy
@@ -104,7 +106,6 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Why choose us */}
       <section className="bg-brand-light py-16">
         <div className="max-w-5xl mx-auto px-6">
           <h2 className="text-2xl font-semibold text-center text-bark mb-10">
@@ -112,21 +113,15 @@ export default function HomePage() {
           </h2>
           <div className="grid sm:grid-cols-3 gap-8">
             {highlights.map((h) => (
-              <div
-                key={h.title}
-                className="bg-white rounded-xl p-6 shadow-sm border border-brand-light"
-              >
+              <div key={h.title} className="bg-white rounded-xl p-6 shadow-sm border border-brand-light">
                 <h3 className="font-semibold text-bark mb-2">{h.title}</h3>
-                <p className="text-sm text-bark-light leading-relaxed">
-                  {h.desc}
-                </p>
+                <p className="text-sm text-bark-light leading-relaxed">{h.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Services */}
       <section className="max-w-5xl mx-auto px-6 py-16">
         <div className="text-center mb-10">
           <h2 className="text-2xl font-semibold text-bark mb-3">
@@ -135,31 +130,10 @@ export default function HomePage() {
           <p className="text-bark-light text-sm">
             All sessions are one-on-one with Jane. Add cupping or Gua Sha to any treatment.
           </p>
-          <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
-            <Link
-              href="https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-sage text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
-            >
-              Book Now
-            </Link>
-            <Link
-              href="https://app.squareup.com/gift/MLXZ54Y84T053/order"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="border border-brand text-brand px-8 py-3 rounded-full font-semibold hover:bg-brand-light transition-colors"
-            >
-              Gift Card
-            </Link>
-          </div>
         </div>
         <div className="grid sm:grid-cols-2 gap-6">
           {services.map((svc) => (
-            <div
-              key={svc.name}
-              className="bg-white border border-brand-light rounded-xl p-6 shadow-sm"
-            >
+            <div key={svc.name} className="bg-white border border-brand-light rounded-xl p-6 shadow-sm">
               <div className="flex items-start justify-between gap-2 mb-3">
                 <h3 className="text-lg font-semibold text-bark">{svc.name}</h3>
                 {svc.badge && (
@@ -170,33 +144,25 @@ export default function HomePage() {
               </div>
               <div className="flex flex-wrap gap-2 mb-3">
                 {svc.pricing.map((p) => (
-                  <span
-                    key={p.duration}
-                    className="text-xs bg-brand-light text-bark-light px-3 py-1 rounded-full"
-                  >
+                  <span key={p.duration} className="text-xs bg-brand-light text-bark-light px-3 py-1 rounded-full">
                     {p.duration} — {p.price}
                   </span>
                 ))}
               </div>
-              <p className="text-sm text-bark-light leading-relaxed">
-                {svc.description}
-              </p>
-              {svc.details && (
+              <p className="text-sm text-bark-light leading-relaxed">{svc.description}</p>
+              {svc.details && svc.details.length > 0 && (
                 <ul className="mt-3 space-y-1">
                   {svc.details.map((d) => (
-                    <li key={d} className="text-xs text-bark-light">
-                      • {d}
-                    </li>
+                    <li key={d} className="text-xs text-bark-light">• {d}</li>
                   ))}
                 </ul>
               )}
             </div>
           ))}
         </div>
-        <AddonsSection />
+        <AddonsSection addons={addons} />
       </section>
 
-      {/* Reviews */}
       <section className="max-w-5xl mx-auto px-6 py-16">
         <h2 className="text-2xl font-semibold text-bark text-center mb-10">
           What Clients Say
@@ -204,22 +170,13 @@ export default function HomePage() {
         <ReviewsGallery />
       </section>
 
-      {/* CTA strip */}
       <section className="max-w-5xl mx-auto px-6 py-16 text-center">
-        <p className="text-bark-light mb-4">
-          Questions? Jane responds to texts only.
-        </p>
-        <a
-          href="sms:6692924472"
-          className="text-brand font-semibold text-lg hover:underline"
-        >
+        <p className="text-bark-light mb-4">Questions? Jane responds to texts only.</p>
+        <a href="sms:6692924472" className="text-brand font-semibold text-lg hover:underline">
           Text 669-292-4472
         </a>
         <span className="mx-4 text-bark-light">or</span>
-        <a
-          href="mailto:janezhang.therapist@gmail.com"
-          className="text-brand font-semibold text-lg hover:underline"
-        >
+        <a href="mailto:janezhang.therapist@gmail.com" className="text-brand font-semibold text-lg hover:underline">
           Email Jane
         </a>
       </section>

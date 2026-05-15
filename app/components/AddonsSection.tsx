@@ -1,10 +1,9 @@
 import Link from "next/link";
-import { addons } from "../lib/services";
+import type { Addon } from "../lib/content";
 
-export default function AddonsSection() {
+export default function AddonsSection({ addons }: { addons: Addon[] }) {
   return (
     <>
-      {/* Book button between services and add-ons */}
       <div className="flex flex-col sm:flex-row gap-4 justify-center py-10">
         <Link
           href="https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services"
@@ -24,11 +23,8 @@ export default function AddonsSection() {
         </Link>
       </div>
 
-      {/* Add-ons */}
       <div className="bg-brand-light rounded-2xl p-8">
-        <h2 className="text-2xl font-semibold text-bark text-center mb-2">
-          ADD-ONs
-        </h2>
+        <h2 className="text-2xl font-semibold text-bark text-center mb-2">ADD-ONs</h2>
         <p className="text-sm text-bark-light text-center mb-8">
           Choose from our add-ons to enhance your massage. Simply let your
           therapist know before or during your session.
@@ -46,7 +42,8 @@ export default function AddonsSection() {
                     key={i}
                     className="text-xs bg-brand-light text-bark-light px-3 py-1 rounded-full"
                   >
-                    {p.duration ? `${p.duration} — ` : ""}{p.price}
+                    {p.duration ? `${p.duration} — ` : ""}
+                    {p.price}
                   </span>
                 ))}
               </div>
