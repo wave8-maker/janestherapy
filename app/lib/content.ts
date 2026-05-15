@@ -24,6 +24,7 @@ export function getAddons() {
 
 export function getBlogPosts() {
   const dir = path.join(contentDir, "blog");
+  if (!fs.existsSync(dir)) return [];
   return fs
     .readdirSync(dir)
     .filter((f) => f.endsWith(".md"))
