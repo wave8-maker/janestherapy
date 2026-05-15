@@ -139,6 +139,14 @@ function ServicesTab() {
   function update(i: number, patch: Partial<Service>) {
     setServices(s => s.map((x, idx) => idx === i ? { ...x, ...patch } : x));
   }
+  function move(i: number, dir: -1 | 1) {
+    setServices(s => {
+      const next = [...s];
+      [next[i], next[i + dir]] = [next[i + dir], next[i]];
+      return next;
+    });
+    setOpen(o => o === i ? i + dir : o === i + dir ? i : o);
+  }
   function addService() {
     setServices(s => [...s, { name: "New Service", badge: "", description: "", pricing: [{ duration: "", price: "" }], details: [] }]);
     setOpen(services.length);
@@ -153,11 +161,19 @@ function ServicesTab() {
     <div className="space-y-4">
       {services.map((svc, i) => (
         <div key={i} className="border border-brand-light rounded-xl overflow-hidden">
-          <button onClick={() => setOpen(open === i ? null : i)}
-            className="w-full flex items-center justify-between px-5 py-3 bg-white hover:bg-brand-light text-left">
-            <span className="font-medium text-bark">{svc.name || "未命名 Untitled"}</span>
-            <span className="text-bark-light text-sm">{open === i ? "▲" : "▼"}</span>
-          </button>
+          <div className="w-full flex items-center bg-white hover:bg-brand-light">
+            <button onClick={() => setOpen(open === i ? null : i)}
+              className="flex-1 flex items-center px-5 py-3 text-left">
+              <span className="font-medium text-bark">{svc.name || "未命名 Untitled"}</span>
+            </button>
+            <div className="flex items-center gap-0.5 pr-3">
+              <button onClick={() => move(i, -1)} disabled={i === 0}
+                className="p-1.5 text-bark-light hover:text-bark disabled:opacity-25 text-base leading-none" title="上移">↑</button>
+              <button onClick={() => move(i, 1)} disabled={i === services.length - 1}
+                className="p-1.5 text-bark-light hover:text-bark disabled:opacity-25 text-base leading-none" title="下移">↓</button>
+              <span className="text-bark-light text-sm ml-1">{open === i ? "▲" : "▼"}</span>
+            </div>
+          </div>
           {open === i && (
             <div className="p-5 bg-white border-t border-brand-light space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
@@ -229,6 +245,14 @@ function AddonsTab() {
   function update(i: number, patch: Partial<Addon>) {
     setAddons(a => a.map((x, idx) => idx === i ? { ...x, ...patch } : x));
   }
+  function move(i: number, dir: -1 | 1) {
+    setAddons(a => {
+      const next = [...a];
+      [next[i], next[i + dir]] = [next[i + dir], next[i]];
+      return next;
+    });
+    setOpen(o => o === i ? i + dir : o === i + dir ? i : o);
+  }
   function removeAddon(i: number) {
     if (!confirm("确认删除此附加服务？Remove this add-on?")) return;
     setAddons(a => a.filter((_, idx) => idx !== i));
@@ -239,11 +263,19 @@ function AddonsTab() {
     <div className="space-y-4">
       {addons.map((addon, i) => (
         <div key={i} className="border border-brand-light rounded-xl overflow-hidden">
-          <button onClick={() => setOpen(open === i ? null : i)}
-            className="w-full flex items-center justify-between px-5 py-3 bg-white hover:bg-brand-light text-left">
-            <span className="font-medium text-bark">{addon.name || "未命名 Untitled"}</span>
-            <span className="text-bark-light text-sm">{open === i ? "▲" : "▼"}</span>
-          </button>
+          <div className="w-full flex items-center bg-white hover:bg-brand-light">
+            <button onClick={() => setOpen(open === i ? null : i)}
+              className="flex-1 flex items-center px-5 py-3 text-left">
+              <span className="font-medium text-bark">{addon.name || "未命名 Untitled"}</span>
+            </button>
+            <div className="flex items-center gap-0.5 pr-3">
+              <button onClick={() => move(i, -1)} disabled={i === 0}
+                className="p-1.5 text-bark-light hover:text-bark disabled:opacity-25 text-base leading-none" title="上移">↑</button>
+              <button onClick={() => move(i, 1)} disabled={i === addons.length - 1}
+                className="p-1.5 text-bark-light hover:text-bark disabled:opacity-25 text-base leading-none" title="下移">↓</button>
+              <span className="text-bark-light text-sm ml-1">{open === i ? "▲" : "▼"}</span>
+            </div>
+          </div>
           {open === i && (
             <div className="p-5 bg-white border-t border-brand-light space-y-4">
               <Field label="附加服务名称 Add-on Name" value={addon.name} onChange={v => update(i, { name: v })} />
