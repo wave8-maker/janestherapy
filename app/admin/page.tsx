@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // ── types ────────────────────────────────────────────────────────────────────
@@ -62,6 +62,16 @@ function SaveBar({ onSave, saving, saved }: { onSave: () => void; saving: boolea
   );
 }
 
+function GripIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" className="text-bark-light/50 group-hover:text-bark-light transition-colors">
+      <rect x="2" y="1" width="10" height="2" rx="1" />
+      <rect x="2" y="6" width="10" height="2" rx="1" />
+      <rect x="2" y="11" width="10" height="2" rx="1" />
+    </svg>
+  );
+}
+
 // ── SETTINGS TAB ─────────────────────────────────────────────────────────────
 function SettingsTab() {
   const [announcement, setAnnouncement] = useState("");
@@ -121,6 +131,9 @@ function ServicesTab() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [open, setOpen] = useState<number | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  const canDrag = useRef(false);
 
   useEffect(() => {
     ghGet("content/services.json").then(({ content, sha }) => {
@@ -139,14 +152,25 @@ function ServicesTab() {
   function update(i: number, patch: Partial<Service>) {
     setServices(s => s.map((x, idx) => idx === i ? { ...x, ...patch } : x));
   }
-  function move(i: number, dir: -1 | 1) {
+
+  function handleDrop(toIdx: number) {
+    if (dragIdx === null || dragIdx === toIdx) { setDragIdx(null); setDragOver(null); return; }
     setServices(s => {
       const next = [...s];
-      [next[i], next[i + dir]] = [next[i + dir], next[i]];
+      const [item] = next.splice(dragIdx, 1);
+      next.splice(toIdx, 0, item);
       return next;
     });
-    setOpen(o => o === i ? i + dir : o === i + dir ? i : o);
+    setOpen(o => {
+      if (o === null) return null;
+      if (o === dragIdx) return toIdx;
+      if (dragIdx < toIdx && o > dragIdx && o <= toIdx) return o - 1;
+      if (dragIdx > toIdx && o < dragIdx && o >= toIdx) return o + 1;
+      return o;
+    });
+    setDragIdx(null); setDragOver(null);
   }
+
   function addService() {
     setServices(s => [...s, { name: "New Service", badge: "", description: "", pricing: [{ duration: "", price: "" }], details: [] }]);
     setOpen(services.length);
@@ -158,21 +182,28 @@ function ServicesTab() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {services.map((svc, i) => (
-        <div key={i} className="border border-brand-light rounded-xl overflow-hidden">
-          <div className="w-full flex items-center bg-white hover:bg-brand-light">
+        <div key={i}
+          draggable
+          onDragStart={e => { if (!canDrag.current) { e.preventDefault(); return; } setDragIdx(i); e.dataTransfer.effectAllowed = "move"; }}
+          onDragOver={e => { e.preventDefault(); setDragOver(i); }}
+          onDrop={() => handleDrop(i)}
+          onDragEnd={() => { canDrag.current = false; setDragIdx(null); setDragOver(null); }}
+          className={`border rounded-xl overflow-hidden transition-opacity ${dragIdx === i ? "opacity-40" : "opacity-100"} ${dragOver === i && dragIdx !== i ? "border-brand border-2" : "border-brand-light"}`}>
+          <div className="w-full flex items-center bg-white hover:bg-brand-light/60">
+            <span
+              className="group pl-3 pr-2 py-3.5 cursor-grab active:cursor-grabbing touch-none select-none"
+              onMouseDown={() => { canDrag.current = true; }}
+              onMouseUp={() => { canDrag.current = false; }}
+            >
+              <GripIcon />
+            </span>
             <button onClick={() => setOpen(open === i ? null : i)}
-              className="flex-1 flex items-center px-5 py-3 text-left">
+              className="flex-1 flex items-center px-2 py-3 text-left">
               <span className="font-medium text-bark">{svc.name || "未命名 Untitled"}</span>
             </button>
-            <div className="flex items-center gap-0.5 pr-3">
-              <button onClick={() => move(i, -1)} disabled={i === 0}
-                className="p-1.5 text-bark-light hover:text-bark disabled:opacity-25 text-base leading-none" title="上移">↑</button>
-              <button onClick={() => move(i, 1)} disabled={i === services.length - 1}
-                className="p-1.5 text-bark-light hover:text-bark disabled:opacity-25 text-base leading-none" title="下移">↓</button>
-              <span className="text-bark-light text-sm ml-1">{open === i ? "▲" : "▼"}</span>
-            </div>
+            <span className="text-bark-light text-sm pr-4">{open === i ? "▲" : "▼"}</span>
           </div>
           {open === i && (
             <div className="p-5 bg-white border-t border-brand-light space-y-4">
@@ -213,7 +244,7 @@ function ServicesTab() {
           )}
         </div>
       ))}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 pt-2">
         <Btn variant="secondary" onClick={addService}>+ 添加服务 Add Service</Btn>
         <SaveBar onSave={save} saving={saving} saved={saved} />
       </div>
@@ -228,6 +259,9 @@ function AddonsTab() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [open, setOpen] = useState<number | null>(null);
+  const [dragIdx, setDragIdx] = useState<number | null>(null);
+  const [dragOver, setDragOver] = useState<number | null>(null);
+  const canDrag = useRef(false);
 
   useEffect(() => {
     ghGet("content/addons.json").then(({ content, sha }) => {
@@ -242,17 +276,29 @@ function AddonsTab() {
     setSaving(false); setSaved(true);
     setTimeout(() => setSaved(false), 5000);
   }
+
   function update(i: number, patch: Partial<Addon>) {
     setAddons(a => a.map((x, idx) => idx === i ? { ...x, ...patch } : x));
   }
-  function move(i: number, dir: -1 | 1) {
+
+  function handleDrop(toIdx: number) {
+    if (dragIdx === null || dragIdx === toIdx) { setDragIdx(null); setDragOver(null); return; }
     setAddons(a => {
       const next = [...a];
-      [next[i], next[i + dir]] = [next[i + dir], next[i]];
+      const [item] = next.splice(dragIdx, 1);
+      next.splice(toIdx, 0, item);
       return next;
     });
-    setOpen(o => o === i ? i + dir : o === i + dir ? i : o);
+    setOpen(o => {
+      if (o === null) return null;
+      if (o === dragIdx) return toIdx;
+      if (dragIdx < toIdx && o > dragIdx && o <= toIdx) return o - 1;
+      if (dragIdx > toIdx && o < dragIdx && o >= toIdx) return o + 1;
+      return o;
+    });
+    setDragIdx(null); setDragOver(null);
   }
+
   function removeAddon(i: number) {
     if (!confirm("确认删除此附加服务？Remove this add-on?")) return;
     setAddons(a => a.filter((_, idx) => idx !== i));
@@ -260,21 +306,28 @@ function AddonsTab() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {addons.map((addon, i) => (
-        <div key={i} className="border border-brand-light rounded-xl overflow-hidden">
-          <div className="w-full flex items-center bg-white hover:bg-brand-light">
+        <div key={i}
+          draggable
+          onDragStart={e => { if (!canDrag.current) { e.preventDefault(); return; } setDragIdx(i); e.dataTransfer.effectAllowed = "move"; }}
+          onDragOver={e => { e.preventDefault(); setDragOver(i); }}
+          onDrop={() => handleDrop(i)}
+          onDragEnd={() => { canDrag.current = false; setDragIdx(null); setDragOver(null); }}
+          className={`border rounded-xl overflow-hidden transition-opacity ${dragIdx === i ? "opacity-40" : "opacity-100"} ${dragOver === i && dragIdx !== i ? "border-brand border-2" : "border-brand-light"}`}>
+          <div className="w-full flex items-center bg-white hover:bg-brand-light/60">
+            <span
+              className="group pl-3 pr-2 py-3.5 cursor-grab active:cursor-grabbing touch-none select-none"
+              onMouseDown={() => { canDrag.current = true; }}
+              onMouseUp={() => { canDrag.current = false; }}
+            >
+              <GripIcon />
+            </span>
             <button onClick={() => setOpen(open === i ? null : i)}
-              className="flex-1 flex items-center px-5 py-3 text-left">
+              className="flex-1 flex items-center px-2 py-3 text-left">
               <span className="font-medium text-bark">{addon.name || "未命名 Untitled"}</span>
             </button>
-            <div className="flex items-center gap-0.5 pr-3">
-              <button onClick={() => move(i, -1)} disabled={i === 0}
-                className="p-1.5 text-bark-light hover:text-bark disabled:opacity-25 text-base leading-none" title="上移">↑</button>
-              <button onClick={() => move(i, 1)} disabled={i === addons.length - 1}
-                className="p-1.5 text-bark-light hover:text-bark disabled:opacity-25 text-base leading-none" title="下移">↓</button>
-              <span className="text-bark-light text-sm ml-1">{open === i ? "▲" : "▼"}</span>
-            </div>
+            <span className="text-bark-light text-sm pr-4">{open === i ? "▲" : "▼"}</span>
           </div>
           {open === i && (
             <div className="p-5 bg-white border-t border-brand-light space-y-4">
@@ -300,7 +353,7 @@ function AddonsTab() {
           )}
         </div>
       ))}
-      <div className="flex flex-wrap gap-3">
+      <div className="flex flex-wrap gap-3 pt-2">
         <Btn variant="secondary" onClick={() => {
           setAddons(a => [...a, { name: "New Add-on", description: "", pricing: [{ duration: "", price: "" }] }]);
           setOpen(addons.length);
