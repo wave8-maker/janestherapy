@@ -489,7 +489,7 @@ function TextArea({ label, value, onChange, rows = 4, mono, placeholder }: {
 }
 
 // ── ROOT PAGE ─────────────────────────────────────────────────────────────────
-const TABS = ["设置 Settings", "服务项目 Services", "附加服务 Add-ons", "博客 Blog"] as const;
+const TABS = ["设置 Settings", "服务项目 Services", "附加服务 Add-ons", "博客编辑 Blog Editor"] as const;
 type Tab = typeof TABS[number];
 
 export default function AdminPage() {
@@ -520,7 +520,7 @@ export default function AdminPage() {
           {tab === "设置 Settings" && <SettingsTab />}
           {tab === "服务项目 Services" && <ServicesTab />}
           {tab === "附加服务 Add-ons" && <AddonsTab />}
-          {tab === "博客 Blog" && <BlogTab />}
+          {tab === "博客编辑 Blog Editor" && <BlogTab />}
         </div>
       </div>
     </div>

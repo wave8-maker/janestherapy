@@ -15,6 +15,7 @@
     "@tiptap/react": "^3.23.4",
     "@tiptap/starter-kit": "^3.23.4",
     "gray-matter": "^4.0.3",
+    "heic2any": "^0.0.4",
     "marked": "^18.0.3",
     "next": "16.2.6",
     "react": "19.2.4",

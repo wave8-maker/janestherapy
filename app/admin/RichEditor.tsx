@@ -37,9 +37,28 @@ function Divider() {
   return <div className="w-px h-4 bg-gray-200 mx-1 self-center" />;
 }
 
+async function toWebP(blob: Blob): Promise<string> {
+  const url = URL.createObjectURL(blob);
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.naturalWidth;
+      canvas.height = img.naturalHeight;
+      canvas.getContext("2d")!.drawImage(img, 0, 0);
+      URL.revokeObjectURL(url);
+      const dataUrl = canvas.toDataURL("image/webp", 0.9);
+      resolve(dataUrl.startsWith("data:image/webp") ? dataUrl : canvas.toDataURL("image/jpeg", 0.9));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error("load failed")); };
+    img.src = url;
+  });
+}
+
 export default function RichEditor({ initialContent, onChange }: Props) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   const editor = useEditor({
     extensions: [
@@ -77,12 +96,17 @@ export default function RichEditor({ initialContent, onChange }: Props) {
     e.target.value = "";
     setUploading(true);
     try {
-      const dataUrl = await new Promise<string>((resolve, reject) => {
-        const reader = new FileReader();
-        reader.onload = () => resolve(reader.result as string);
-        reader.onerror = reject;
-        reader.readAsDataURL(file);
-      });
+      let blob: Blob = file;
+      const isHeic =
+        file.type === "image/heic" ||
+        file.type === "image/heif" ||
+        /\.(heic|heif)$/i.test(file.name);
+      if (isHeic) {
+        const heic2any = (await import("heic2any")).default;
+        const result = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.92 });
+        blob = Array.isArray(result) ? result[0] : result;
+      }
+      const dataUrl = await toWebP(blob);
       editor.chain().focus().setImage({ src: dataUrl, alt: file.name }).run();
     } catch {
       alert("图片插入失败 Image insert failed");
@@ -102,53 +126,83 @@ export default function RichEditor({ initialContent, onChange }: Props) {
 
   if (!editor) return null;
 
+  const toolbarItems = (
+    <>
+      <ToolBtn active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title="粗体 Bold">
+        <b>B</b>
+      </ToolBtn>
+      <ToolBtn active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} title="斜体 Italic">
+        <em>I</em>
+      </ToolBtn>
+      <ToolBtn active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()} title="删除线 Strike">
+        <s>S</s>
+      </ToolBtn>
+      <Divider />
+      <ToolBtn active={editor.isActive("heading", { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="大标题 Heading 1">
+        H1
+      </ToolBtn>
+      <ToolBtn active={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="中标题 Heading 2">
+        H2
+      </ToolBtn>
+      <ToolBtn active={editor.isActive("heading", { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title="小标题 Heading 3">
+        H3
+      </ToolBtn>
+      <Divider />
+      <ToolBtn active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} title="无序列表 Bullet list">
+        • 列表
+      </ToolBtn>
+      <ToolBtn active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="有序列表 Ordered list">
+        1. 列表
+      </ToolBtn>
+      <ToolBtn active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()} title="引用 Blockquote">
+        ❝
+      </ToolBtn>
+      <Divider />
+      <ToolBtn active={editor.isActive("link")} onClick={promptLink} title="链接 Link">
+        🔗
+      </ToolBtn>
+      <ToolBtn disabled={uploading} onClick={() => fileInputRef.current?.click()} title="插入图片 Insert image">
+        {uploading ? "…" : "🖼 图片"}
+      </ToolBtn>
+      <Divider />
+      <ToolBtn disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} title="撤销 Undo">
+        ↩
+      </ToolBtn>
+      <ToolBtn disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} title="重做 Redo">
+        ↪
+      </ToolBtn>
+    </>
+  );
+
   return (
     <div className="border border-brand-light rounded-xl overflow-hidden">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center gap-0.5 px-2 py-1.5 bg-gray-50 border-b border-brand-light">
-        <ToolBtn active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title="粗体 Bold">
-          <b>B</b>
-        </ToolBtn>
-        <ToolBtn active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} title="斜体 Italic">
-          <em>I</em>
-        </ToolBtn>
-        <ToolBtn active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()} title="删除线 Strike">
-          <s>S</s>
-        </ToolBtn>
-        <Divider />
-        <ToolBtn active={editor.isActive("heading", { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="大标题 Heading 1">
-          H1
-        </ToolBtn>
-        <ToolBtn active={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="中标题 Heading 2">
-          H2
-        </ToolBtn>
-        <ToolBtn active={editor.isActive("heading", { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title="小标题 Heading 3">
-          H3
-        </ToolBtn>
-        <Divider />
-        <ToolBtn active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} title="无序列表 Bullet list">
-          • 列表
-        </ToolBtn>
-        <ToolBtn active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="有序列表 Ordered list">
-          1. 列表
-        </ToolBtn>
-        <ToolBtn active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()} title="引用 Blockquote">
-          ❝
-        </ToolBtn>
-        <Divider />
-        <ToolBtn active={editor.isActive("link")} onClick={promptLink} title="链接 Link">
-          🔗
-        </ToolBtn>
-        <ToolBtn disabled={uploading} onClick={() => fileInputRef.current?.click()} title="插入图片 Insert image">
-          {uploading ? "…" : "🖼 图片"}
-        </ToolBtn>
-        <Divider />
-        <ToolBtn disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} title="撤销 Undo">
-          ↩
-        </ToolBtn>
-        <ToolBtn disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} title="重做 Redo">
-          ↪
-        </ToolBtn>
+      <div className="bg-gray-50 border-b border-brand-light">
+        {/* Mobile: hamburger header */}
+        <div className="flex items-center justify-between px-2 py-1.5 sm:hidden">
+          <span className="text-xs text-bark-light">格式工具 Formatting</span>
+          <button
+            type="button"
+            onMouseDown={e => e.preventDefault()}
+            onClick={() => setMenuOpen(o => !o)}
+            className="p-1.5 rounded text-bark hover:bg-brand-light transition-colors"
+            title="格式菜单 Formatting menu"
+          >
+            {menuOpen ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
+        </div>
+        {/* Desktop: always visible; Mobile: toggleable */}
+        <div className={`${menuOpen ? "flex" : "hidden"} sm:flex flex-wrap items-center gap-0.5 px-2 py-1.5`}>
+          {toolbarItems}
+        </div>
       </div>
 
       {/* Editor area */}
@@ -156,7 +210,13 @@ export default function RichEditor({ initialContent, onChange }: Props) {
         <EditorContent editor={editor} />
       </div>
 
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept="image/*,.heic,.heif"
+        className="hidden"
+        onChange={handleImageSelect}
+      />
     </div>
   );
 }
