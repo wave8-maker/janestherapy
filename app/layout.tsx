@@ -55,15 +55,16 @@ export default function RootLayout({
               ))}
             </nav>
             <div className="flex items-center gap-2">
-              <MobileNav />
               <Link
                 href="https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bg-sage text-white text-sm px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
               >
-                Book Now
+                <span className="sm:hidden">Book</span>
+                <span className="hidden sm:inline">Book Now</span>
               </Link>
+              <MobileNav />
             </div>
           </div>
         </header>
