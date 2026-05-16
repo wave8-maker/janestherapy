@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import MobileNav from "./components/MobileNav";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -23,7 +24,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full">
       <body className="min-h-full flex flex-col">
-        <header className="bg-white border-b border-brand-light sticky top-0 z-50">
+        <header className="bg-white border-b border-brand-light sticky top-0 z-50 relative">
           <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
             <Link href="/" className="flex items-center gap-3">
               <Image
@@ -53,14 +54,17 @@ export default function RootLayout({
                 </Link>
               ))}
             </nav>
-            <Link
-              href="https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="bg-sage text-white text-sm px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
-            >
-              Book Now
-            </Link>
+            <div className="flex items-center gap-2">
+              <MobileNav />
+              <Link
+                href="https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="bg-sage text-white text-sm px-4 py-2 rounded-full hover:opacity-90 transition-opacity"
+              >
+                Book Now
+              </Link>
+            </div>
           </div>
         </header>
 
