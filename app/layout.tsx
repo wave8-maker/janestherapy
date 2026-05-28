@@ -92,12 +92,6 @@ export default function RootLayout({
               </p>
               <p className="text-white/80 mt-1">📱 669-292-4472 (text only)</p>
             </div>
-            <div>
-              <p className="font-semibold mb-2">Hours</p>
-              <p className="text-white/80">Mon, Tue, Thu–Sun</p>
-              <p className="text-white/80">9:30 AM – 8:30 PM</p>
-              <p className="text-white/80 mt-1">Wednesday: Closed</p>
-            </div>
           </div>
           <div className="max-w-5xl mx-auto px-6 mt-8 pt-6 border-t border-white/20 text-center text-white/50 text-xs">
             © {new Date().getFullYear()} Jane&apos;s Therapy. All rights reserved.

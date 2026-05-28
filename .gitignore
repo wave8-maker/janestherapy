@@ -33,6 +33,9 @@ yarn-error.log*
 # env files (can opt-in for committing if needed)
 .env*
 
+# customer intake data (local dev fallback)
+/data/intakes/
+
 # vercel
 .vercel
 
