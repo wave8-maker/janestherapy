@@ -92,6 +92,15 @@ export default function RootLayout({
               </p>
               <p className="text-white/80 mt-1">📱 669-292-4472 (text only)</p>
             </div>
+            <div>
+              <p className="font-semibold mb-2">New Clients</p>
+              <Link
+                href="/intake"
+                className="text-white/80 hover:text-brand-light transition-colors"
+              >
+                Client Intake Form
+              </Link>
+            </div>
           </div>
           <div className="max-w-5xl mx-auto px-6 mt-8 pt-6 border-t border-white/20 text-center text-white/50 text-xs">
             © {new Date().getFullYear()} Jane&apos;s Therapy. All rights reserved.
