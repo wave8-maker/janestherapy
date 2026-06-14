@@ -1,19 +1,26 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { getBlogPosts } from "../lib/content";
+import { pageMeta } from "../lib/seo";
 
-export const metadata: Metadata = {
-  title: "Blog – Jane's Therapy",
-  description: "Wellness tips, massage therapy insights, and updates from Jane's Therapy in Palo Alto.",
-};
+export const metadata = pageMeta({
+  title: "Blog",
+  description:
+    "Wellness tips, massage therapy insights, and updates from Jane's Therapy in Palo Alto.",
+  path: "/blog",
+});
 
 export default function BlogPage() {
   const posts = getBlogPosts();
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-semibold text-bark mb-2">Blog</h1>
-      <p className="text-bark-light mb-12">Wellness tips, therapy insights, and updates from Jane.</p>
+    <div className="max-w-4xl mx-auto px-6 py-20">
+      <div className="mb-14">
+        <p className="eyebrow">Journal</p>
+        <h1 className="font-display text-4xl sm:text-5xl text-bark mt-3 mb-3">Blog</h1>
+        <p className="text-bark-light text-lg">
+          Wellness tips, therapy insights, and updates from Jane.
+        </p>
+      </div>
       <div className="space-y-6">
         {posts.map((post) => {
           const dateStr = new Date(post.date).toLocaleDateString("en-US", {
@@ -22,18 +29,20 @@ export default function BlogPage() {
           return (
             <article
               key={post.slug}
-              className="bg-white border border-brand-light rounded-xl p-6 shadow-sm"
+              className="card-soft p-7 transition-transform duration-300 hover:-translate-y-1"
             >
-              <p className="text-xs text-bark-light/70 mb-2">{dateStr}</p>
-              <h2 className="text-xl font-semibold text-bark mb-2">
+              <p className="eyebrow text-bark-light/60 mb-3">{dateStr}</p>
+              <h2 className="font-display text-2xl text-bark mb-2">
                 <Link href={`/blog/${post.slug}`} className="hover:text-brand transition-colors">
                   {post.title}
                 </Link>
               </h2>
-              <p className="text-sm text-bark-light leading-relaxed">{post.excerpt}</p>
+              {post.excerpt && (
+                <p className="text-bark-light leading-relaxed">{post.excerpt}</p>
+              )}
               <Link
                 href={`/blog/${post.slug}`}
-                className="mt-4 inline-block text-brand text-sm font-semibold hover:underline"
+                className="mt-4 inline-flex items-center gap-1 text-brand text-sm font-semibold link-underline"
               >
                 Read more →
               </Link>
