@@ -1,27 +1,37 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { getSiteConfig } from "../lib/content";
+import { pageMeta } from "../lib/seo";
 
-export const metadata: Metadata = {
-  title: "Location & Contact – Jane's Therapy",
+const BOOKING_URL =
+  "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";
+const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
+
+export const metadata = pageMeta({
+  title: "Location & Contact",
   description:
-    "Jane's Therapy is located in Palo Alto, CA. Contact Jane directly for the address. Text 669-292-4472 or email janezhang.therapist@gmail.com.",
-};
+    "Jane's Therapy is located in Palo Alto, CA. Contact Jane directly for the address — text 669-292-4472 or email janezhang.therapist@gmail.com.",
+  path: "/location",
+});
 
 export default function LocationPage() {
   const { hours } = getSiteConfig();
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-semibold text-bark mb-2">Location &amp; Contact</h1>
-      <p className="text-bark-light mb-12">
-        Jane is a solo practitioner—reach out directly for anything you need.
-      </p>
+    <div className="max-w-6xl mx-auto px-6 py-20">
+      <div className="mb-14">
+        <p className="eyebrow">Hours &amp; contact</p>
+        <h1 className="font-display text-4xl sm:text-5xl text-bark mt-3 mb-3">
+          Location &amp; Contact
+        </h1>
+        <p className="text-bark-light text-lg">
+          Jane is a solo practitioner — reach out directly for anything you need.
+        </p>
+      </div>
 
       <div className="grid sm:grid-cols-2 gap-12">
         <div className="space-y-6">
-          <div className="bg-white border border-brand-light rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold text-bark mb-4 text-lg">Jane&apos;s Therapy</h2>
+          <div className="card-soft p-7">
+            <h2 className="font-display text-xl text-bark mb-4">Jane&apos;s Therapy</h2>
             <div className="space-y-4 text-sm text-bark-light">
               <div>
                 <p className="font-semibold text-bark">📍 Address</p>
@@ -46,27 +56,17 @@ export default function LocationPage() {
               </div>
             </div>
             <div className="mt-6 flex flex-col gap-3">
-              <Link
-                href="https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="bg-sage text-white text-center py-2.5 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity"
-              >
+              <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary w-full">
                 Book Online
               </Link>
-              <Link
-                href="https://app.squareup.com/gift/MLXZ54Y84T053/order"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="border border-brand text-brand text-center py-2.5 rounded-full text-sm font-semibold hover:bg-brand-light transition-colors"
-              >
+              <Link href={GIFT_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary w-full">
                 Gift Card
               </Link>
             </div>
           </div>
 
-          <div className="bg-white border border-brand-light rounded-xl p-6 shadow-sm">
-            <h2 className="font-semibold text-bark mb-4 text-lg">Hours</h2>
+          <div className="card-soft p-7">
+            <h2 className="font-display text-xl text-bark mb-4">Hours</h2>
             <table className="w-full text-sm">
               <tbody>
                 {hours.map((h) => (

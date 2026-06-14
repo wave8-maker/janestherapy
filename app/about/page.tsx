@@ -1,18 +1,25 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
+import { pageMeta } from "../lib/seo";
 
-export const metadata: Metadata = {
-  title: "About Jane Zhang – Jane's Therapy",
+const BOOKING_URL =
+  "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";
+
+export const metadata = pageMeta({
+  title: "About Jane Zhang, CMT",
   description:
-    "Jane Zhang, CMT, graduated from the National Holistic Institute with 800+ hours of training. Learn about her background and approach to massage therapy.",
-};
+    "Jane Zhang, CMT, graduated from the National Holistic Institute with 800+ hours of training. Learn about her background and Traditional Chinese Medicine approach to massage therapy.",
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
-      <h1 className="text-3xl font-semibold text-bark mb-2">About Me</h1>
-      <p className="text-brand italic mb-12">Jane Zhang, CMT</p>
+    <div className="max-w-5xl mx-auto px-6 py-20">
+      <div className="mb-14">
+        <p className="eyebrow">Meet your therapist</p>
+        <h1 className="font-display text-4xl sm:text-5xl text-bark mt-3">About Jane</h1>
+        <p className="text-brand mt-2 text-lg">Jane Zhang, CMT</p>
+      </div>
 
       <div className="grid sm:grid-cols-3 gap-12 items-start">
         {/* Photo placeholder */}
@@ -68,18 +75,10 @@ export default function AboutPage() {
           Every session is with Jane directly—no front desk staff, no handoffs.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-sage text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
-          >
+          <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
             Book Now
           </Link>
-          <Link
-            href="/services"
-            className="border border-brand text-brand px-8 py-3 rounded-full font-semibold hover:bg-brand-light transition-colors"
-          >
+          <Link href="/services" className="btn btn-secondary">
             View Services
           </Link>
         </div>

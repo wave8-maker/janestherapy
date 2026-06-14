@@ -4,30 +4,34 @@ import { getSiteConfig, getServices, getAddons } from "./lib/content";
 import AddonsSection from "./components/AddonsSection";
 import ReviewsGallery from "./components/ReviewsGallery";
 
+const BOOKING_URL =
+  "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";
+const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
+
 const conditions = [
-  "Lower and Upper Back Pain",
-  "Neck Pain, Headaches, and Migraines",
-  "Frozen Shoulder",
-  "Ankle and Knee Pain",
-  "Hip Pain",
+  "Lower & upper back pain",
+  "Neck pain, headaches & migraines",
+  "Frozen shoulder",
+  "Ankle & knee pain",
+  "Hip pain",
   "Sciatica",
-  "Plantar Fasciitis",
-  "Carpal Tunnel Syndrome",
-  "Knee or Hip Arthritis",
+  "Plantar fasciitis",
+  "Carpal tunnel syndrome",
+  "Knee or hip arthritis",
 ];
 
 const highlights = [
   {
-    title: "800+ Hours of Training",
-    desc: "Graduate of the National Holistic Institute (NHI) with extensive multi-modality training.",
+    title: "800+ hours of training",
+    desc: "Graduate of the National Holistic Institute with extensive multi-modality training.",
   },
   {
     title: "Traditional Chinese Medicine",
-    desc: "Deep roots in TCM inform every treatment—beyond western massage techniques.",
+    desc: "Deep roots in TCM inform every treatment — beyond Western massage techniques.",
   },
   {
-    title: "Solo Practitioner",
-    desc: "Every session is with Jane directly. No handoffs, no surprises.",
+    title: "A true solo practitioner",
+    desc: "Every session is with Jane directly. No handoffs, no front desk, no surprises.",
   },
 ];
 
@@ -39,82 +43,107 @@ export default function HomePage() {
   return (
     <>
       {announcement && (
-        <div className="bg-brand text-white text-center text-sm py-3 px-4">
-          <strong>{announcement}</strong>
+        <div className="bg-brand text-white text-center text-sm py-2.5 px-4">
+          <strong className="font-medium tracking-wide">{announcement}</strong>
         </div>
       )}
 
-      <section className="relative min-h-[560px] flex items-center justify-end">
+      {/* Hero */}
+      <section className="relative min-h-[80vh] flex items-center overflow-hidden">
         <Image
           src="/hero-banner.webp"
-          alt="Jane's Therapy massage studio"
+          alt="Calm massage therapy studio at Jane's Therapy in Palo Alto"
           fill
           className="object-cover"
           priority
         />
-        <div className="absolute inset-0 bg-[#a78a7b]/80" />
-        <div className="relative z-10 max-w-5xl mx-auto w-full px-6 py-16 flex justify-end">
-          <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-8 max-w-sm text-white">
-            <h2 className="text-lg font-semibold mb-4">
-              Jane is here to help if you&apos;re experiencing:
-            </h2>
-            <ul className="space-y-2 text-sm">
+        <div
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(105deg, rgba(38,27,20,0.86) 0%, rgba(44,32,24,0.55) 45%, rgba(110,82,60,0.25) 100%)",
+          }}
+        />
+        <div className="relative z-10 max-w-6xl mx-auto w-full px-6 py-20 grid lg:grid-cols-[1.15fr_0.85fr] gap-12 items-center">
+          {/* Headline */}
+          <div className="text-white max-w-xl">
+            <p className="eyebrow text-brand-light reveal reveal-1">
+              Massage Therapy · Palo Alto, CA
+            </p>
+            <h1 className="reveal reveal-2 font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.05] mt-5">
+              Therapeutic massage in Palo Alto, made personal.
+            </h1>
+            <p className="reveal reveal-3 mt-6 text-white/85 text-lg leading-relaxed max-w-md">
+              Deep tissue, Swedish, lymphatic drainage, and Traditional Chinese
+              Medicine bodywork — one-on-one with Jane Zhang, CMT.
+            </p>
+            <div className="reveal reveal-4 mt-9 flex flex-col sm:flex-row gap-4">
+              <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+                Book an Appointment
+              </Link>
+              <Link
+                href="/services"
+                className="btn border border-white/40 text-white hover:bg-white/10"
+              >
+                View Services
+              </Link>
+            </div>
+          </div>
+
+          {/* Conditions card */}
+          <div className="reveal reveal-5 card-soft bg-white/10 backdrop-blur-md border-white/20 p-7 text-white">
+            <p className="eyebrow text-brand-light">Here to help with</p>
+            <ul className="mt-4 space-y-2.5 text-sm">
               {conditions.map((c) => (
-                <li key={c} className="flex items-start gap-2">
-                  <span className="mt-0.5 text-white/70">•</span>
-                  {c}
+                <li key={c} className="flex items-start gap-3">
+                  <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-brand-light shrink-0" />
+                  <span className="text-white/90">{c}</span>
                 </li>
               ))}
             </ul>
-            <Link
-              href="/services"
-              className="mt-6 block text-center bg-white text-bark font-semibold py-2.5 rounded-full hover:bg-brand-light transition-colors"
-            >
-              View All Services
+          </div>
+        </div>
+      </section>
+
+      {/* Intro */}
+      <section className="bg-warm-glow">
+        <div className="max-w-3xl mx-auto px-6 py-24 text-center">
+          <p className="eyebrow">A sanctuary in Silicon Valley</p>
+          <h2 className="font-display text-3xl sm:text-4xl text-bark mt-4 leading-tight">
+            We believe a great massage doesn&apos;t just relax — it heals.
+          </h2>
+          <p className="mt-6 text-bark-light text-lg leading-relaxed">
+            Nestled in Palo Alto, Jane&apos;s Therapy offers a quiet refuge from the
+            pace of daily life. Each session is tailored to your body and your
+            goals, blending clinical technique with genuine, unhurried care.
+          </p>
+          <div className="mt-9 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+              Book an Appointment
+            </Link>
+            <Link href={GIFT_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+              Send a Gift Card
             </Link>
           </div>
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 py-16 text-center">
-        <h1 className="text-3xl sm:text-4xl font-semibold text-bark mb-4">
-          Welcome to Jane&apos;s Therapy
-        </h1>
-        <p className="text-bark-light max-w-2xl mx-auto leading-relaxed">
-          Nestled in Palo Alto, CA, Jane&apos;s Therapy offers a sanctuary from
-          the stresses of daily life. We believe in the power of a great massage
-          not just to relax but to heal—catering to your individual needs with
-          every session.
-        </p>
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-sage text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
-          >
-            Book an Appointment
-          </Link>
-          <Link
-            href="https://app.squareup.com/gift/MLXZ54Y84T053/order"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-brand text-brand px-8 py-3 rounded-full font-semibold hover:bg-brand-light transition-colors"
-          >
-            Send a Gift Card
-          </Link>
-        </div>
-      </section>
-
-      <section className="bg-brand-light py-16">
-        <div className="max-w-5xl mx-auto px-6">
-          <h2 className="text-2xl font-semibold text-center text-bark mb-10">
-            Why Clients Choose Jane
-          </h2>
-          <div className="grid sm:grid-cols-3 gap-8">
-            {highlights.map((h) => (
-              <div key={h.title} className="bg-white rounded-xl p-6 shadow-sm border border-brand-light">
-                <h3 className="font-semibold text-bark mb-2">{h.title}</h3>
+      {/* Why clients choose Jane */}
+      <section className="bg-brand-light">
+        <div className="max-w-6xl mx-auto px-6 py-24">
+          <div className="text-center mb-14">
+            <p className="eyebrow">Why clients choose Jane</p>
+            <h2 className="font-display text-3xl sm:text-4xl text-bark mt-3">
+              Care you can feel the difference of
+            </h2>
+          </div>
+          <div className="grid sm:grid-cols-3 gap-6">
+            {highlights.map((h, i) => (
+              <div key={h.title} className="card-soft p-8 group">
+                <span className="font-display text-2xl text-brand/70">
+                  0{i + 1}
+                </span>
+                <h3 className="font-display text-xl text-bark mt-3 mb-2">{h.title}</h3>
                 <p className="text-sm text-bark-light leading-relaxed">{h.desc}</p>
               </div>
             ))}
@@ -122,29 +151,38 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="text-center mb-10">
-          <h2 className="text-2xl font-semibold text-bark mb-3">
-            Massage Services at Jane&apos;s Therapy
+      {/* Services preview */}
+      <section className="max-w-6xl mx-auto px-6 py-24">
+        <div className="text-center mb-14">
+          <p className="eyebrow">Treatments</p>
+          <h2 className="font-display text-3xl sm:text-4xl text-bark mt-3 mb-4">
+            Massage services at Jane&apos;s Therapy
           </h2>
-          <p className="text-bark-light text-sm">
-            All sessions are one-on-one with Jane. Add cupping or Gua Sha to any treatment.
+          <p className="text-bark-light max-w-xl mx-auto">
+            All sessions are one-on-one with Jane. Add cupping or Gua Sha to any
+            treatment.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 gap-6">
           {services.map((svc) => (
-            <div key={svc.name} className="bg-white border border-brand-light rounded-xl p-6 shadow-sm">
+            <div
+              key={svc.name}
+              className="card-soft p-7 transition-transform duration-300 hover:-translate-y-1"
+            >
               <div className="flex items-start justify-between gap-2 mb-3">
-                <h3 className="text-lg font-semibold text-bark">{svc.name}</h3>
+                <h3 className="font-display text-xl text-bark">{svc.name}</h3>
                 {svc.badge && (
-                  <span className="text-xs bg-brand text-white px-2 py-0.5 rounded-full whitespace-nowrap">
+                  <span className="text-[0.65rem] uppercase tracking-wider bg-brand text-white px-2.5 py-1 rounded-full whitespace-nowrap">
                     {svc.badge}
                   </span>
                 )}
               </div>
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex flex-wrap gap-2 mb-4">
                 {svc.pricing.map((p) => (
-                  <span key={p.duration} className="text-xs bg-brand-light text-bark-light px-3 py-1 rounded-full">
+                  <span
+                    key={p.duration}
+                    className="text-xs bg-brand-light text-bark-light px-3 py-1 rounded-full"
+                  >
                     {p.duration} — {p.price}
                   </span>
                 ))}
@@ -163,22 +201,33 @@ export default function HomePage() {
         <AddonsSection addons={addons} />
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <h2 className="text-2xl font-semibold text-bark text-center mb-10">
-          What Clients Say
-        </h2>
-        <ReviewsGallery />
+      {/* Reviews */}
+      <section className="bg-brand-light">
+        <div className="max-w-6xl mx-auto px-6 py-24">
+          <div className="text-center mb-14">
+            <p className="eyebrow">In their words</p>
+            <h2 className="font-display text-3xl sm:text-4xl text-bark mt-3">
+              What clients say
+            </h2>
+          </div>
+          <ReviewsGallery />
+        </div>
       </section>
 
-      <section className="max-w-5xl mx-auto px-6 py-16 text-center">
-        <p className="text-bark-light mb-4">Questions? Jane responds to texts only.</p>
-        <a href="sms:6692924472" className="text-brand font-semibold text-lg hover:underline">
-          Text 669-292-4472
-        </a>
-        <span className="mx-4 text-bark-light">or</span>
-        <a href="mailto:janezhang.therapist@gmail.com" className="text-brand font-semibold text-lg hover:underline">
-          Email Jane
-        </a>
+      {/* Contact */}
+      <section className="max-w-3xl mx-auto px-6 py-24 text-center">
+        <p className="eyebrow">Get in touch</p>
+        <h2 className="font-display text-3xl sm:text-4xl text-bark mt-3 mb-6">
+          Questions? Jane responds to texts.
+        </h2>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <a href="sms:6692924472" className="btn btn-primary">
+            Text 669-292-4472
+          </a>
+          <a href="mailto:janezhang.therapist@gmail.com" className="btn btn-secondary">
+            Email Jane
+          </a>
+        </div>
       </section>
     </>
   );

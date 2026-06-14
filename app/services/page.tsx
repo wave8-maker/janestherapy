@@ -1,42 +1,50 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { getServices, getAddons } from "../lib/content";
 import AddonsSection from "../components/AddonsSection";
+import JsonLd from "../components/JsonLd";
+import { pageMeta, SITE_URL, SITE_NAME } from "../lib/seo";
 
-export const metadata: Metadata = {
-  title: "Massage Services – Jane's Therapy",
+const BOOKING_URL =
+  "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";
+const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
+
+export const metadata = pageMeta({
+  title: "Massage Services",
   description:
-    "Swedish, Clinical Deep Tissue, Lymphatic Drainage, Glow from Head to Toe, and more. Located in Palo Alto, CA.",
-};
+    "Swedish, Clinical Deep Tissue, Lymphatic Drainage, Glow from Head to Toe, prenatal, and more — one-on-one with Jane Zhang, CMT in Palo Alto, CA.",
+  path: "/services",
+});
 
 export default function ServicesPage() {
   const services = getServices();
   const addons = getAddons();
 
+  const serviceLd = services.map((svc) => ({
+    "@context": "https://schema.org",
+    "@type": "Service",
+    serviceType: "Massage therapy",
+    name: svc.name,
+    description: svc.description,
+    provider: { "@type": "LocalBusiness", "@id": `${SITE_URL}/#business`, name: SITE_NAME },
+    areaServed: { "@type": "Place", name: "Palo Alto, CA" },
+  }));
+
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-semibold text-bark mb-3">
-          Massage Services at Jane&apos;s Therapy
+    <div className="max-w-6xl mx-auto px-6 py-20">
+      <JsonLd data={serviceLd} />
+      <div className="text-center mb-14">
+        <p className="eyebrow">Treatments &amp; pricing</p>
+        <h1 className="font-display text-4xl sm:text-5xl text-bark mt-3 mb-4">
+          Massage services at Jane&apos;s Therapy
         </h1>
-        <p className="text-bark-light max-w-xl mx-auto">
+        <p className="text-bark-light max-w-xl mx-auto text-lg">
           All sessions are one-on-one with Jane. Add cupping or Gua Sha to any treatment.
         </p>
-        <div className="mt-6 flex flex-col sm:flex-row gap-4 justify-center">
-          <Link
-            href="https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="bg-sage text-white px-8 py-3 rounded-full font-semibold hover:opacity-90 transition-opacity"
-          >
+        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+          <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
             Book Now
           </Link>
-          <Link
-            href="https://app.squareup.com/gift/MLXZ54Y84T053/order"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-brand text-brand px-8 py-3 rounded-full font-semibold hover:bg-brand-light transition-colors"
-          >
+          <Link href={GIFT_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
             Gift Card
           </Link>
         </div>
@@ -46,12 +54,12 @@ export default function ServicesPage() {
         {services.map((svc) => (
           <div
             key={svc.name}
-            className="bg-white border border-brand-light rounded-xl p-6 shadow-sm"
+            className="card-soft p-7 transition-transform duration-300 hover:-translate-y-1"
           >
             <div className="flex items-start justify-between gap-2 mb-3">
-              <h2 className="text-lg font-semibold text-bark">{svc.name}</h2>
+              <h2 className="font-display text-xl text-bark">{svc.name}</h2>
               {svc.badge && (
-                <span className="text-xs bg-brand text-white px-2 py-0.5 rounded-full whitespace-nowrap">
+                <span className="text-[0.65rem] uppercase tracking-wider bg-brand text-white px-2.5 py-1 rounded-full whitespace-nowrap">
                   {svc.badge}
                 </span>
               )}

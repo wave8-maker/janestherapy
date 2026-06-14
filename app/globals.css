@@ -1,17 +1,171 @@
 @import "tailwindcss";
 
 @theme inline {
-  --color-brand: #a78a7b;
-  --color-brand-dark: #8a6f63;
-  --color-brand-light: #f5f0ec;
-  --color-cream: #faf7f4;
-  --color-bark: #3d2b1f;
-  --color-bark-light: #6b4c3b;
-  --color-sage: #4caf50;
+  /* Warm clay + sand palette — dominant warmth, sharp eucalyptus accent.
+     Token names are unchanged so existing markup adopts the refined values. */
+  --color-brand: #a87c5f;        /* clay — primary warm accent */
+  --color-brand-dark: #855c40;   /* deep clay */
+  --color-brand-light: #efe5d9;  /* soft sand — section fills, borders */
+  --color-cream: #faf6f0;        /* page background */
+  --color-bark: #2c2018;         /* espresso — primary text */
+  --color-bark-light: #6e5c4e;   /* stone — muted text */
+  --color-sage: #5c7059;         /* eucalyptus — primary CTA (refined) */
+  --color-sage-dark: #44543f;    /* deep eucalyptus */
+
+  --font-display: var(--font-fraunces), Georgia, "Times New Roman", serif;
+  --font-sans: var(--font-hanken), ui-sans-serif, system-ui, sans-serif;
 }
 
-body {
-  background-color: var(--color-cream);
-  color: var(--color-bark);
-  font-family: Georgia, "Times New Roman", serif;
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--color-cream);
+    color: var(--color-bark);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Editorial serif for headings; opsz pushes Fraunces into its display optical size. */
+  h1,
+  h2,
+  h3,
+  .font-display {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    font-variation-settings: "opsz" 120;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: var(--color-brand);
+    color: #fff;
+  }
+
+  a,
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+@layer components {
+  /* Small-caps label that sits above a heading */
+  .eyebrow {
+    font-family: var(--font-sans);
+    text-transform: uppercase;
+    letter-spacing: 0.22em;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--color-brand);
+  }
+
+  /* Refined pill buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    border-radius: 9999px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 0.85rem 1.9rem;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background-color 0.25s ease, color 0.25s ease;
+    will-change: transform;
+  }
+  .btn:hover {
+    transform: translateY(-2px);
+  }
+  .btn-primary {
+    background-color: var(--color-sage);
+    color: #fff;
+    box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--color-sage) 80%, black);
+  }
+  .btn-primary:hover {
+    background-color: var(--color-sage-dark);
+  }
+  .btn-secondary {
+    border: 1px solid color-mix(in srgb, var(--color-brand) 55%, transparent);
+    color: var(--color-brand-dark);
+    background-color: transparent;
+  }
+  .btn-secondary:hover {
+    background-color: var(--color-brand-light);
+  }
+
+  /* Card with a soft, warm shadow */
+  .card-soft {
+    background: #fff;
+    border: 1px solid var(--color-brand-light);
+    border-radius: 1rem;
+    box-shadow: 0 1px 2px rgba(44, 32, 24, 0.04), 0 18px 40px -28px rgba(44, 32, 24, 0.35);
+  }
+}
+
+@layer utilities {
+  /* Atmospheric warm radial glow for section backgrounds */
+  .bg-warm-glow {
+    background-image:
+      radial-gradient(60% 55% at 15% 0%, rgba(168, 124, 95, 0.12), transparent 60%),
+      radial-gradient(50% 50% at 100% 20%, rgba(92, 112, 89, 0.1), transparent 55%);
+  }
+
+  /* Subtle film-grain overlay; sits above background, below content */
+  .grain::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.4;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+
+  /* Staggered load-in reveal */
+  @keyframes reveal-up {
+    from {
+      opacity: 0;
+      transform: translateY(18px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .reveal {
+    opacity: 0;
+    animation: reveal-up 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .reveal-1 { animation-delay: 0.05s; }
+  .reveal-2 { animation-delay: 0.18s; }
+  .reveal-3 { animation-delay: 0.31s; }
+  .reveal-4 { animation-delay: 0.44s; }
+  .reveal-5 { animation-delay: 0.57s; }
+
+  /* Animated underline for text links */
+  .link-underline {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 0 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.3s ease;
+  }
+  .link-underline:hover {
+    background-size: 100% 1px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal {
+    animation: none;
+    opacity: 1;
+  }
+  .btn:hover {
+    transform: none;
+  }
 }

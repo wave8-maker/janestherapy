@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getBlogPost, getBlogPosts } from "../../lib/content";
+import JsonLd from "../../components/JsonLd";
+import { SITE_URL, SITE_NAME } from "../../lib/seo";
 import { marked } from "marked";
 
 export async function generateStaticParams() {
@@ -14,7 +16,22 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { slug } = await params;
   const post = getBlogPost(slug);
-  return { title: `${post.title} – Jane's Therapy`, description: post.excerpt };
+  const description =
+    post.excerpt || `${post.title} — wellness insights from Jane's Therapy in Palo Alto.`;
+  return {
+    title: post.title,
+    description,
+    alternates: { canonical: `/blog/${slug}` },
+    openGraph: {
+      type: "article",
+      url: `${SITE_URL}/blog/${slug}`,
+      siteName: SITE_NAME,
+      title: `${post.title} – ${SITE_NAME}`,
+      description,
+      publishedTime: post.date,
+    },
+    twitter: { card: "summary_large_image", title: post.title, description },
+  };
 }
 
 export default async function BlogPostPage({
@@ -34,13 +51,30 @@ export default async function BlogPostPage({
     day: "numeric",
   });
 
+  const blogPostingLd = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt || undefined,
+    datePublished: post.date,
+    dateModified: post.date,
+    mainEntityOfPage: `${SITE_URL}/blog/${slug}`,
+    author: { "@type": "Person", name: "Jane Zhang", jobTitle: "Certified Massage Therapist" },
+    publisher: {
+      "@type": "Organization",
+      name: SITE_NAME,
+      logo: { "@type": "ImageObject", url: `${SITE_URL}/logo.png` },
+    },
+  };
+
   return (
-    <div className="max-w-2xl mx-auto px-6 py-16">
-      <Link href="/blog" className="text-sm text-brand hover:underline mb-8 block">
+    <div className="max-w-2xl mx-auto px-6 py-20">
+      <JsonLd data={blogPostingLd} />
+      <Link href="/blog" className="text-sm text-brand link-underline mb-8 inline-block">
         ← Back to Blog
       </Link>
-      <p className="text-xs text-bark-light/70 mb-2">{dateStr}</p>
-      <h1 className="text-3xl font-semibold text-bark mb-10">{post.title}</h1>
+      <p className="eyebrow text-bark-light/60 mb-3">{dateStr}</p>
+      <h1 className="font-display text-3xl sm:text-4xl text-bark leading-tight mb-10">{post.title}</h1>
       <div
         className="prose prose-stone max-w-none text-bark-light leading-relaxed [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-bark [&_h2]:mt-8 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-bark [&_h3]:mt-6 [&_strong]:text-bark [&_ul]:list-disc [&_ul]:ml-4 [&_li]:my-1"
         dangerouslySetInnerHTML={{ __html: html }}
