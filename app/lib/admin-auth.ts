@@ -1,13 +1,9 @@
 import { cookies } from "next/headers";
+import { verifySessionToken } from "./admin-session";
 
+/** Server-component / route helper: is the current request an authenticated admin? */
 export async function isAdminAuthenticated(): Promise<boolean> {
   const cookieStore = await cookies();
   const session = cookieStore.get("admin-session")?.value;
-  const secret = process.env.ADMIN_SESSION_SECRET;
-  return Boolean(secret && session === secret);
-}
-
-export function isAdminSession(session: string | undefined): boolean {
-  const secret = process.env.ADMIN_SESSION_SECRET;
-  return Boolean(secret && session === secret);
+  return verifySessionToken(session);
 }
