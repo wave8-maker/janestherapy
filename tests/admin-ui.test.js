@@ -56,5 +56,16 @@ assert.doesNotMatch(invoiceTab, /Studio Fee/, "printable invoice should not incl
 assert.match(invoiceTab, /rowDue\(it: LineItem\)[\s\S]*num\(it\.sales\) \+ num\(it\.gratuity\)/, "amount due should be sales plus gratuity after removing fee inputs");
 assert.match(invoiceTab, /admin-control/, "invoice fields should use the admin high-readability control style");
 assert.match(invoiceTab, /admin-button/, "invoice buttons should use the admin high-readability button style");
+assert.match(invoiceTab, /function InvoiceSection/, "invoice form should use separated sections");
+assert.match(invoiceTab, /border-t-2 border-slate-300/, "invoice sections should be divided by horizontal rules");
+assert.doesNotMatch(invoiceTab, /border-2 border-slate-300 rounded-lg p-5 space-y-4 bg-white/, "invoice sections should not be boxed cards");
+assert.match(invoiceTab, /type="date"/, "invoice date should use a native calendar input");
+assert.match(invoiceTab, /今天 Today/, "invoice date should have a today shortcut");
+assert.match(invoiceTab, /setTodayInvoiceDate/, "today shortcut should set the invoice date");
+assert.match(invoiceTab, /<InvoiceSection title="发票信息 Invoice Info"/, "invoice info section should come first");
+assert.match(invoiceTab, /<InvoiceSection title="开票方 From"/, "from section should be full-width");
+assert.match(invoiceTab, /<InvoiceSection title="收票方 Bill To"/, "bill-to section should be full-width");
+assert.match(invoiceTab, /<InvoiceSection title="服务明细 Line Items"/, "line items should have their own section");
+assert.match(invoiceTab, /<InvoiceSection title="备注（可选）Notes \(optional\)"/, "notes should have their own section");
 
 console.log("admin UI source checks passed");

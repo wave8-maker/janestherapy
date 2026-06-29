@@ -60,6 +60,9 @@ const money = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigi
 function rowDue(it: LineItem) {
   return num(it.sales) + num(it.gratuity);
 }
+function todayISO() {
+  return new Date().toISOString().slice(0, 10);
+}
 
 // ── small UI helpers (match admin styling) ────────────────────────────────
 const inputCls = "admin-control w-full border-2 border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800";
@@ -92,11 +95,19 @@ function Field({ label, value, onChange, placeholder }: {
   );
 }
 
-function PartyEditor({ title, party, onChange }: { title: React.ReactNode; party: Party; onChange: (p: Party) => void }) {
+function InvoiceSection({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <section className="border-t-2 border-slate-300 pt-6 space-y-4">
+      <h3 className="text-base font-bold text-slate-950">{title}</h3>
+      {children}
+    </section>
+  );
+}
+
+function PartyEditor({ party, onChange }: { party: Party; onChange: (p: Party) => void }) {
   const set = (k: keyof Party) => (v: string) => onChange({ ...party, [k]: v });
   return (
-    <div className="border-2 border-slate-300 rounded-lg p-5 space-y-4 bg-white">
-      <p className="text-sm font-bold text-slate-950">{title}</p>
+    <div className="space-y-4">
       <Field label="名称 Name" value={party.name} onChange={set("name")} />
       <Field label="第二行 Line 2" value={party.line2} onChange={set("line2")} placeholder="如：联系人 / 头衔 Attn / title" />
       <Field label="地址 Address" value={party.address} onChange={set("address")} />
@@ -283,6 +294,10 @@ export default function InvoiceTab() {
     patch({ invoiceNo: `${studio}-${d.getFullYear()}-${mmdd}` });
   }
 
+  function setTodayInvoiceDate() {
+    patch({ invoiceDate: todayISO() });
+  }
+
   function generate() {
     const html = buildInvoiceHTML(inv);
     const w = window.open("", "_blank");
@@ -307,27 +322,34 @@ export default function InvoiceTab() {
         </div>
       </div>
 
-      {/* parties */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <PartyEditor title={<>开票方 <span className="font-normal text-bark-light">From (Jane)</span></>} party={inv.from} onChange={p => patch({ from: p })} />
-        <PartyEditor title={<>收票方 <span className="font-normal text-bark-light">Bill To (Studio)</span></>} party={inv.billTo} onChange={p => patch({ billTo: p })} />
-      </div>
-
-      {/* meta */}
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-bark mb-1">发票号 Invoice #</label>
-          <div className="flex gap-2">
-            <input value={inv.invoiceNo} onChange={e => patch({ invoiceNo: e.target.value })} placeholder="TRIO-2026-0615" className={inputCls} />
-            <Btn small variant="secondary" onClick={autoInvoiceNo}>自动 Auto</Btn>
+      <InvoiceSection title="发票信息 Invoice Info">
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-bark mb-1">发票号 Invoice #</label>
+            <div className="flex gap-2">
+              <input value={inv.invoiceNo} onChange={e => patch({ invoiceNo: e.target.value })} placeholder="TRIO-2026-0615" className={inputCls} />
+              <Btn small variant="secondary" onClick={autoInvoiceNo}>自动 Auto</Btn>
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-bark mb-1">开票日期 Invoice Date</label>
+            <div className="flex gap-2">
+              <input type="date" value={inv.invoiceDate} onChange={e => patch({ invoiceDate: e.target.value })} className={inputCls} />
+              <Btn small variant="secondary" onClick={setTodayInvoiceDate}>今天 Today</Btn>
+            </div>
           </div>
         </div>
-        <Field label="开票日期 Invoice Date" value={inv.invoiceDate} onChange={v => patch({ invoiceDate: v })} placeholder="YYYY-MM-DD" />
-      </div>
+      </InvoiceSection>
 
-      {/* line items */}
-      <div>
-        <label className="block text-sm font-medium text-bark mb-2">服务明细 <span className="font-normal text-bark-light">Line Items</span></label>
+      <InvoiceSection title="开票方 From">
+        <PartyEditor party={inv.from} onChange={p => patch({ from: p })} />
+      </InvoiceSection>
+
+      <InvoiceSection title="收票方 Bill To">
+        <PartyEditor party={inv.billTo} onChange={p => patch({ billTo: p })} />
+      </InvoiceSection>
+
+      <InvoiceSection title="服务明细 Line Items">
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] border-separate border-spacing-y-1.5">
             <thead>
@@ -369,12 +391,14 @@ export default function InvoiceTab() {
           </table>
         </div>
         <div className="mt-2"><Btn small variant="secondary" onClick={addRow}>+ 添加一行 Add Line</Btn></div>
-      </div>
+      </InvoiceSection>
 
-      <Field label="备注（可选）Notes (optional)" value={inv.notes} onChange={v => patch({ notes: v })} placeholder="如：付款方式 / Payment method, Venmo, etc." />
+      <InvoiceSection title="备注（可选）Notes (optional)">
+        <Field label="备注 Notes" value={inv.notes} onChange={v => patch({ notes: v })} placeholder="如：付款方式 / Payment method, Venmo, etc." />
+      </InvoiceSection>
 
       {/* amount due + actions */}
-      <div className="flex items-center justify-between flex-wrap gap-4 border-t border-brand-light pt-5">
+      <div className="flex items-center justify-between flex-wrap gap-4 border-t-2 border-slate-300 pt-6">
         <div className="bg-sage text-white rounded-xl px-5 py-3 flex items-center gap-5">
           <span className="text-sm font-semibold tracking-wide">应付金额 AMOUNT DUE</span>
           <span className="text-xl font-bold">{money(totals.due)}</span>
