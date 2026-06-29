@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 /* ──────────────────────────────────────────────────────────────────────────
    Contractor Invoice tool
    Jane bills a studio (e.g. Trio Wellness) from their bi-monthly report.
-   Amount Due per line = Sales − Trio Fee + Gratuity  (the "Total Net Income").
+   Amount Due per line = Sales + Gratuity.
    Generates a branded, printable invoice → Print / Save as PDF.
    ────────────────────────────────────────────────────────────────────────── */
 
@@ -15,7 +15,6 @@ interface LineItem {
   description: string;
   sales: string;     // dollars, as typed
   gratuity: string;  // dollars, as typed
-  feeOverride: string; // blank = auto from fee rate
 }
 interface Party { name: string; line2: string; address: string; phone: string; email: string }
 interface InvoiceState {
@@ -23,10 +22,6 @@ interface InvoiceState {
   billTo: Party;
   invoiceNo: string;
   invoiceDate: string;
-  periodFrom: string;
-  periodTo: string;
-  terms: string;
-  feeRate: string;   // percent
   items: LineItem[];
   notes: string;
 }
@@ -54,11 +49,7 @@ function emptyState(): InvoiceState {
     billTo: { ...emptyParty },
     invoiceNo: "",
     invoiceDate: "",
-    periodFrom: "",
-    periodTo: "",
-    terms: "",
-    feeRate: "",
-    items: [{ date: "", description: "", sales: "", gratuity: "", feeOverride: "" }],
+    items: [{ date: "", description: "", sales: "", gratuity: "" }],
     notes: "",
   };
 }
@@ -66,11 +57,8 @@ function emptyState(): InvoiceState {
 // ── money helpers ─────────────────────────────────────────────────────────
 const num = (s: string) => { const n = parseFloat(s); return isNaN(n) ? 0 : n; };
 const money = (n: number) => `$${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-function rowFee(it: LineItem, rate: number) {
-  return it.feeOverride.trim() !== "" ? num(it.feeOverride) : Math.round(num(it.sales) * rate) / 100;
-}
-function rowDue(it: LineItem, rate: number) {
-  return num(it.sales) - rowFee(it, rate) + num(it.gratuity);
+function rowDue(it: LineItem) {
+  return num(it.sales) + num(it.gratuity);
 }
 
 // ── small UI helpers (match admin styling) ────────────────────────────────
@@ -125,12 +113,10 @@ function esc(s: string) {
   return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 function buildInvoiceHTML(inv: InvoiceState): string {
-  const rate = num(inv.feeRate);
   const items = inv.items.filter(it => it.date || it.description || it.sales || it.gratuity);
   const tSales = items.reduce((a, it) => a + num(it.sales), 0);
   const tGrat = items.reduce((a, it) => a + num(it.gratuity), 0);
-  const tFee = items.reduce((a, it) => a + rowFee(it, rate), 0);
-  const tDue = items.reduce((a, it) => a + rowDue(it, rate), 0);
+  const tDue = items.reduce((a, it) => a + rowDue(it), 0);
 
   const partyHTML = (p: Party) => [p.name, p.line2, p.address, p.phone, p.email]
     .filter(Boolean).map((l, i) =>
@@ -142,18 +128,13 @@ function buildInvoiceHTML(inv: InvoiceState): string {
       <td class="desc">${esc(it.description)}</td>
       <td class="r">${money(num(it.sales))}</td>
       <td class="r">${money(num(it.gratuity))}</td>
-      <td class="r">&minus;${money(rowFee(it, rate))}</td>
-      <td class="r b">${money(rowDue(it, rate))}</td>
+      <td class="r b">${money(rowDue(it))}</td>
     </tr>`).join("");
-
-  const period = inv.periodFrom && inv.periodTo
-    ? `${esc(inv.periodFrom)} – ${esc(inv.periodTo)}`
-    : esc(inv.periodFrom || inv.periodTo || "");
 
   const metaRow = (label: string, val: string) => val
     ? `<tr><td class="ml">${label}</td><td class="mv">${esc(val)}</td></tr>` : "";
 
-  const calcNote = `Amount Due reflects the <b>Total Net Income</b>: Sales Income minus studio fees, plus gratuities collected on Jane's behalf. Calculation: ${money(tSales)} sales &minus; ${money(tFee)} fees + ${money(tGrat)} gratuity = <b>${money(tDue)}</b>.`;
+  const calcNote = `Amount Due is calculated as sales income plus gratuities collected on Jane's behalf. Calculation: ${money(tSales)} sales + ${money(tGrat)} gratuity = <b>${money(tDue)}</b>.`;
 
   return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(inv.invoiceNo || "Invoice")}</title>
 <style>
@@ -216,21 +197,19 @@ function buildInvoiceHTML(inv: InvoiceState): string {
     <table class="meta">
       ${metaRow("INVOICE #", inv.invoiceNo)}
       ${metaRow("INVOICE DATE", inv.invoiceDate)}
-      ${metaRow("SERVICE PERIOD", period)}
-      ${metaRow("TERMS", inv.terms)}
     </table>
   </div>
   <table class="items">
     <thead><tr>
       <th>Date</th><th>Description</th>
       <th class="r">Sales</th><th class="r">Gratuity</th>
-      <th class="r">Studio Fee</th><th class="r">Amount Due</th>
+      <th class="r">Amount Due</th>
     </tr></thead>
     <tbody>${rowsHTML}</tbody>
     <tfoot><tr>
       <td></td><td>Totals</td>
       <td class="r">${money(tSales)}</td><td class="r">${money(tGrat)}</td>
-      <td class="r">&minus;${money(tFee)}</td><td class="r">${money(tDue)}</td>
+      <td class="r">${money(tDue)}</td>
     </tr></tfoot>
   </table>
   <div class="due"><div class="due-band"><span class="lbl">AMOUNT DUE</span><span class="amt">${money(tDue)}</span></div></div>
@@ -250,24 +229,23 @@ const LS_KEY = "janeInvoiceDefaults_v1";
 
 export default function InvoiceTab() {
   const [inv, setInv] = useState<InvoiceState>(emptyState);
+  const [defaultsSaved, setDefaultsSaved] = useState(false);
 
-  const rate = num(inv.feeRate);
   const totals = useMemo(() => {
     const its = inv.items;
     return {
       sales: its.reduce((a, it) => a + num(it.sales), 0),
       grat: its.reduce((a, it) => a + num(it.gratuity), 0),
-      fee: its.reduce((a, it) => a + rowFee(it, rate), 0),
-      due: its.reduce((a, it) => a + rowDue(it, rate), 0),
+      due: its.reduce((a, it) => a + rowDue(it), 0),
     };
-  }, [inv.items, rate]);
+  }, [inv.items]);
 
   function patch(p: Partial<InvoiceState>) { setInv(s => ({ ...s, ...p })); }
   function setItem(i: number, p: Partial<LineItem>) {
     setInv(s => ({ ...s, items: s.items.map((it, idx) => idx === i ? { ...it, ...p } : it) }));
   }
   function addRow() {
-    setInv(s => ({ ...s, items: [...s.items, { date: "", description: "", sales: "", gratuity: "", feeOverride: "" }] }));
+    setInv(s => ({ ...s, items: [...s.items, { date: "", description: "", sales: "", gratuity: "" }] }));
   }
   function removeRow(i: number) {
     setInv(s => ({ ...s, items: s.items.length > 1 ? s.items.filter((_, idx) => idx !== i) : s.items }));
@@ -275,32 +253,30 @@ export default function InvoiceTab() {
 
   function saveDefaults() {
     try {
-      localStorage.setItem(LS_KEY, JSON.stringify({
-        from: inv.from, billTo: inv.billTo, feeRate: inv.feeRate, terms: inv.terms,
-      }));
-      alert("已保存常用信息（开票方、收票方、费率）。Saved your default sender, studio, and fee rate.");
-    } catch { alert("无法保存 Could not save."); }
+      localStorage.setItem(LS_KEY, JSON.stringify({ from: inv.from, billTo: inv.billTo }));
+      setDefaultsSaved(true);
+      window.setTimeout(() => setDefaultsSaved(false), 3000);
+    } catch {
+      alert("无法保存常用信息。Could not save defaults.");
+    }
   }
 
   function loadDefaults() {
     try {
       const raw = localStorage.getItem(LS_KEY);
-      const d = raw ? JSON.parse(raw) : { from: JANE, billTo: TRIO, feeRate: "45", terms: "Due upon receipt" };
+      const d = raw ? JSON.parse(raw) : { from: JANE, billTo: TRIO };
       setInv(s => ({
         ...s,
         from: d.from ?? JANE,
         billTo: d.billTo ?? TRIO,
-        feeRate: d.feeRate ?? "45",
-        terms: d.terms ?? "Due upon receipt",
       }));
     } catch {
-      setInv(s => ({ ...s, from: { ...JANE }, billTo: { ...TRIO }, feeRate: "45", terms: "Due upon receipt" }));
+      setInv(s => ({ ...s, from: { ...JANE }, billTo: { ...TRIO } }));
     }
   }
 
   function autoInvoiceNo() {
-    const end = inv.periodTo || inv.invoiceDate;
-    const d = new Date(end);
+    const d = new Date(inv.invoiceDate || Date.now());
     if (isNaN(d.getTime())) return;
     const studio = inv.billTo.name.match(/trio/i) ? "TRIO" : (inv.billTo.name.slice(0, 4).toUpperCase().replace(/[^A-Z]/g, "") || "INV");
     const mmdd = `${String(d.getMonth() + 1).padStart(2, "0")}${String(d.getDate()).padStart(2, "0")}`;
@@ -321,8 +297,8 @@ export default function InvoiceTab() {
         <div>
           <p className="text-sm font-semibold text-bark">承包发票生成器 <span className="font-normal text-bark-light">Contractor Invoice Generator</span></p>
           <p className="text-sm text-bark-light mt-1 max-w-xl">
-            按工作室的双月报表给 Trio Wellness（或其他工作室）开票。每行应付金额 = 销售额 − 工作室费用 + 小费。<br />
-            <span className="text-bark-light/80">Bill a studio from their bi-monthly report. Amount Due = Sales − Studio Fee + Gratuity.</span>
+            按工作室的双月报表给 Trio Wellness（或其他工作室）开票。每行应付金额 = 销售额 + 小费。<br />
+            <span className="text-bark-light/80">Bill a studio from their bi-monthly report. Amount Due = Sales + Gratuity.</span>
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
@@ -338,7 +314,7 @@ export default function InvoiceTab() {
       </div>
 
       {/* meta */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 gap-4">
         <div>
           <label className="block text-sm font-medium text-bark mb-1">发票号 Invoice #</label>
           <div className="flex gap-2">
@@ -347,27 +323,19 @@ export default function InvoiceTab() {
           </div>
         </div>
         <Field label="开票日期 Invoice Date" value={inv.invoiceDate} onChange={v => patch({ invoiceDate: v })} placeholder="YYYY-MM-DD" />
-        <Field label="付款条款 Terms" value={inv.terms} onChange={v => patch({ terms: v })} />
-        <Field label="服务周期起 Period From" value={inv.periodFrom} onChange={v => patch({ periodFrom: v })} placeholder="June 1, 2026" />
-        <Field label="服务周期止 Period To" value={inv.periodTo} onChange={v => patch({ periodTo: v })} placeholder="June 15, 2026" />
-        <div>
-          <label className="block text-sm font-medium text-bark mb-1">工作室费率 % <span className="font-normal text-bark-light">Studio Fee Rate</span></label>
-          <input value={inv.feeRate} onChange={e => patch({ feeRate: e.target.value })} placeholder="45" className={inputCls} />
-        </div>
       </div>
 
       {/* line items */}
       <div>
         <label className="block text-sm font-medium text-bark mb-2">服务明细 <span className="font-normal text-bark-light">Line Items</span></label>
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[640px] border-separate border-spacing-y-1.5">
+          <table className="w-full min-w-[560px] border-separate border-spacing-y-1.5">
             <thead>
               <tr className="text-left text-xs text-bark-light">
                 <th className="font-medium px-1 w-24">日期 Date</th>
                 <th className="font-medium px-1">服务说明 Description</th>
                 <th className="font-medium px-1 w-24 text-right">销售 Sales</th>
                 <th className="font-medium px-1 w-24 text-right">小费 Grat.</th>
-                <th className="font-medium px-1 w-28 text-right">费用 Fee</th>
                 <th className="font-medium px-1 w-24 text-right">应付 Due</th>
                 <th className="w-8"></th>
               </tr>
@@ -379,12 +347,7 @@ export default function InvoiceTab() {
                   <td className="px-1"><input value={it.description} onChange={e => setItem(i, { description: e.target.value })} placeholder="60-min Prenatal (w/ ...)" className={cellCls} /></td>
                   <td className="px-1"><input value={it.sales} onChange={e => setItem(i, { sales: e.target.value })} placeholder="110" inputMode="decimal" className={`${cellCls} text-right`} /></td>
                   <td className="px-1"><input value={it.gratuity} onChange={e => setItem(i, { gratuity: e.target.value })} placeholder="20" inputMode="decimal" className={`${cellCls} text-right`} /></td>
-                  <td className="px-1">
-                    <input value={it.feeOverride} onChange={e => setItem(i, { feeOverride: e.target.value })}
-                      placeholder={money(rowFee({ ...it, feeOverride: "" }, rate))}
-                      inputMode="decimal" className={`${cellCls} text-right`} />
-                  </td>
-                  <td className="px-1 text-right text-sm text-bark font-semibold pt-2.5 whitespace-nowrap">{money(rowDue(it, rate))}</td>
+                  <td className="px-1 text-right text-sm text-bark font-semibold pt-2.5 whitespace-nowrap">{money(rowDue(it))}</td>
                   <td className="px-1 pt-1.5 text-center">
                     <button onClick={() => removeRow(i)} title="删除 Remove"
                       className="text-red-400 hover:text-red-600 text-lg leading-none disabled:opacity-30"
@@ -399,7 +362,6 @@ export default function InvoiceTab() {
                 <td className="px-1 pt-2">合计 Totals</td>
                 <td className="px-1 pt-2 text-right">{money(totals.sales)}</td>
                 <td className="px-1 pt-2 text-right">{money(totals.grat)}</td>
-                <td className="px-1 pt-2 text-right">−{money(totals.fee)}</td>
                 <td className="px-1 pt-2 text-right">{money(totals.due)}</td>
                 <td></td>
               </tr>
@@ -407,7 +369,6 @@ export default function InvoiceTab() {
           </table>
         </div>
         <div className="mt-2"><Btn small variant="secondary" onClick={addRow}>+ 添加一行 Add Line</Btn></div>
-        <p className="text-xs text-bark-light/80 mt-2">费用栏留空将按上方费率自动计算；可手动覆盖。Fee auto-fills from the rate above when blank; type a value to override.</p>
       </div>
 
       <Field label="备注（可选）Notes (optional)" value={inv.notes} onChange={v => patch({ notes: v })} placeholder="如：付款方式 / Payment method, Venmo, etc." />
@@ -420,6 +381,7 @@ export default function InvoiceTab() {
         </div>
         <div className="flex items-center gap-3">
           <Btn variant="secondary" onClick={saveDefaults}>保存常用信息 Save Defaults</Btn>
+          {defaultsSaved && <span className="text-sm text-sage">已保存 Saved</span>}
           <Btn onClick={generate} disabled={totals.due === 0}>生成 / 打印 PDF · Generate PDF</Btn>
         </div>
       </div>

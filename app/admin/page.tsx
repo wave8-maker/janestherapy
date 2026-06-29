@@ -493,10 +493,17 @@ function TextArea({ label, value, onChange, rows = 4, mono, placeholder }: {
 // ── ROOT PAGE ─────────────────────────────────────────────────────────────────
 const TABS = ["设置 Settings", "服务项目 Services", "附加服务 Add-ons", "博客编辑 Blog Editor", "客户登记 Intake", "发票 Invoice"] as const;
 type Tab = typeof TABS[number];
+type FontSize = "small" | "medium" | "large";
+const FONT_SIZE_OPTIONS: { value: FontSize; label: "小" | "中" | "大" }[] = [
+  { value: "small", label: "小" },
+  { value: "medium", label: "中" },
+  { value: "large", label: "大" },
+];
 
 export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("设置 Settings");
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [fontSize, setFontSize] = useState<FontSize>("medium");
   const router = useRouter();
 
   async function logout() {
@@ -505,7 +512,24 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream flex">
+    <div className={`min-h-screen bg-cream flex admin-font-${fontSize}`}>
+      <style>{`
+        .admin-font-small { font-size: 14px; }
+        .admin-font-medium { font-size: 16px; }
+        .admin-font-large { font-size: 18px; }
+        .admin-font-small .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .admin-font-medium .text-xs { font-size: 0.875rem; line-height: 1.25rem; }
+        .admin-font-large .text-xs { font-size: 1rem; line-height: 1.5rem; }
+        .admin-font-small .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .admin-font-medium .text-sm { font-size: 1rem; line-height: 1.5rem; }
+        .admin-font-large .text-sm { font-size: 1.125rem; line-height: 1.65rem; }
+        .admin-font-small .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .admin-font-medium .text-xl { font-size: 1.375rem; line-height: 1.9rem; }
+        .admin-font-large .text-xl { font-size: 1.5rem; line-height: 2rem; }
+        .admin-font-small .text-2xl { font-size: 1.5rem; line-height: 2rem; }
+        .admin-font-medium .text-2xl { font-size: 1.75rem; line-height: 2.25rem; }
+        .admin-font-large .text-2xl { font-size: 2rem; line-height: 2.5rem; }
+      `}</style>
       <aside className={`${sidebarOpen ? "w-72" : "w-20"} min-h-screen shrink-0 border-r border-brand-light bg-white transition-[width] duration-300 ease-in-out flex flex-col`}>
         <div className="h-20 px-4 border-b border-brand-light flex items-center gap-3">
           <button
@@ -538,6 +562,28 @@ export default function AdminPage() {
             </button>
           ))}
         </nav>
+
+        <div className="px-3 py-4 border-t border-brand-light">
+          {sidebarOpen && <p className="text-xs font-semibold text-bark-light mb-2">字号</p>}
+          <div className={`grid gap-1 ${sidebarOpen ? "grid-cols-3" : "grid-cols-1"}`}>
+            {FONT_SIZE_OPTIONS.map(option => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={fontSize === option.value}
+                title={`字号 ${option.label}`}
+                onClick={() => setFontSize(option.value)}
+                className={`min-h-9 rounded-lg border px-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand ${
+                  fontSize === option.value
+                    ? "border-brand bg-brand text-white"
+                    : "border-brand-light text-bark-light hover:bg-brand-light/70 hover:text-bark"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div className="px-3 py-4 border-t border-brand-light">
           <button
