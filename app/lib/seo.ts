@@ -5,7 +5,7 @@ import { getSiteConfig } from "./content";
 export const SITE_URL = "https://janestherapy.com";
 
 export const SITE_NAME = "Jane's Therapy";
-export const SITE_TAGLINE = "Your Trusted Solo Therapist in the Bay Area";
+export const SITE_TAGLINE = "Your Trusted Solo Therapist in San Jose";
 
 /** Core business facts, reused across metadata and structured data. */
 export const BUSINESS = {
@@ -13,11 +13,11 @@ export const BUSINESS = {
   legalName: "Jane Zhang, CMT",
   telephone: "+1-669-292-4472",
   email: "janezhang.therapist@gmail.com",
-  city: "Palo Alto",
+  city: "San Jose",
   region: "CA",
   country: "US",
   priceRange: "$$",
-  areaServed: ["Palo Alto", "Bay Area", "Silicon Valley"],
+  areaServed: ["San Jose", "Bay Area", "Silicon Valley"],
 } as const;
 
 /**
@@ -96,7 +96,7 @@ export function localBusinessJsonLd() {
     "@id": `${SITE_URL}/#business`,
     name: BUSINESS.name,
     description:
-      "Solo massage therapy practice in Palo Alto, CA. Deep tissue, Swedish, lymphatic drainage, prenatal, and Traditional Chinese Medicine bodywork with Jane Zhang, CMT.",
+      "Solo massage therapy practice in San Jose, CA. Deep tissue, Swedish, lymphatic drainage, prenatal, and Traditional Chinese Medicine bodywork with Jane Zhang, CMT.",
     url: SITE_URL,
     telephone: BUSINESS.telephone,
     email: BUSINESS.email,

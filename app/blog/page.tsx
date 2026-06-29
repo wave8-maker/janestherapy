@@ -5,7 +5,7 @@ import { pageMeta } from "../lib/seo";
 export const metadata = pageMeta({
   title: "Blog",
   description:
-    "Wellness tips, massage therapy insights, and updates from Jane's Therapy in Palo Alto.",
+    "Wellness tips, massage therapy insights, and updates from Jane's Therapy in San Jose.",
   path: "/blog",
 });
 

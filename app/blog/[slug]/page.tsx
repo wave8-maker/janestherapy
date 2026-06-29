@@ -17,7 +17,7 @@ export async function generateMetadata({
   const { slug } = await params;
   const post = getBlogPost(slug);
   const description =
-    post.excerpt || `${post.title} — wellness insights from Jane's Therapy in Palo Alto.`;
+    post.excerpt || `${post.title} — wellness insights from Jane's Therapy in San Jose.`;
   return {
     title: post.title,
     description,

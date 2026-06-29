@@ -5,6 +5,20 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "..");
 const adminPage = fs.readFileSync(path.join(root, "app/admin/page.tsx"), "utf8");
 const invoiceTab = fs.readFileSync(path.join(root, "app/admin/InvoiceTab.tsx"), "utf8");
+const publicSiteFiles = [
+  "app/layout.tsx",
+  "app/page.tsx",
+  "app/services/page.tsx",
+  "app/location/page.tsx",
+  "app/blog/page.tsx",
+  "app/blog/[slug]/page.tsx",
+  "app/opengraph-image.tsx",
+  "app/lib/seo.ts",
+].map((file) => fs.readFileSync(path.join(root, file), "utf8")).join("\n");
+
+assert.doesNotMatch(publicSiteFiles + invoiceTab, /Palo Alto/, "site and admin defaults should not reference Palo Alto");
+assert.match(publicSiteFiles, /San Jose/, "public site should reference San Jose");
+assert.match(invoiceTab, /address: "San Jose, CA"/, "invoice sender default should use San Jose");
 
 assert.match(adminPage, /const \[sidebarOpen, setSidebarOpen\]/, "admin page should track collapsible sidebar state");
 assert.match(adminPage, /<aside\b/, "admin navigation should render as a left sidebar");
@@ -20,6 +34,12 @@ assert.match(adminPage, /中/, "admin sidebar should include the medium font but
 assert.match(adminPage, /大/, "admin sidebar should include the large font button");
 assert.match(adminPage, /admin-font-\$\{fontSize\}/, "admin root should receive the selected font size class");
 assert.match(adminPage, /setFontSize\(option\.value\)/, "font size buttons should update the admin font size");
+assert.match(adminPage, /admin-readable/, "admin page should use a scoped high-readability surface");
+assert.match(adminPage, /#f7f9fb/, "admin background should move to a cleaner high-contrast neutral");
+assert.match(adminPage, /#1f2933/, "admin primary text should use a high-contrast ink color");
+assert.match(adminPage, /min-h-14/, "admin sidebar actions should have larger touch targets");
+assert.match(adminPage, /admin-control/, "admin inputs should use larger high-contrast controls");
+assert.match(adminPage, /admin-panel/, "admin content should use a clearer panel surface");
 
 assert.match(invoiceTab, /function emptyState\(\): InvoiceState/, "invoice form should have an empty initial state");
 assert.match(invoiceTab, /const emptyParty/, "invoice parties should start blank");
@@ -34,5 +54,7 @@ assert.doesNotMatch(invoiceTab, /feeRate|feeOverride|rowFee/, "invoice studio fe
 assert.doesNotMatch(invoiceTab, /付款条款 Terms|服务周期起 Period From|服务周期止 Period To|工作室费率|Studio Fee Rate|费用 Fee/, "removed invoice fields and fee column should not render");
 assert.doesNotMatch(invoiceTab, /Studio Fee/, "printable invoice should not include the studio fee column");
 assert.match(invoiceTab, /rowDue\(it: LineItem\)[\s\S]*num\(it\.sales\) \+ num\(it\.gratuity\)/, "amount due should be sales plus gratuity after removing fee inputs");
+assert.match(invoiceTab, /admin-control/, "invoice fields should use the admin high-readability control style");
+assert.match(invoiceTab, /admin-button/, "invoice buttons should use the admin high-readability button style");
 
 console.log("admin UI source checks passed");

@@ -31,7 +31,7 @@ const emptyParty: Party = { name: "", line2: "", address: "", phone: "", email: 
 const JANE: Party = {
   name: "Jane's Therapy",
   line2: "Jane Zhang, CMT · Massage Therapist",
-  address: "Palo Alto, CA",
+  address: "San Jose, CA",
   phone: "(669) 292-4472",
   email: "janezhang.therapist@gmail.com",
 };
@@ -62,18 +62,18 @@ function rowDue(it: LineItem) {
 }
 
 // ── small UI helpers (match admin styling) ────────────────────────────────
-const inputCls = "w-full border border-brand-light rounded-lg px-3 py-2 text-sm text-bark focus:outline-none focus:ring-2 focus:ring-brand";
-const cellCls = "w-full border border-brand-light rounded-md px-2 py-1.5 text-sm text-bark focus:outline-none focus:ring-2 focus:ring-brand";
+const inputCls = "admin-control w-full border-2 border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800";
+const cellCls = "admin-control w-full border-2 border-slate-400 rounded-md px-3 py-2.5 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800";
 
 function Btn({ onClick, children, variant = "primary", small, disabled }: {
   onClick?: () => void; children: React.ReactNode;
   variant?: "primary" | "secondary" | "danger"; small?: boolean; disabled?: boolean;
 }) {
-  const base = small ? "px-3 py-1 text-sm rounded-full font-medium" : "px-5 py-2 rounded-full font-semibold";
+  const base = small ? "admin-button px-4 py-2 text-sm rounded-lg font-semibold" : "admin-button px-6 py-3 rounded-lg font-bold";
   const cls = {
-    primary: "bg-brand text-white hover:bg-brand-dark",
-    secondary: "border border-brand-light text-bark hover:bg-brand-light",
-    danger: "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100",
+    primary: "bg-slate-900 text-white hover:bg-slate-700",
+    secondary: "border-2 border-slate-400 text-slate-900 bg-white hover:bg-slate-100",
+    danger: "bg-red-50 text-red-800 border-2 border-red-300 hover:bg-red-100",
   }[variant];
   return (
     <button onClick={onClick} disabled={disabled}
@@ -95,8 +95,8 @@ function Field({ label, value, onChange, placeholder }: {
 function PartyEditor({ title, party, onChange }: { title: React.ReactNode; party: Party; onChange: (p: Party) => void }) {
   const set = (k: keyof Party) => (v: string) => onChange({ ...party, [k]: v });
   return (
-    <div className="border border-brand-light rounded-xl p-4 space-y-3 bg-white">
-      <p className="text-sm font-semibold text-brand-dark">{title}</p>
+    <div className="border-2 border-slate-300 rounded-lg p-5 space-y-4 bg-white">
+      <p className="text-sm font-bold text-slate-950">{title}</p>
       <Field label="名称 Name" value={party.name} onChange={set("name")} />
       <Field label="第二行 Line 2" value={party.line2} onChange={set("line2")} placeholder="如：联系人 / 头衔 Attn / title" />
       <Field label="地址 Address" value={party.address} onChange={set("address")} />

@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Jane's Therapy — Massage Therapist in Palo Alto";
+export const alt = "Jane's Therapy — Massage Therapist in San Jose";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -52,7 +52,7 @@ export default function Image() {
 
         <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
           <div style={{ fontSize: "82px", fontWeight: 700, lineHeight: 1.05, maxWidth: "900px" }}>
-            Massage Therapy in Palo Alto
+            Massage Therapy in San Jose
           </div>
           <div style={{ fontSize: "36px", color: "#6b4c3b" }}>
             Deep tissue · Swedish · Lymphatic · TCM bodywork

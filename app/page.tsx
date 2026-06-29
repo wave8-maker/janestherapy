@@ -52,7 +52,7 @@ export default function HomePage() {
       <section className="relative min-h-[80vh] flex items-center overflow-hidden">
         <Image
           src="/hero-banner.webp"
-          alt="Calm massage therapy studio at Jane's Therapy in Palo Alto"
+          alt="Calm massage therapy studio at Jane's Therapy in San Jose"
           fill
           className="object-cover"
           priority
@@ -68,10 +68,10 @@ export default function HomePage() {
           {/* Headline */}
           <div className="text-white max-w-xl">
             <p className="eyebrow text-brand-light reveal reveal-1">
-              Massage Therapy · Palo Alto, CA
+              Massage Therapy · San Jose, CA
             </p>
             <h1 className="reveal reveal-2 font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.05] mt-5">
-              Therapeutic massage in Palo Alto, made personal.
+              Therapeutic massage in San Jose, made personal.
             </h1>
             <p className="reveal reveal-3 mt-6 text-white/85 text-lg leading-relaxed max-w-md">
               Deep tissue, Swedish, lymphatic drainage, and Traditional Chinese
@@ -113,7 +113,7 @@ export default function HomePage() {
             We believe a great massage doesn&apos;t just relax — it heals.
           </h2>
           <p className="mt-6 text-bark-light text-lg leading-relaxed">
-            Nestled in Palo Alto, Jane&apos;s Therapy offers a quiet refuge from the
+            Nestled in San Jose, Jane&apos;s Therapy offers a quiet refuge from the
             pace of daily life. Each session is tailored to your body and your
             goals, blending clinical technique with genuine, unhurried care.
           </p>

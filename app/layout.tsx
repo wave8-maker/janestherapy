@@ -25,15 +25,15 @@ const BOOKING_URL =
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Jane's Therapy – Massage Therapist in Palo Alto",
+    default: "Jane's Therapy – Massage Therapist in San Jose",
     template: "%s – Jane's Therapy",
   },
   description:
-    "Personalized massage therapy in Palo Alto, CA with Jane Zhang, CMT. Deep tissue, Swedish, lymphatic drainage, prenatal, and Traditional Chinese Medicine bodywork.",
+    "Personalized massage therapy in San Jose, CA with Jane Zhang, CMT. Deep tissue, Swedish, lymphatic drainage, prenatal, and Traditional Chinese Medicine bodywork.",
   applicationName: SITE_NAME,
   keywords: [
-    "massage Palo Alto",
-    "massage therapist Palo Alto",
+    "massage San Jose",
+    "massage therapist San Jose",
     "deep tissue massage Bay Area",
     "Swedish massage",
     "lymphatic drainage",
@@ -49,15 +49,15 @@ export const metadata: Metadata = {
     url: SITE_URL,
     siteName: SITE_NAME,
     locale: "en_US",
-    title: "Jane's Therapy – Massage Therapist in Palo Alto",
+    title: "Jane's Therapy – Massage Therapist in San Jose",
     description:
-      "Personalized massage therapy in Palo Alto, CA with Jane Zhang, CMT. Deep tissue, Swedish, lymphatic drainage, prenatal, and TCM bodywork.",
+      "Personalized massage therapy in San Jose, CA with Jane Zhang, CMT. Deep tissue, Swedish, lymphatic drainage, prenatal, and TCM bodywork.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Jane's Therapy – Massage Therapist in Palo Alto",
+    title: "Jane's Therapy – Massage Therapist in San Jose",
     description:
-      "Personalized massage therapy in Palo Alto, CA with Jane Zhang, CMT.",
+      "Personalized massage therapy in San Jose, CA with Jane Zhang, CMT.",
   },
   robots: {
     index: true,
@@ -98,7 +98,7 @@ export default function RootLayout({
                   Jane&apos;s Therapy
                 </span>
                 <span className="text-[0.68rem] text-brand uppercase tracking-[0.18em]">
-                  Palo Alto · Bay Area
+                  San Jose · Bay Area
                 </span>
               </div>
             </Link>
@@ -172,7 +172,7 @@ export default function RootLayout({
             </div>
             <div className="mt-12 pt-6 border-t border-white/15 flex flex-col sm:flex-row items-center justify-between gap-3 text-white/45 text-xs">
               <p>© {new Date().getFullYear()} Jane&apos;s Therapy. All rights reserved.</p>
-              <p>Palo Alto, California</p>
+              <p>San Jose, California</p>
             </div>
           </div>
         </footer>

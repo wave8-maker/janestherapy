@@ -9,7 +9,7 @@ const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
 export const metadata = pageMeta({
   title: "Location & Contact",
   description:
-    "Jane's Therapy is located in Palo Alto, CA. Contact Jane directly for the address — text 669-292-4472 or email janezhang.therapist@gmail.com.",
+    "Jane's Therapy is located in San Jose, CA. Contact Jane directly for the address — text 669-292-4472 or email janezhang.therapist@gmail.com.",
   path: "/location",
 });
 

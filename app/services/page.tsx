@@ -11,7 +11,7 @@ const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
 export const metadata = pageMeta({
   title: "Massage Services",
   description:
-    "Swedish, Clinical Deep Tissue, Lymphatic Drainage, Glow from Head to Toe, prenatal, and more — one-on-one with Jane Zhang, CMT in Palo Alto, CA.",
+    "Swedish, Clinical Deep Tissue, Lymphatic Drainage, Glow from Head to Toe, prenatal, and more — one-on-one with Jane Zhang, CMT in San Jose, CA.",
   path: "/services",
 });
 
@@ -26,7 +26,7 @@ export default function ServicesPage() {
     name: svc.name,
     description: svc.description,
     provider: { "@type": "LocalBusiness", "@id": `${SITE_URL}/#business`, name: SITE_NAME },
-    areaServed: { "@type": "Place", name: "Palo Alto, CA" },
+    areaServed: { "@type": "Place", name: "San Jose, CA" },
   }));
 
   return (

@@ -40,11 +40,11 @@ function Btn({ onClick, children, variant = "primary", disabled, small }: {
   onClick?: () => void; children: React.ReactNode;
   variant?: "primary" | "secondary" | "danger"; disabled?: boolean; small?: boolean
 }) {
-  const base = small ? "px-3 py-1 text-sm rounded-full font-medium" : "px-5 py-2 rounded-full font-semibold";
+  const base = small ? "admin-button px-4 py-2 text-sm rounded-lg font-semibold" : "admin-button px-6 py-3 rounded-lg font-bold";
   const cls = {
-    primary: "bg-brand text-white hover:bg-brand-dark",
-    secondary: "border border-brand-light text-bark hover:bg-brand-light",
-    danger: "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100",
+    primary: "bg-slate-900 text-white hover:bg-slate-700",
+    secondary: "border-2 border-slate-400 text-slate-900 bg-white hover:bg-slate-100",
+    danger: "bg-red-50 text-red-800 border-2 border-red-300 hover:bg-red-100",
   }[variant];
   return (
     <button onClick={onClick} disabled={disabled}
@@ -467,14 +467,14 @@ function BlogTab() {
 }
 
 // ── shared field components ───────────────────────────────────────────────────
-const inputCls = "flex-1 border border-brand-light rounded-lg px-3 py-1.5 text-sm text-bark focus:outline-none focus:ring-2 focus:ring-brand";
+const inputCls = "admin-control flex-1 border-2 border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800";
 
 function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div>
       <label className="block text-sm font-medium text-bark mb-1">{label}</label>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        className="w-full border border-brand-light rounded-lg px-3 py-2 text-sm text-bark focus:outline-none focus:ring-2 focus:ring-brand" />
+        className="admin-control w-full border-2 border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800" />
     </div>
   );
 }
@@ -485,7 +485,7 @@ function TextArea({ label, value, onChange, rows = 4, mono, placeholder }: {
     <div>
       <label className="block text-sm font-medium text-bark mb-1">{label}</label>
       <textarea value={value} onChange={e => onChange(e.target.value)} rows={rows} placeholder={placeholder}
-        className={`w-full border border-brand-light rounded-lg px-3 py-2 text-sm text-bark focus:outline-none focus:ring-2 focus:ring-brand resize-y ${mono ? "font-mono" : ""}`} />
+        className={`admin-control w-full border-2 border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800 resize-y ${mono ? "font-mono" : ""}`} />
     </div>
   );
 }
@@ -512,60 +512,106 @@ export default function AdminPage() {
   }
 
   return (
-    <div className={`min-h-screen bg-cream flex admin-font-${fontSize}`}>
+    <div className={`admin-readable min-h-screen flex admin-font-${fontSize}`}>
       <style>{`
+        .admin-readable {
+          background: #f7f9fb;
+          color: #1f2933;
+        }
+        .admin-readable label,
+        .admin-readable .text-bark {
+          color: #1f2933;
+        }
+        .admin-readable .text-bark-light,
+        .admin-readable .text-bark-light\\/80,
+        .admin-readable .text-bark-light\\/50 {
+          color: #3e4c59;
+        }
+        .admin-readable .text-brand,
+        .admin-readable .text-brand-dark {
+          color: #243b53;
+        }
+        .admin-readable .border-brand-light {
+          border-color: #b6c2cf;
+        }
+        .admin-readable .bg-brand-light,
+        .admin-readable .hover\\:bg-brand-light:hover,
+        .admin-readable .hover\\:bg-brand-light\\/60:hover,
+        .admin-readable .hover\\:bg-brand-light\\/70:hover {
+          background-color: #e9eef5;
+        }
+        .admin-readable .focus\\:ring-brand:focus {
+          --tw-ring-color: #93c5fd;
+        }
+        .admin-button {
+          min-height: 3rem;
+          letter-spacing: 0;
+        }
+        .admin-control {
+          min-height: 3.25rem;
+          box-shadow: inset 0 1px 0 rgba(31, 41, 51, 0.04);
+        }
+        .admin-control::placeholder {
+          color: #52606d;
+          opacity: 1;
+        }
+        .admin-panel {
+          background: #ffffff;
+          border: 2px solid #b6c2cf;
+          box-shadow: 0 1px 2px rgba(31, 41, 51, 0.08);
+        }
         .admin-font-small { font-size: 14px; }
-        .admin-font-medium { font-size: 16px; }
-        .admin-font-large { font-size: 18px; }
-        .admin-font-small .text-xs { font-size: 0.75rem; line-height: 1rem; }
-        .admin-font-medium .text-xs { font-size: 0.875rem; line-height: 1.25rem; }
-        .admin-font-large .text-xs { font-size: 1rem; line-height: 1.5rem; }
-        .admin-font-small .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
-        .admin-font-medium .text-sm { font-size: 1rem; line-height: 1.5rem; }
-        .admin-font-large .text-sm { font-size: 1.125rem; line-height: 1.65rem; }
-        .admin-font-small .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
-        .admin-font-medium .text-xl { font-size: 1.375rem; line-height: 1.9rem; }
-        .admin-font-large .text-xl { font-size: 1.5rem; line-height: 2rem; }
-        .admin-font-small .text-2xl { font-size: 1.5rem; line-height: 2rem; }
-        .admin-font-medium .text-2xl { font-size: 1.75rem; line-height: 2.25rem; }
-        .admin-font-large .text-2xl { font-size: 2rem; line-height: 2.5rem; }
+        .admin-font-medium { font-size: 18px; }
+        .admin-font-large { font-size: 21px; }
+        .admin-font-small .text-xs { font-size: 0.875rem; line-height: 1.35rem; }
+        .admin-font-medium .text-xs { font-size: 1rem; line-height: 1.5rem; }
+        .admin-font-large .text-xs { font-size: 1.125rem; line-height: 1.7rem; }
+        .admin-font-small .text-sm { font-size: 1rem; line-height: 1.55rem; }
+        .admin-font-medium .text-sm { font-size: 1.125rem; line-height: 1.75rem; }
+        .admin-font-large .text-sm { font-size: 1.3125rem; line-height: 2rem; }
+        .admin-font-small .text-xl { font-size: 1.35rem; line-height: 1.95rem; }
+        .admin-font-medium .text-xl { font-size: 1.55rem; line-height: 2.15rem; }
+        .admin-font-large .text-xl { font-size: 1.85rem; line-height: 2.45rem; }
+        .admin-font-small .text-2xl { font-size: 1.6rem; line-height: 2.15rem; }
+        .admin-font-medium .text-2xl { font-size: 1.9rem; line-height: 2.45rem; }
+        .admin-font-large .text-2xl { font-size: 2.25rem; line-height: 2.85rem; }
       `}</style>
-      <aside className={`${sidebarOpen ? "w-72" : "w-20"} min-h-screen shrink-0 border-r border-brand-light bg-white transition-[width] duration-300 ease-in-out flex flex-col`}>
-        <div className="h-20 px-4 border-b border-brand-light flex items-center gap-3">
+      <aside className={`${sidebarOpen ? "w-80" : "w-24"} min-h-screen shrink-0 border-r-2 border-slate-300 bg-white transition-[width] duration-300 ease-in-out flex flex-col`}>
+        <div className="min-h-24 px-4 border-b-2 border-slate-300 flex items-center gap-3">
           <button
             type="button"
             aria-label="Toggle admin sidebar"
             aria-expanded={sidebarOpen}
             onClick={() => setSidebarOpen(open => !open)}
-            className="h-10 w-10 shrink-0 rounded-lg border border-brand-light text-bark hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand transition-colors"
+            className="admin-button h-14 w-14 shrink-0 rounded-lg border-2 border-slate-400 text-slate-950 bg-white hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-200 transition-colors text-xl font-bold"
           >
             {sidebarOpen ? "<" : ">"}
           </button>
           {sidebarOpen && (
             <div className="min-w-0">
-              <h1 className="font-semibold text-bark leading-tight truncate">Jane&apos;s Therapy</h1>
-              <p className="text-xs text-bark-light mt-0.5">管理后台 Admin</p>
+              <h1 className="font-bold text-slate-950 leading-tight truncate">Jane&apos;s Therapy</h1>
+              <p className="text-sm text-slate-700 mt-1">管理后台 Admin</p>
             </div>
           )}
         </div>
 
-        <nav className="flex-1 px-3 py-5 space-y-1">
+        <nav className="flex-1 px-3 py-5 space-y-2">
           {TABS.map(t => (
             <button
               key={t}
               type="button"
               onClick={() => setTab(t)}
               title={sidebarOpen ? undefined : t}
-              className={`w-full min-h-11 rounded-lg px-3 text-sm font-medium transition-colors flex items-center ${sidebarOpen ? "justify-start text-left" : "justify-center"} ${tab === t ? "bg-brand text-white" : "text-bark-light hover:text-bark hover:bg-brand-light/70"}`}
+              className={`w-full min-h-14 rounded-lg px-4 text-sm font-bold transition-colors flex items-center border-2 ${sidebarOpen ? "justify-start text-left" : "justify-center"} ${tab === t ? "bg-slate-900 border-slate-900 text-white shadow-sm" : "bg-white border-transparent text-slate-800 hover:text-slate-950 hover:bg-slate-100 hover:border-slate-300"}`}
             >
               {sidebarOpen ? t : t.slice(0, 1)}
             </button>
           ))}
         </nav>
 
-        <div className="px-3 py-4 border-t border-brand-light">
-          {sidebarOpen && <p className="text-xs font-semibold text-bark-light mb-2">字号</p>}
-          <div className={`grid gap-1 ${sidebarOpen ? "grid-cols-3" : "grid-cols-1"}`}>
+        <div className="px-3 py-5 border-t-2 border-slate-300">
+          {sidebarOpen && <p className="text-sm font-bold text-slate-800 mb-3">字号</p>}
+          <div className={`grid gap-2 ${sidebarOpen ? "grid-cols-3" : "grid-cols-1"}`}>
             {FONT_SIZE_OPTIONS.map(option => (
               <button
                 key={option.value}
@@ -573,10 +619,10 @@ export default function AdminPage() {
                 aria-pressed={fontSize === option.value}
                 title={`字号 ${option.label}`}
                 onClick={() => setFontSize(option.value)}
-                className={`min-h-9 rounded-lg border px-2 text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-brand ${
+                className={`admin-button min-h-14 rounded-lg border-2 px-2 text-sm font-bold transition-colors focus:outline-none focus:ring-4 focus:ring-sky-200 ${
                   fontSize === option.value
-                    ? "border-brand bg-brand text-white"
-                    : "border-brand-light text-bark-light hover:bg-brand-light/70 hover:text-bark"
+                    ? "border-slate-900 bg-slate-900 text-white"
+                    : "border-slate-400 bg-white text-slate-900 hover:bg-slate-100"
                 }`}
               >
                 {option.label}
@@ -585,25 +631,25 @@ export default function AdminPage() {
           </div>
         </div>
 
-        <div className="px-3 py-4 border-t border-brand-light">
+        <div className="px-3 py-5 border-t-2 border-slate-300">
           <button
             type="button"
             onClick={logout}
             title={sidebarOpen ? undefined : "退出登录 Log out"}
-            className={`w-full min-h-11 rounded-lg px-3 text-sm font-medium text-bark-light hover:text-bark hover:bg-brand-light/70 transition-colors flex items-center ${sidebarOpen ? "justify-start" : "justify-center"}`}
+            className={`admin-button w-full min-h-14 rounded-lg px-4 text-sm font-bold text-slate-800 bg-white border-2 border-slate-300 hover:text-slate-950 hover:bg-slate-100 transition-colors flex items-center ${sidebarOpen ? "justify-start" : "justify-center"}`}
           >
             {sidebarOpen ? "退出登录 Log out" : "X"}
           </button>
         </div>
       </aside>
 
-      <main className="flex-1 min-w-0 px-4 py-6 lg:px-8 lg:py-8 transition-[padding] duration-300">
-        <div className="mb-6">
-          <p className="text-sm text-bark-light">当前页面 Current</p>
-          <h2 className="text-2xl font-semibold text-bark">{tab}</h2>
+      <main className="flex-1 min-w-0 px-5 py-6 lg:px-10 lg:py-10 transition-[padding] duration-300">
+        <div className="mb-7">
+          <p className="text-sm text-slate-700 font-semibold">当前页面 Current</p>
+          <h2 className="text-2xl font-bold text-slate-950">{tab}</h2>
         </div>
 
-        <div className="w-full bg-white border border-brand-light rounded-xl p-5 lg:p-6">
+        <div className="admin-panel w-full rounded-lg p-6 lg:p-8">
           {tab === "设置 Settings" && <SettingsTab />}
           {tab === "服务项目 Services" && <ServicesTab />}
           {tab === "附加服务 Add-ons" && <AddonsTab />}
