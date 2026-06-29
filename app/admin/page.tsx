@@ -496,6 +496,7 @@ type Tab = typeof TABS[number];
 
 export default function AdminPage() {
   const [tab, setTab] = useState<Tab>("设置 Settings");
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const router = useRouter();
 
   async function logout() {
@@ -504,21 +505,59 @@ export default function AdminPage() {
   }
 
   return (
-    <div className="min-h-screen bg-cream">
-      <header className="bg-white border-b border-brand-light px-6 py-4 flex items-center justify-between">
-        <h1 className="font-semibold text-bark">Jane&apos;s Therapy 管理后台</h1>
-        <button onClick={logout} className="text-sm text-bark-light hover:text-brand">退出登录 Log out</button>
-      </header>
-      <div className="max-w-3xl mx-auto px-4 py-8">
-        <div className="flex gap-1 mb-8 bg-white border border-brand-light rounded-xl p-1">
+    <div className="min-h-screen bg-cream flex">
+      <aside className={`${sidebarOpen ? "w-72" : "w-20"} min-h-screen shrink-0 border-r border-brand-light bg-white transition-[width] duration-300 ease-in-out flex flex-col`}>
+        <div className="h-20 px-4 border-b border-brand-light flex items-center gap-3">
+          <button
+            type="button"
+            aria-label="Toggle admin sidebar"
+            aria-expanded={sidebarOpen}
+            onClick={() => setSidebarOpen(open => !open)}
+            className="h-10 w-10 shrink-0 rounded-lg border border-brand-light text-bark hover:bg-brand-light focus:outline-none focus:ring-2 focus:ring-brand transition-colors"
+          >
+            {sidebarOpen ? "<" : ">"}
+          </button>
+          {sidebarOpen && (
+            <div className="min-w-0">
+              <h1 className="font-semibold text-bark leading-tight truncate">Jane&apos;s Therapy</h1>
+              <p className="text-xs text-bark-light mt-0.5">管理后台 Admin</p>
+            </div>
+          )}
+        </div>
+
+        <nav className="flex-1 px-3 py-5 space-y-1">
           {TABS.map(t => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-colors ${tab === t ? "bg-brand text-white" : "text-bark-light hover:text-bark"}`}>
-              {t}
+            <button
+              key={t}
+              type="button"
+              onClick={() => setTab(t)}
+              title={sidebarOpen ? undefined : t}
+              className={`w-full min-h-11 rounded-lg px-3 text-sm font-medium transition-colors flex items-center ${sidebarOpen ? "justify-start text-left" : "justify-center"} ${tab === t ? "bg-brand text-white" : "text-bark-light hover:text-bark hover:bg-brand-light/70"}`}
+            >
+              {sidebarOpen ? t : t.slice(0, 1)}
             </button>
           ))}
+        </nav>
+
+        <div className="px-3 py-4 border-t border-brand-light">
+          <button
+            type="button"
+            onClick={logout}
+            title={sidebarOpen ? undefined : "退出登录 Log out"}
+            className={`w-full min-h-11 rounded-lg px-3 text-sm font-medium text-bark-light hover:text-bark hover:bg-brand-light/70 transition-colors flex items-center ${sidebarOpen ? "justify-start" : "justify-center"}`}
+          >
+            {sidebarOpen ? "退出登录 Log out" : "X"}
+          </button>
         </div>
-        <div className="bg-white border border-brand-light rounded-xl p-6">
+      </aside>
+
+      <main className="flex-1 min-w-0 px-4 py-6 lg:px-8 lg:py-8 transition-[padding] duration-300">
+        <div className="mb-6">
+          <p className="text-sm text-bark-light">当前页面 Current</p>
+          <h2 className="text-2xl font-semibold text-bark">{tab}</h2>
+        </div>
+
+        <div className="w-full bg-white border border-brand-light rounded-xl p-5 lg:p-6">
           {tab === "设置 Settings" && <SettingsTab />}
           {tab === "服务项目 Services" && <ServicesTab />}
           {tab === "附加服务 Add-ons" && <AddonsTab />}
@@ -526,7 +565,7 @@ export default function AdminPage() {
           {tab === "客户登记 Intake" && <IntakeTab />}
           {tab === "发票 Invoice" && <InvoiceTab />}
         </div>
-      </div>
+      </main>
     </div>
   );
 }

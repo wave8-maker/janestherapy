@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Contractor Invoice tool
@@ -32,6 +32,7 @@ interface InvoiceState {
 }
 
 // ── defaults ──────────────────────────────────────────────────────────────
+const emptyParty: Party = { name: "", line2: "", address: "", phone: "", email: "" };
 const JANE: Party = {
   name: "Jane's Therapy",
   line2: "Jane Zhang, CMT · Massage Therapist",
@@ -47,18 +48,16 @@ const TRIO: Party = {
   email: "",
 };
 
-function todayISO() { return new Date().toISOString().slice(0, 10); }
-
-function freshState(): InvoiceState {
+function emptyState(): InvoiceState {
   return {
-    from: { ...JANE },
-    billTo: { ...TRIO },
+    from: { ...emptyParty },
+    billTo: { ...emptyParty },
     invoiceNo: "",
-    invoiceDate: todayISO(),
+    invoiceDate: "",
     periodFrom: "",
     periodTo: "",
-    terms: "Due upon receipt",
-    feeRate: "45",
+    terms: "",
+    feeRate: "",
     items: [{ date: "", description: "", sales: "", gratuity: "", feeOverride: "" }],
     notes: "",
   };
@@ -250,24 +249,7 @@ function buildInvoiceHTML(inv: InvoiceState): string {
 const LS_KEY = "janeInvoiceDefaults_v1";
 
 export default function InvoiceTab() {
-  const [inv, setInv] = useState<InvoiceState>(freshState);
-
-  // load saved studio/from defaults (client only)
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      if (raw) {
-        const d = JSON.parse(raw);
-        setInv(s => ({
-          ...s,
-          from: d.from ?? s.from,
-          billTo: d.billTo ?? s.billTo,
-          feeRate: d.feeRate ?? s.feeRate,
-          terms: d.terms ?? s.terms,
-        }));
-      }
-    } catch { /* ignore */ }
-  }, []);
+  const [inv, setInv] = useState<InvoiceState>(emptyState);
 
   const rate = num(inv.feeRate);
   const totals = useMemo(() => {
@@ -300,6 +282,22 @@ export default function InvoiceTab() {
     } catch { alert("无法保存 Could not save."); }
   }
 
+  function loadDefaults() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      const d = raw ? JSON.parse(raw) : { from: JANE, billTo: TRIO, feeRate: "45", terms: "Due upon receipt" };
+      setInv(s => ({
+        ...s,
+        from: d.from ?? JANE,
+        billTo: d.billTo ?? TRIO,
+        feeRate: d.feeRate ?? "45",
+        terms: d.terms ?? "Due upon receipt",
+      }));
+    } catch {
+      setInv(s => ({ ...s, from: { ...JANE }, billTo: { ...TRIO }, feeRate: "45", terms: "Due upon receipt" }));
+    }
+  }
+
   function autoInvoiceNo() {
     const end = inv.periodTo || inv.invoiceDate;
     const d = new Date(end);
@@ -327,7 +325,10 @@ export default function InvoiceTab() {
             <span className="text-bark-light/80">Bill a studio from their bi-monthly report. Amount Due = Sales − Studio Fee + Gratuity.</span>
           </p>
         </div>
-        <Btn variant="secondary" small onClick={() => setInv(freshState())}>清空重填 Reset</Btn>
+        <div className="flex flex-wrap gap-2">
+          <Btn variant="secondary" small onClick={loadDefaults}>套用常用信息 Load Defaults</Btn>
+          <Btn variant="secondary" small onClick={() => setInv(emptyState())}>清空重填 Reset</Btn>
+        </div>
       </div>
 
       {/* parties */}
