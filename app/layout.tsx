@@ -34,6 +34,9 @@ export const metadata: Metadata = {
   keywords: [
     "massage San Jose",
     "massage therapist San Jose",
+    "mobile massage San Jose",
+    "in-home massage San Jose",
+    "outcall massage Bay Area",
     "deep tissue massage Bay Area",
     "Swedish massage",
     "lymphatic drainage",

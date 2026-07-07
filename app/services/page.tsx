@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getServices, getAddons } from "../lib/content";
 import AddonsSection from "../components/AddonsSection";
+import ServiceModes from "../components/ServiceModes";
 import JsonLd from "../components/JsonLd";
 import { pageMeta, SITE_URL, SITE_NAME } from "../lib/seo";
 
@@ -11,7 +12,7 @@ const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
 export const metadata = pageMeta({
   title: "Massage Services",
   description:
-    "Swedish, Clinical Deep Tissue, Lymphatic Drainage, Glow from Head to Toe, prenatal, and more — one-on-one with Jane Zhang, CMT in San Jose, CA.",
+    "Swedish, Clinical Deep Tissue, Lymphatic Drainage, Glow from Head to Toe, prenatal, and more — one-on-one with Jane Zhang, CMT. In-studio or mobile massage across San Jose, CA.",
   path: "/services",
 });
 
@@ -30,26 +31,37 @@ export default function ServicesPage() {
   }));
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-20">
+    <>
       <JsonLd data={serviceLd} />
-      <div className="text-center mb-14">
-        <p className="eyebrow">Treatments &amp; pricing</p>
-        <h1 className="font-display text-4xl sm:text-5xl text-bark mt-3 mb-4">
-          Massage services at Jane&apos;s Therapy
-        </h1>
-        <p className="text-bark-light max-w-xl mx-auto text-lg">
-          All sessions are one-on-one with Jane. Add cupping or Gua Sha to any treatment.
-        </p>
-        <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-          <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
-            Book Now
-          </Link>
-          <Link href={GIFT_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
-            Gift Card
-          </Link>
+      <div className="max-w-6xl mx-auto px-6 pt-20 pb-14">
+        <div className="text-center">
+          <p className="eyebrow">Treatments &amp; pricing</p>
+          <h1 className="font-display text-4xl sm:text-5xl text-bark mt-3 mb-4">
+            Massage services at Jane&apos;s Therapy
+          </h1>
+          <p className="text-bark-light max-w-xl mx-auto text-lg">
+            All sessions are one-on-one with Jane, available in her studio or
+            mobile at your place. Add cupping or Gua Sha to any treatment.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
+              Book Now
+            </Link>
+            <Link href={GIFT_URL} target="_blank" rel="noopener noreferrer" className="btn btn-secondary">
+              Gift Card
+            </Link>
+          </div>
         </div>
       </div>
 
+      {/* Ways to book — sand band separates the service modes from the treatment menu */}
+      <section className="bg-brand-light border-y border-brand/10">
+        <div className="max-w-6xl mx-auto px-6 py-20">
+          <ServiceModes />
+        </div>
+      </section>
+
+      <div className="max-w-6xl mx-auto px-6 py-20">
       <div className="grid sm:grid-cols-2 gap-6">
         {services.map((svc) => (
           <div
@@ -87,6 +99,7 @@ export default function ServicesPage() {
       </div>
 
       <AddonsSection addons={addons} />
-    </div>
+      </div>
+    </>
   );
 }

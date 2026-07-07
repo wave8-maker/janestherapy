@@ -9,7 +9,7 @@ const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
 export const metadata = pageMeta({
   title: "Location & Contact",
   description:
-    "Jane's Therapy is located in San Jose, CA. Contact Jane directly for the address — text 669-292-4472 or email janezhang.therapist@gmail.com.",
+    "Jane's Therapy is based in San Jose, CA — visit the studio or book a mobile visit across the South Bay: Palo Alto, Mountain View, Sunnyvale, Santa Clara, Cupertino, Los Gatos & more. Text 669-292-4472.",
   path: "/location",
 });
 
@@ -34,11 +34,21 @@ export default function LocationPage() {
             <h2 className="font-display text-xl text-bark mb-4">Jane&apos;s Therapy</h2>
             <div className="space-y-4 text-sm text-bark-light">
               <div>
-                <p className="font-semibold text-bark">📍 Address</p>
+                <p className="font-semibold text-bark">📍 In studio</p>
                 <p className="mt-1">
-                  Jane is currently working from home temporarily.
-                  <br />
-                  <strong>Please contact Jane directly for the address.</strong>
+                  Jane sees clients from her private home studio in San Jose. The
+                  exact address is shared once your appointment is confirmed.
+                </p>
+              </div>
+              <div>
+                <p className="font-semibold text-bark">🚗 Mobile · we come to you</p>
+                <p className="mt-1">
+                  Prefer to stay home? Mobile visits are available across the
+                  South Bay — including Palo Alto, Los Altos, Los Altos Hills,
+                  Mountain View, Sunnyvale, Santa Clara, Cupertino, Saratoga,
+                  Monte Sereno, Campbell, Los Gatos, San Jose, and Milpitas. An
+                  additional travel fee applies — details are shown when you book
+                  on Square. Text to confirm your location.
                 </p>
               </div>
               <div>

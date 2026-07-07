@@ -1,0 +1,30 @@
+{
+  "googleReviewUrl": "",
+  "yelpPageUrl": "https://www.yelp.com/biz/jane-s-therapy-palo-alto",
+  "items": [
+    {
+      "name": "Lynn L.",
+      "location": "San Jose, CA",
+      "rating": 5,
+      "date": "Nov 4, 2024",
+      "source": "Yelp",
+      "text": "I always prefer to find independent massage therapists vs. bigger spa chains. I am so glad to have discovered Jane's Therapy. I've visited twice now and will absolutely return for my next massage.\n\nJane makes the effort to know your trouble spots; is responsive to feedback about what pressure levels are comfortable for you; and she provides thorough followup to ensure you can take care of your body post-massage. She takes her time with each session, which I appreciate since I've been to some places where they rush you out the door for the next client.\n\nAfter every massage my body feels much looser and more relaxed. I definitely recommend this business for your next massage!"
+    },
+    {
+      "name": "Steve B.",
+      "location": "San Mateo, CA",
+      "rating": 5,
+      "date": "Oct 10, 2024",
+      "source": "Yelp",
+      "text": "Jane is awesome. I met her a few years ago when she was newly licensed. Since then she has become a student of massage therapy and has learned and grown in her knowledge, understanding, care and treatment skills. She knows exactly how to exhibit precise treatment to all your compromised areas or to just give a massage to those who like a routine tune-up. I trust Jane completely. I don't go anywhere else now. Give Jane the opportunity to show you how she can make a difference in your life. You won't regret it!"
+    },
+    {
+      "name": "Eduardo V.",
+      "location": "San Francisco, CA",
+      "rating": 5,
+      "date": "Jul 24, 2024",
+      "source": "Yelp",
+      "text": "This was the best massage I've ever had. I even let her massage my feet and I normally don't let anyone touch my feet. So it speaks volumes on how relaxed I was. She was great."
+    }
+  ]
+}

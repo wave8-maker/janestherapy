@@ -1,8 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getSiteConfig, getServices, getAddons } from "./lib/content";
+import { getSiteConfig, getServices, getAddons, getReviews } from "./lib/content";
 import AddonsSection from "./components/AddonsSection";
-import ReviewsGallery from "./components/ReviewsGallery";
+import ServiceModes from "./components/ServiceModes";
+import ReviewsSection from "./components/ReviewsSection";
 
 const BOOKING_URL =
   "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";
@@ -39,6 +40,7 @@ export default function HomePage() {
   const { announcement } = getSiteConfig();
   const services = getServices();
   const addons = getAddons();
+  const reviews = getReviews();
 
   return (
     <>
@@ -75,7 +77,8 @@ export default function HomePage() {
             </h1>
             <p className="reveal reveal-3 mt-6 text-white/85 text-lg leading-relaxed max-w-md">
               Deep tissue, Swedish, lymphatic drainage, and Traditional Chinese
-              Medicine bodywork — one-on-one with Jane Zhang, CMT.
+              Medicine bodywork — one-on-one with Jane Zhang, CMT, in her San
+              Jose studio or at your door.
             </p>
             <div className="reveal reveal-4 mt-9 flex flex-col sm:flex-row gap-4">
               <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
@@ -128,6 +131,11 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* Studio or Mobile */}
+      <section className="max-w-6xl mx-auto px-6 py-24">
+        <ServiceModes />
+      </section>
+
       {/* Why clients choose Jane */}
       <section className="bg-brand-light">
         <div className="max-w-6xl mx-auto px-6 py-24">
@@ -159,8 +167,8 @@ export default function HomePage() {
             Massage services at Jane&apos;s Therapy
           </h2>
           <p className="text-bark-light max-w-xl mx-auto">
-            All sessions are one-on-one with Jane. Add cupping or Gua Sha to any
-            treatment.
+            All sessions are one-on-one with Jane — in her studio or at your
+            place. Add cupping or Gua Sha to any treatment.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 gap-6">
@@ -210,7 +218,7 @@ export default function HomePage() {
               What clients say
             </h2>
           </div>
-          <ReviewsGallery />
+          <ReviewsSection content={reviews} />
         </div>
       </section>
 

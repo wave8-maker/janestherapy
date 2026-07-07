@@ -1,0 +1,38 @@
+{
+  "bookingUrl": "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services",
+  "eyebrow": "Two ways to unwind",
+  "heading": "Come to the studio — or we come to you",
+  "subheading": "The same one-on-one care with Jane, wherever you feel most at ease.",
+  "modes": [
+    {
+      "key": "studio",
+      "label": "In studio",
+      "title": "Visit Jane's studio",
+      "description": "Slip away to Jane's calm, private home studio in San Jose — a quiet space designed for stillness, with everything already set up for you.",
+      "meta": "San Jose, CA · exact address shared when you book"
+    },
+    {
+      "key": "mobile",
+      "label": "Mobile",
+      "title": "We come to you",
+      "description": "Prefer to stay put? Jane brings the table, fresh linens, and oils to your home, hotel, or office — you simply lie back and let the day melt away.",
+      "meta": "Serving the South Bay",
+      "areas": [
+        "Palo Alto",
+        "Los Altos",
+        "Los Altos Hills",
+        "Mountain View",
+        "Sunnyvale",
+        "Santa Clara",
+        "Cupertino",
+        "Saratoga",
+        "Monte Sereno",
+        "Campbell",
+        "Los Gatos",
+        "San Jose",
+        "Milpitas"
+      ],
+      "note": "An additional travel fee applies — details are shown when you book on Square."
+    }
+  ]
+}

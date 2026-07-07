@@ -52,6 +52,31 @@ export function getBlogPost(slug: string) {
   };
 }
 
+export function getReviews() {
+  const raw = fs.readFileSync(path.join(contentDir, "reviews.json"), "utf-8");
+  return JSON.parse(raw) as ReviewsContent;
+}
+
+export function getServiceModes() {
+  const raw = fs.readFileSync(path.join(contentDir, "serviceModes.json"), "utf-8");
+  return JSON.parse(raw) as ServiceModesContent;
+}
+
+export interface Review {
+  name: string;
+  location: string;
+  rating: number;
+  date: string;
+  source: string;
+  text: string;
+}
+
+export interface ReviewsContent {
+  googleReviewUrl: string;
+  yelpPageUrl: string;
+  items: Review[];
+}
+
 export interface Pricing {
   duration: string;
   price: string;
@@ -69,4 +94,22 @@ export interface Addon {
   name: string;
   description: string;
   pricing: Pricing[];
+}
+
+export interface ServiceMode {
+  key: string;
+  label: string;
+  title: string;
+  description: string;
+  meta: string;
+  areas?: string[];
+  note?: string;
+}
+
+export interface ServiceModesContent {
+  bookingUrl: string;
+  eyebrow: string;
+  heading: string;
+  subheading: string;
+  modes: ServiceMode[];
 }
