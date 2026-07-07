@@ -53,11 +53,12 @@ export default function ServiceModes({ className = "" }: { className?: string })
             <span>{studio.meta}</span>
           </p>
           <Link
-            href="/location"
-            className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-dark link-underline w-fit"
+            href={bookingUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-primary mt-6 w-full sm:w-fit px-8"
           >
-            How to find us
-            <span aria-hidden>→</span>
+            Book a studio visit
           </Link>
         </article>
 
