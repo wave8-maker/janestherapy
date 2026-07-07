@@ -30,7 +30,10 @@
       "badge": "",
       "description": "Targeting the deep muscle and connective tissue, this treatment is highly effective for relieving chronic tension and stiffness. Optional cupping or Gua Sha add-ons available. Often shows a significant difference in just one session—fewer subsequent appointments and ultimately saves you money.",
       "pricing": [
-        { "duration": "60 minutes", "price": "$150" }
+        { "duration": "30 minutes", "price": "$80" },
+        { "duration": "45 minutes", "price": "$120" },
+        { "duration": "60 minutes", "price": "$150" },
+        { "duration": "90 minutes", "price": "$225" }
       ],
       "details": []
     },
@@ -39,6 +42,8 @@
       "badge": "",
       "description": "A gentle massage aimed at stimulating the lymphatic system to remove toxins and increase lymph flow. Particularly beneficial for reducing swelling, improving immune function, and promoting detoxification. Ideal for those seeking relief from fluid retention or looking to boost overall health.",
       "pricing": [
+        { "duration": "30 minutes", "price": "$70" },
+        { "duration": "45 minutes", "price": "$95" },
         { "duration": "60 minutes", "price": "$120" }
       ],
       "details": []
