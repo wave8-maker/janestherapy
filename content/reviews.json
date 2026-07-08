@@ -1,22 +1,86 @@
 {
-  "googleReviewUrl": "https://search.google.com/local/writereview?placeid=PASTE_GOOGLE_PLACE_ID",
-  "yelpPageUrl": "https://www.yelp.com/biz/jane-s-therapy-palo-alto",
+  "googleReviewUrl": "https://www.google.com/maps?cid=10540784026703497194",
+  "yelpPageUrl": "https://www.yelp.com/biz/jane-s-therapy-san-jose",
   "items": [
     {
-      "name": "PLACEHOLDER — reviewer name",
-      "location": "City, CA",
+      "name": "Sans F.",
+      "location": "",
       "rating": 5,
-      "date": "Month D, YYYY",
+      "date": "a year ago",
       "source": "Google",
-      "text": "PLACEHOLDER — paste the client's Google review text here, then update the name, location, and date above to match."
+      "text": "Jane is amazing. I have chronic neck/shoulder pain and my physician prescribed physical therapy and Advil. Neither worked and the pain was interfering with all aspects of my life, especially when it started triggering migraines.\n\nAfter my first appointment with Jane I felt 100% better, which never happened with other therapists I'd seen. She found the problem areas and broke down the pain cycle. I had forgotten what it felt like to not wake up hurting!\n\nJane is the best massage therapist I've had and highly recommend her!"
     },
     {
-      "name": "PLACEHOLDER — reviewer name",
-      "location": "City, CA",
+      "name": "Chaonan L.",
+      "location": "",
       "rating": 5,
-      "date": "Month D, YYYY",
+      "date": "a year ago",
       "source": "Google",
-      "text": "PLACEHOLDER — paste a second Google review here. Add more entries like this one for each additional review."
+      "text": "I booked a 90-minute signature massage online for the same day after work since my shoulders felt rock-hard after three days of overtime. Luckily, there was one spot open at 5 PM! Jane was incredibly helpful and professional from the moment…"
+    },
+    {
+      "name": "M R.",
+      "location": "",
+      "rating": 5,
+      "date": "a year ago",
+      "source": "Google",
+      "text": "Jane found the issues I was having and worked on them with techniques that feel better than the chain place I usually go to. I got the \"Glow from Head to Toe\" service that dealt with my back and knees and I also asked for the facial--and my friend on the trail said my face looked more youthful haha!"
+    },
+    {
+      "name": "Eduardo V.",
+      "location": "",
+      "rating": 5,
+      "date": "a year ago",
+      "source": "Google",
+      "text": "Jane is wonderful. She really listens when i tell her what area's are in pain and caters to ths area. I really appreciate how she will try different remedy's. A real healer."
+    },
+    {
+      "name": "Roberto N.",
+      "location": "",
+      "rating": 5,
+      "date": "a year ago",
+      "source": "Google",
+      "text": "Jane is great massage therapist she really helped me with my lower back issues she is very helpful and have lots of knowledge thank you very much Jane I'm definitely looking forward to seeing you soon,"
+    },
+    {
+      "name": "Becca B.",
+      "location": "Duluth, MN",
+      "rating": 5,
+      "date": "Aug 29, 2025",
+      "source": "Yelp",
+      "text": "Jane was fantastic. She was able to really help me release tension where I needed to, and was so communicative making sure I was comfortable. Highly recommend!"
+    },
+    {
+      "name": "Jun L.",
+      "location": "San Francisco, CA",
+      "rating": 5,
+      "date": "Apr 16, 2025",
+      "source": "Yelp",
+      "text": "I've been seeing Jane every two weeks, and she's been a lifesaver. I've had back and leg issues for years, and regular sessions with her have made a big difference. She always knows where the problem is and adjusts the massage based on how I'm feeling that day. I leave every time feeling lighter, looser, and just better overall. Highly recommend if you're dealing with chronic pain or stiffness."
+    },
+    {
+      "name": "Sylvia L.",
+      "location": "San Jose, CA",
+      "rating": 5,
+      "date": "Mar 25, 2025",
+      "source": "Yelp",
+      "text": "I've dealt with migraines for a while and tried a few different massage places without much luck. My friend suggested I check out Jane, and I'm glad I did. She was really understanding about my headaches and seemed to know exactly where to focus during the massage.\nAfter a few sessions, I've noticed my headaches aren't as bad as they used to be. Jane's office has a nice, relaxed feel, and she's genuinely nice to talk to. If you're looking for some relief from tension or headaches, Jane might be worth a try."
+    },
+    {
+      "name": "Zeena O.",
+      "location": "Palo Alto, CA",
+      "rating": 5,
+      "date": "Mar 16, 2025",
+      "source": "Yelp",
+      "text": "I used to see Jane at a popular massage center in Palo Alto, and was so disappointed when she left. Last week I was thrilled to see she had opened her own location, and I was able to book an appointment the same day. The massage was the best massage I've ever had, she is thorough, takes her time to ensure she's giving the best care, and the massage was incredibly relaxing and relieved my pain (neck and shoulders). Couldn't recommend more!!! The spot is also comfortable, and Jane is a ray of sunshine."
+    },
+    {
+      "name": "K N.",
+      "location": "Mountain View, CA",
+      "rating": 5,
+      "date": "Feb 22, 2025",
+      "source": "Yelp",
+      "text": "Jane is an expert in massage therapy! I've had two lymphatic drainage massages with her and each time, I've walked out of sessions feeling renewed and rejuvenated. Her knowledge of body wellness and health shines through in her work. She is able to understand the state that my body is in and deliver what it needs to recover. She uses effective techniques and various tools, and keeps her work space incredibly clean and comfortable. She has helped me release the stress that was stored in my body, decrease face puffiness, and supported me with my acne. In addition, she is accommodating of requests. At my most recent experience with her, she was extremely generous with her time! She prioritized helping me rather than ending the appointment exactly at the time it was supposed to end. I am so appreciative of her work and care. I look forward to returning to her in the near future!"
     },
     {
       "name": "Lynn L.",
@@ -24,15 +88,15 @@
       "rating": 5,
       "date": "Nov 4, 2024",
       "source": "Yelp",
-      "text": "I always prefer to find independent massage therapists vs. bigger spa chains. I am so glad to have discovered Jane's Therapy. I've visited twice now and will absolutely return for my next massage.\n\nJane makes the effort to know your trouble spots; is responsive to feedback about what pressure levels are comfortable for you; and she provides thorough followup to ensure you can take care of your body post-massage. She takes her time with each session, which I appreciate since I've been to some places where they rush you out the door for the next client.\n\nAfter every massage my body feels much looser and more relaxed. I definitely recommend this business for your next massage!"
+      "text": "I always prefer to find independent massage therapists vs. bigger spa chains when looking for massages. I know the \"risk\" is higher, so I try to do A LOT of research, and I feel better knowing that more of my money is going directly to the person providing the service.\n\nHaving said that, I am so glad to have discovered Jane's Therapy. I've visited twice now and will absolutely return for my next massage. The facility has easy, designated parking and her massage room is clean, tidy and relaxing.\n\nJane offers a variety of services and so far I've tried the Swedish massage and clinical deep tissue. Both were great experiences: Jane makes the effort to know your trouble spots; is responsive to feedback about what pressure levels are comfortable for you; and she provides thorough followup to ensure you can take care of your body post-massage. She takes her time with each session, which I appreciate since I've been to some places where they rush you out the door for the next client.\n\nAfter every massage my body feels much looser and more relaxed. Her business also started offering gift cards, which makes a solid gift for your friends or family. I definitely recommend this business for your next massage!"
     },
     {
-      "name": "Steve B.",
-      "location": "San Mateo, CA",
+      "name": "Bo H.",
+      "location": "Cupertino, CA",
       "rating": 5,
-      "date": "Oct 10, 2024",
+      "date": "Oct 13, 2024",
       "source": "Yelp",
-      "text": "Jane is awesome. I met her a few years ago when she was newly licensed. Since then she has become a student of massage therapy and has learned and grown in her knowledge, understanding, care and treatment skills. She knows exactly how to exhibit precise treatment to all your compromised areas or to just give a massage to those who like a routine tune-up. I trust Jane completely. I don't go anywhere else now. Give Jane the opportunity to show you how she can make a difference in your life. You won't regret it!"
+      "text": "Jane is not only a professional and experienced massage therapist but has a good knowledge of physical therapy. Her intuitive touch is very relaxing, healing and unique which makes me feel like reborn!"
     },
     {
       "name": "Eduardo V.",
