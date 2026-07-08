@@ -167,6 +167,9 @@ export default function RootLayout({
                   <Link href="/location" className="text-white/80 hover:text-brand-light transition-colors">
                     Hours &amp; Location
                   </Link>
+                  <Link href="/#reviews" className="text-white/80 hover:text-brand-light transition-colors">
+                    Client Reviews
+                  </Link>
                   <Link href="/intake" className="text-white/80 hover:text-brand-light transition-colors">
                     New Client Intake
                   </Link>

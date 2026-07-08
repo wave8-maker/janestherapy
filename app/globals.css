@@ -17,8 +17,14 @@
 }
 
 @layer base {
-  html {
-    scroll-behavior: smooth;
+  /* Smooth scrolling only while interacting with the page — a global
+     `html { scroll-behavior: smooth }` turns the load-time #anchor jump
+     into an animation that hydration can cancel, stranding the visitor
+     at the top. */
+  @media (prefers-reduced-motion: no-preference) {
+    html:focus-within {
+      scroll-behavior: smooth;
+    }
   }
 
   body {
@@ -158,9 +164,6 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  html {
-    scroll-behavior: auto;
-  }
   .reveal {
     animation: none;
     opacity: 1;

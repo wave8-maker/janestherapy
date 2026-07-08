@@ -1,7 +1,23 @@
 {
-  "googleReviewUrl": "",
+  "googleReviewUrl": "https://search.google.com/local/writereview?placeid=PASTE_GOOGLE_PLACE_ID",
   "yelpPageUrl": "https://www.yelp.com/biz/jane-s-therapy-palo-alto",
   "items": [
+    {
+      "name": "PLACEHOLDER — reviewer name",
+      "location": "City, CA",
+      "rating": 5,
+      "date": "Month D, YYYY",
+      "source": "Google",
+      "text": "PLACEHOLDER — paste the client's Google review text here, then update the name, location, and date above to match."
+    },
+    {
+      "name": "PLACEHOLDER — reviewer name",
+      "location": "City, CA",
+      "rating": 5,
+      "date": "Month D, YYYY",
+      "source": "Google",
+      "text": "PLACEHOLDER — paste a second Google review here. Add more entries like this one for each additional review."
+    },
     {
       "name": "Lynn L.",
       "location": "San Jose, CA",
