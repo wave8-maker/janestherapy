@@ -8,7 +8,7 @@ const BOOKING_URL =
 export const metadata = pageMeta({
   title: "About Jane Zhang, CMT",
   description:
-    "Jane Zhang, CMT, graduated from the National Holistic Institute with 800+ hours of training. Learn about her background and Traditional Chinese Medicine approach to massage therapy.",
+    "Meet Jane Zhang, CMT. Learn about her journey building a trusted, word-of-mouth massage practice and her Traditional Chinese Medicine approach to pain relief, athletic recovery, and women's wellness.",
   path: "/about",
 });
 
@@ -38,30 +38,60 @@ export default function AboutPage() {
         {/* Bio */}
         <div className="sm:col-span-2 space-y-5 text-bark-light leading-relaxed">
           <p>
-            I am Jane Zhang. As a graduate of the{" "}
-            <strong className="text-bark">National Holistic Institute (NHI)</strong>{" "}
-            with over 800 hours of training in various modalities of massage
-            therapy and health education, I am deeply passionate about enhancing
-            people&apos;s well-being.
+            Two years ago, after gaining extensive experience at a highly
+            regarded massage therapy center, I made the decision to begin my own
+            practice. I rented a treatment room inside a chiropractic clinic and
+            started seeing clients independently, with a vision of creating a
+            practice built on trust, clinical excellence, and personalized care.
           </p>
           <p>
-            My background in{" "}
-            <strong className="text-bark">traditional Chinese medicine</strong>{" "}
-            significantly informs my approach to bodywork and chronic pain
-            management. Over the years, I have successfully helped numerous
-            clients alleviate ailments such as lower and upper back pain, neck
-            pain, headaches and migraines, frozen shoulder, sciatic nerve pain,
-            plantar fasciitis, as well as ankle, knee, and wrist issues.
+            I am deeply grateful to the clients who believed in me from the very
+            beginning. Many have remained with me throughout the years, referring
+            their family members, friends, and colleagues. Their continued trust
+            has allowed my practice to grow almost entirely through word of
+            mouth—a reflection of the relationships I have built and the results
+            my clients experience.
           </p>
           <p>
-            My commitment as a trained professional is to prioritize my
-            clients&apos; satisfaction, striving to provide a serene and
-            therapeutic massage experience that caters to their individual needs.
+            Building a business has been a journey. During the early years, I
+            traveled back to China several times to continue my professional
+            education, studying advanced therapeutic techniques, including
+            acupuncture and Traditional Chinese Medicine. I also returned to
+            spend time with my family. Even during these periods away, my clients
+            patiently waited for my return, something I will always appreciate.
           </p>
           <p>
-            Outside of my professional life, I cherish my time cooking and
-            exploring music. Playing the piano brings joy and balance to my
-            life, complementing my journey as a lifelong learner.
+            Today, I have the privilege of helping people from all walks of life.
+            I work with clients experiencing chronic neck and shoulder pain,
+            upper and lower back pain, headaches, muscle tension, repetitive
+            strain injuries, and postural imbalances. Every treatment is
+            customized to the individual because no two bodies—and no two
+            stories—are the same.
+          </p>
+          <p>
+            I also enjoy supporting athletes in their recovery and performance.
+            I have worked with competitive athletes, including swimmers training
+            at an elite level, as well as musicians whose demanding practice
+            schedules place unique stress on their bodies.
+          </p>
+          <p>
+            Women&apos;s wellness is another area I am passionate about. I have
+            helped women through fertility massage, celebrated with many as they
+            returned for prenatal care during pregnancy, and now support new
+            mothers with postpartum bodywork to encourage recovery, restore
+            balance, and promote overall well-being.
+          </p>
+          <p>
+            I believe that effective bodywork is more than relieving pain—it is
+            about helping the body function at its best. My approach combines
+            skilled hands, careful listening, and a genuine commitment to each
+            client&apos;s health and recovery.
+          </p>
+          <p>
+            Whether you are seeking pain relief, stress reduction, improved
+            mobility, athletic recovery, or support through pregnancy and
+            postpartum, I look forward to helping you move with greater comfort,
+            confidence, and ease.
           </p>
         </div>
       </div>
