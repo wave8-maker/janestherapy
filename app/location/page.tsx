@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { getSiteConfig } from "../lib/content";
+import { getSiteConfig, getServiceModes } from "../lib/content";
+import JsonLd from "../components/JsonLd";
 import { pageMeta } from "../lib/seo";
 
 const BOOKING_URL =
@@ -15,9 +16,49 @@ export const metadata = pageMeta({
 
 export default function LocationPage() {
   const { hours } = getSiteConfig();
+  const mobile = getServiceModes().modes.find((m) => m.key === "mobile");
+
+  // Single source of truth for the visible FAQ and the FAQPage JSON-LD.
+  const openDays = hours.filter((h) => h.time.toLowerCase() !== "closed");
+  const hoursAnswer =
+    openDays.length === 7 && new Set(openDays.map((h) => h.time)).size === 1
+      ? `Open every day, ${openDays[0].time}.`
+      : openDays.map((h) => `${h.day}: ${h.time}`).join("; ") + ".";
+  const faqs = [
+    {
+      q: "Where is Jane's Therapy located?",
+      a: "Jane sees clients from her private home studio in San Jose, CA. The exact address is shared once your appointment is confirmed.",
+    },
+    {
+      q: "Do you offer mobile (outcall) massage?",
+      a: `Yes. Jane brings the massage table, fresh linens, and oils to your home, hotel, or office across the South Bay${mobile?.areas ? ` — including ${mobile.areas.join(", ")}` : ""}. ${mobile?.note ?? ""}`.trim(),
+    },
+    {
+      q: "What are your hours?",
+      a: hoursAnswer,
+    },
+    {
+      q: "How do I book an appointment?",
+      a: "Book online through Square, or text Jane at 669-292-4472 (text only — Jane is a solo practitioner with no front desk staff).",
+    },
+    {
+      q: "Do you sell gift cards?",
+      a: "Yes, digital gift cards are available for purchase online through Square.",
+    },
+  ];
+  const faqLd = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: faqs.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  };
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-20">
+      <JsonLd data={faqLd} />
       <div className="mb-14">
         <p className="eyebrow">Hours &amp; contact</p>
         <h1 className="font-display text-4xl sm:text-5xl text-bark mt-3 mb-3">
@@ -102,6 +143,22 @@ export default function LocationPage() {
           />
         </div>
       </div>
+
+      {/* FAQ — rendered from the same data as the FAQPage JSON-LD above */}
+      <section className="mt-20">
+        <p className="eyebrow">Good to know</p>
+        <h2 className="font-display text-3xl text-bark mt-3 mb-8">
+          Frequently asked questions
+        </h2>
+        <div className="grid sm:grid-cols-2 gap-6">
+          {faqs.map((f) => (
+            <div key={f.q} className="card-soft p-6">
+              <h3 className="font-semibold text-bark text-base mb-2">{f.q}</h3>
+              <p className="text-sm text-bark-light leading-relaxed">{f.a}</p>
+            </div>
+          ))}
+        </div>
+      </section>
     </div>
   );
 }

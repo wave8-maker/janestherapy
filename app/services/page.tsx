@@ -28,6 +28,12 @@ export default function ServicesPage() {
     description: svc.description,
     provider: { "@type": "LocalBusiness", "@id": `${SITE_URL}/#business`, name: SITE_NAME },
     areaServed: { "@type": "Place", name: "San Jose, CA" },
+    offers: svc.pricing.map((p) => ({
+      "@type": "Offer",
+      name: p.duration ? `${svc.name} — ${p.duration}` : svc.name,
+      price: p.price.replace(/[^0-9.]/g, ""),
+      priceCurrency: "USD",
+    })),
   }));
 
   return (

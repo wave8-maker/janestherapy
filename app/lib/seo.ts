@@ -88,6 +88,47 @@ function parseHours() {
     .filter(Boolean);
 }
 
+/** Modalities Jane practices — reused by LocalBusiness and Person JSON-LD. */
+const KNOWS_ABOUT = [
+  "Deep tissue massage",
+  "Swedish massage",
+  "Lymphatic drainage",
+  "Prenatal massage",
+  "Traditional Chinese Medicine",
+  "Cupping therapy",
+  "Gua Sha",
+] as const;
+
+/** schema.org Person JSON-LD for Jane — used on the About page. */
+export function personJsonLd() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Person",
+    "@id": `${SITE_URL}/about#jane`,
+    name: "Jane Zhang",
+    honorificSuffix: "CMT",
+    jobTitle: "Certified Massage Therapist",
+    description:
+      "Certified Massage Therapist in San Jose, CA specializing in deep tissue, sports recovery, prenatal and postpartum bodywork, and Traditional Chinese Medicine techniques including cupping, Gua Sha, and moxibustion.",
+    image: `${SITE_URL}/jane-photo.webp`,
+    url: `${SITE_URL}/about`,
+    email: BUSINESS.email,
+    telephone: BUSINESS.telephone,
+    alumniOf: {
+      "@type": "EducationalOrganization",
+      name: "National Holistic Institute",
+    },
+    worksFor: { "@id": `${SITE_URL}/#business` },
+    knowsAbout: [...KNOWS_ABOUT],
+    address: {
+      "@type": "PostalAddress",
+      addressLocality: BUSINESS.city,
+      addressRegion: BUSINESS.region,
+      addressCountry: BUSINESS.country,
+    },
+  };
+}
+
 /** schema.org LocalBusiness JSON-LD for the practice. */
 export function localBusinessJsonLd() {
   return {
@@ -111,15 +152,7 @@ export function localBusinessJsonLd() {
       addressCountry: BUSINESS.country,
     },
     areaServed: BUSINESS.areaServed.map((name) => ({ "@type": "Place", name })),
-    knowsAbout: [
-      "Deep tissue massage",
-      "Swedish massage",
-      "Lymphatic drainage",
-      "Prenatal massage",
-      "Traditional Chinese Medicine",
-      "Cupping therapy",
-      "Gua Sha",
-    ],
+    knowsAbout: [...KNOWS_ABOUT],
     openingHoursSpecification: parseHours(),
   };
 }
