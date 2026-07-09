@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { getSiteConfig } from "./content";
+import { getSiteConfig, slugify, type Service } from "./content";
 
 /** Canonical production origin. Used for metadataBase, sitemap, and JSON-LD. */
 export const SITE_URL = "https://janestherapy.com";
@@ -126,6 +126,26 @@ export function personJsonLd() {
       addressRegion: BUSINESS.region,
       addressCountry: BUSINESS.country,
     },
+  };
+}
+
+/** schema.org Service JSON-LD for one treatment, linking to its own detail page. */
+export function serviceJsonLd(svc: Service) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    serviceType: "Massage therapy",
+    name: svc.name,
+    description: svc.description,
+    url: `${SITE_URL}/services/${slugify(svc.name)}`,
+    provider: { "@type": "LocalBusiness", "@id": `${SITE_URL}/#business`, name: SITE_NAME },
+    areaServed: { "@type": "Place", name: "San Jose, CA" },
+    offers: svc.pricing.map((p) => ({
+      "@type": "Offer",
+      name: p.duration ? `${svc.name} — ${p.duration}` : svc.name,
+      price: p.price.replace(/[^0-9.]/g, ""),
+      priceCurrency: "USD",
+    })),
   };
 }
 

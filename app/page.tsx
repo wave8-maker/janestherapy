@@ -1,6 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getSiteConfig, getServices, getAddons, getReviews } from "./lib/content";
+import { getSiteConfig, getServices, getAddons, getReviews, slugify } from "./lib/content";
 import AddonsSection from "./components/AddonsSection";
 import ServiceModes from "./components/ServiceModes";
 import ReviewsSection from "./components/ReviewsSection";
@@ -203,6 +203,12 @@ export default function HomePage() {
                   ))}
                 </ul>
               )}
+              <Link
+                href={`/services/${slugify(svc.name)}`}
+                className="mt-4 inline-flex items-center gap-1 text-brand text-sm font-semibold link-underline"
+              >
+                Learn more →
+              </Link>
             </div>
           ))}
         </div>

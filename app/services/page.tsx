@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { getServices, getAddons } from "../lib/content";
+import { getServices, getAddons, slugify } from "../lib/content";
 import AddonsSection from "../components/AddonsSection";
 import ServiceModes from "../components/ServiceModes";
 import JsonLd from "../components/JsonLd";
-import { pageMeta, SITE_URL, SITE_NAME } from "../lib/seo";
+import { pageMeta, serviceJsonLd } from "../lib/seo";
 
 const BOOKING_URL =
   "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";
@@ -20,21 +20,7 @@ export default function ServicesPage() {
   const services = getServices();
   const addons = getAddons();
 
-  const serviceLd = services.map((svc) => ({
-    "@context": "https://schema.org",
-    "@type": "Service",
-    serviceType: "Massage therapy",
-    name: svc.name,
-    description: svc.description,
-    provider: { "@type": "LocalBusiness", "@id": `${SITE_URL}/#business`, name: SITE_NAME },
-    areaServed: { "@type": "Place", name: "San Jose, CA" },
-    offers: svc.pricing.map((p) => ({
-      "@type": "Offer",
-      name: p.duration ? `${svc.name} — ${p.duration}` : svc.name,
-      price: p.price.replace(/[^0-9.]/g, ""),
-      priceCurrency: "USD",
-    })),
-  }));
+  const serviceLd = services.map(serviceJsonLd);
 
   return (
     <>
@@ -100,6 +86,12 @@ export default function ServicesPage() {
                 ))}
               </ul>
             )}
+            <Link
+              href={`/services/${slugify(svc.name)}`}
+              className="mt-4 inline-flex items-center gap-1 text-brand text-sm font-semibold link-underline"
+            >
+              Learn more →
+            </Link>
           </div>
         ))}
       </div>

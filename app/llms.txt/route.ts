@@ -3,6 +3,7 @@ import {
   getAddons,
   getServiceModes,
   getSiteConfig,
+  slugify,
 } from "../lib/content";
 import { SITE_URL, SITE_NAME, BUSINESS } from "../lib/seo";
 
@@ -34,7 +35,8 @@ export function GET() {
     "## Services & Pricing (USD)",
     "",
     ...services.map(
-      (s) => `- **${s.name}** — ${priceLine(s.pricing)}. ${s.description}`,
+      (s) =>
+        `- **${s.name}** — ${priceLine(s.pricing)}. ${s.description} Learn more: ${SITE_URL}/services/${slugify(s.name)}`,
     ),
     "",
     "## Add-ons",

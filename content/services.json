@@ -3,7 +3,14 @@
     {
       "name": "Glow from Head to Toe",
       "badge": "Signature 👍",
-      "description": "Indulge in a luxurious full-body treatment designed to refresh, detoxify, and nourish your skin, leaving you with a radiant glow. Perfect for stress relief, skin rejuvenation, and preparing for special occasions like weddings, dates, and celebrations—or simply for feeling your best.",
+      "description": "A signature treatment pairing full-body massage with a rejuvenating facial massage inspired by techniques studied in China. As your body relaxes, circulation to your face is naturally encouraged, leaving your skin brighter and you feeling renewed from head to toe—perfect for weddings, dates, celebrations, or whenever you need to recharge.",
+      "tagline": "Relax. Rejuvenate. Radiate.",
+      "story": [
+        "This signature treatment combines a therapeutic full-body massage with a rejuvenating facial massage. Inspired by techniques I studied from anti-aging experts in China, it focuses on the small muscles and myofascial release on the face.",
+        "As your body relaxes, your facial muscles release tension and circulation is naturally encouraged, helping your skin appear refreshed and radiant. Many clients notice they leave looking brighter while feeling lighter from head to toe.",
+        "Unlike a traditional facial, this treatment focuses on natural relaxation and facial massage to support healthy-looking skin while giving your entire body the care it deserves.",
+        "Whether you're preparing for a special event or simply need time to recharge, this is a beautiful way to care for both your body and your face in one relaxing session."
+      ],
       "pricing": [
         { "duration": "90 minutes", "price": "$200" },
         { "duration": "120 minutes", "price": "$260" },

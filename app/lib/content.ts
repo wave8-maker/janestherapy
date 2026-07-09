@@ -17,6 +17,18 @@ export function getServices() {
   return (JSON.parse(raw) as { items: Service[] }).items;
 }
 
+/** URL slug for a service, derived from its name so services.json never has to store one. */
+export function slugify(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+}
+
+export function getServiceBySlug(slug: string) {
+  return getServices().find((s) => slugify(s.name) === slug);
+}
+
 export function getAddons() {
   const raw = fs.readFileSync(path.join(contentDir, "addons.json"), "utf-8");
   return (JSON.parse(raw) as { items: Addon[] }).items;
@@ -88,6 +100,10 @@ export interface Service {
   description: string;
   pricing: Pricing[];
   details?: string[];
+  /** Short hook shown on the detail page, e.g. "Relax. Rejuvenate. Radiate." */
+  tagline?: string;
+  /** Long-form narrative paragraphs for the detail page. Falls back to `description` if absent. */
+  story?: string[];
 }
 
 export interface Addon {

@@ -1,6 +1,6 @@
 import type { MetadataRoute } from "next";
 import { SITE_URL } from "./lib/seo";
-import { getBlogPosts } from "./lib/content";
+import { getBlogPosts, getServices, slugify } from "./lib/content";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
@@ -18,5 +18,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5,
   }));
 
-  return [...staticRoutes, ...posts];
+  const servicePages: MetadataRoute.Sitemap = getServices().map((svc) => ({
+    url: `${SITE_URL}/services/${slugify(svc.name)}`,
+    changeFrequency: "monthly",
+    priority: 0.6,
+  }));
+
+  return [...staticRoutes, ...servicePages, ...posts];
 }
