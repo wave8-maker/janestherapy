@@ -92,6 +92,15 @@
       "details": []
     },
     {
+      "name": "Postpartum Massage",
+      "badge": "",
+      "description": "A restorative massage designed to support new mothers through recovery after childbirth. Helps relieve tension in the back, neck, and shoulders from feeding and holding your baby, eases muscle fatigue, and encourages better circulation and relaxation. Gentle, comforting bodywork to help you feel like yourself again.",
+      "pricing": [
+        { "duration": "60 minutes", "price": "$120" }
+      ],
+      "details": []
+    },
+    {
       "name": "Facial Care",
       "badge": "",
       "description": "A rejuvenating facial treatment that blends Eastern and Western techniques to cleanse, tone, and revitalize the skin. Using natural herbal products and gentle facial massage, this session boosts circulation and leaves skin glowing, smooth, and refreshed.",
