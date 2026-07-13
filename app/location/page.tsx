@@ -10,7 +10,7 @@ const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
 export const metadata = pageMeta({
   title: "Location & Contact",
   description:
-    "Jane's Therapy is based in San Jose, CA — visit the studio or book a mobile visit across the South Bay: Palo Alto, Mountain View, Sunnyvale, Santa Clara, Cupertino, Los Gatos & more. Text 669-292-4472.",
+    "Jane's Therapy is a mobile massage practice based in San Jose, CA — Jane comes to you across the South Bay: Palo Alto, Mountain View, Sunnyvale, Santa Clara, Cupertino, Los Gatos & more. Text 669-292-4472.",
   path: "/location",
 });
 
@@ -27,7 +27,7 @@ export default function LocationPage() {
   const faqs = [
     {
       q: "Where is Jane's Therapy located?",
-      a: "Jane sees clients from her private home studio in San Jose, CA. The exact address is shared once your appointment is confirmed.",
+      a: "Jane's Therapy is a mobile massage practice based in San Jose, CA. Rather than seeing clients at a location, Jane travels to you — at your home, hotel, or office across the South Bay.",
     },
     {
       q: "Do you offer mobile (outcall) massage?",
@@ -74,13 +74,6 @@ export default function LocationPage() {
           <div className="card-soft p-7">
             <h2 className="font-display text-xl text-bark mb-4">Jane&apos;s Therapy</h2>
             <div className="space-y-4 text-sm text-bark-light">
-              <div>
-                <p className="font-semibold text-bark">📍 In studio</p>
-                <p className="mt-1">
-                  Jane sees clients from her private home studio in San Jose. The
-                  exact address is shared once your appointment is confirmed.
-                </p>
-              </div>
               <div>
                 <p className="font-semibold text-bark">🚗 Mobile · we come to you</p>
                 <p className="mt-1">
