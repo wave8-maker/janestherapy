@@ -16,8 +16,12 @@
       "label": "Mobile",
       "title": "We come to you",
       "description": "Prefer to stay put? Jane brings the table, fresh linens, and oils to your home, hotel, or office — you simply lie back and let the day melt away.",
-      "meta": "Serving the South Bay",
+      "meta": "Serving the South Bay, Peninsula & East Bay",
       "areas": [
+        "Redwood City",
+        "Menlo Park",
+        "Atherton",
+        "East Palo Alto",
         "Palo Alto",
         "Los Altos",
         "Los Altos Hills",
@@ -30,9 +34,10 @@
         "Campbell",
         "Los Gatos",
         "San Jose",
-        "Milpitas"
+        "Milpitas",
+        "Fremont"
       ],
-      "note": "A $50 travel fee covers Jane coming to you across the South Bay — reduced to $25 for sessions of 2 hours or longer."
+      "note": "A $50 travel fee covers Jane coming to you across the South Bay, Peninsula & East Bay — reduced to $25 for sessions of 2 hours or longer."
     }
   ]
 }

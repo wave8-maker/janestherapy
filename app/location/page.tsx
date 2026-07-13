@@ -85,11 +85,10 @@ export default function LocationPage() {
                 <p className="font-semibold text-bark">🚗 Mobile · we come to you</p>
                 <p className="mt-1">
                   Prefer to stay home? Mobile visits are available across the
-                  South Bay — including Palo Alto, Los Altos, Los Altos Hills,
-                  Mountain View, Sunnyvale, Santa Clara, Cupertino, Saratoga,
-                  Monte Sereno, Campbell, Los Gatos, San Jose, and Milpitas. An
-                  additional travel fee applies — details are shown when you book
-                  on Square. Text to confirm your location.
+                  South Bay and Peninsula
+                  {mobile?.areas ? ` — including ${mobile.areas.join(", ")}` : ""}.
+                  An additional travel fee applies — details are shown when you
+                  book on Square. Text to confirm your location.
                 </p>
               </div>
               <div>
