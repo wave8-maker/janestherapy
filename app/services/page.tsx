@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { getServices, getAddons, slugify } from "../lib/content";
 import AddonsSection from "../components/AddonsSection";
-import ServiceModes from "../components/ServiceModes";
+// TEMP (2026-07): hidden while Google Business Profile verifies Jane's as a
+// mobile-only business. Revert this commit to bring the section back.
+// import ServiceModes from "../components/ServiceModes";
 import JsonLd from "../components/JsonLd";
 import { pageMeta, serviceJsonLd } from "../lib/seo";
 
@@ -46,12 +48,16 @@ export default function ServicesPage() {
         </div>
       </div>
 
-      {/* Ways to book — sand band separates the service modes from the treatment menu */}
+      {/* Ways to book — sand band separates the service modes from the treatment menu.
+          TEMP (2026-07): hidden for Google Business Profile mobile-only
+          verification. Revert this commit to restore. */}
+      {/*
       <section className="bg-brand-light border-y border-brand/10">
         <div className="max-w-6xl mx-auto px-6 py-20">
           <ServiceModes />
         </div>
       </section>
+      */}
 
       <div className="max-w-6xl mx-auto px-6 py-20">
       <div className="grid sm:grid-cols-2 gap-6">
