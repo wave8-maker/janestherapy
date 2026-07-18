@@ -16,7 +16,9 @@ const publicSiteFiles = [
   "app/lib/seo.ts",
 ].map((file) => fs.readFileSync(path.join(root, file), "utf8")).join("\n");
 
-assert.doesNotMatch(publicSiteFiles + invoiceTab, /Palo Alto/, "site and admin defaults should not reference Palo Alto");
+// "Palo Alto" is allowed as a mobile service-area city; what must never return
+// is the business being *based* there (NAP says San Jose everywhere now).
+assert.doesNotMatch(publicSiteFiles + invoiceTab, /based in Palo Alto|Palo Alto, CA/, "site and admin defaults should not place the business in Palo Alto");
 assert.match(publicSiteFiles, /San Jose/, "public site should reference San Jose");
 assert.match(invoiceTab, /address: "San Jose, CA"/, "invoice sender default should use San Jose");
 
