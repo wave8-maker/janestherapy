@@ -95,9 +95,16 @@ function IntakeDetail({ submission, onBack, onDelete }: {
         <DetailRow
           label="Pain Markers"
           value={
-            submission.painMarkersBack.length > 0
-              ? `${submission.painMarkersBack.length} marks on diagram`
-              : undefined
+            [
+              (submission.painMarkersFront ?? []).length
+                ? `Front: ${submission.painMarkersFront.length}`
+                : "",
+              (submission.painMarkersBack ?? []).length
+                ? `Back: ${submission.painMarkersBack.length}`
+                : "",
+            ]
+              .filter(Boolean)
+              .join(" · ") || undefined
           }
         />
       </dl>
