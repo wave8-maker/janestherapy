@@ -102,7 +102,8 @@ function ReviewCard({ review }: { review: Review }) {
 }
 
 export default function ReviewsSection({ content }: { content: ReviewsContent }) {
-  const { items, googleReviewUrl, yelpPageUrl } = content;
+  const { items, googleReviewUrl, yelpPageUrl, yelpReviewUrl } = content;
+  const yelpWriteUrl = yelpReviewUrl || yelpPageUrl;
 
   const platforms = [
     {
@@ -240,9 +241,9 @@ export default function ReviewsSection({ content }: { content: ReviewsContent })
                 Review us on Google
               </a>
             )}
-            {yelpPageUrl && (
+            {yelpWriteUrl && (
               <a
-                href={yelpPageUrl}
+                href={yelpWriteUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="btn btn-secondary"

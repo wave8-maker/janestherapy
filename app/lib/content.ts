@@ -86,6 +86,7 @@ export interface Review {
 export interface ReviewsContent {
   googleReviewUrl: string;
   yelpPageUrl: string;
+  yelpReviewUrl: string;
   items: Review[];
 }
 
