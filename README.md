@@ -34,3 +34,18 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Square availability calendar
+
+`/availability` shows a read-only, day-level heatmap of the Square Appointments
+calendar (next 4 weeks), regenerated every 30 minutes. Configuration
+(server-side env vars, in Vercel and `.env.local`):
+
+- `SQUARE_ACCESS_TOKEN` — access token from a Square Developer application
+  (developer.squareup.com → your app → Credentials → Production Access Token)
+- `SQUARE_LOCATION_ID` — `L148MHX709ZSA`
+- `SQUARE_ENV` — `production` (anything else targets the Square sandbox)
+- `SQUARE_MOCK=1` — local development only: renders fake data without credentials
+
+Unset/invalid credentials degrade gracefully: the page hides the calendar and
+keeps the Book Now button.
