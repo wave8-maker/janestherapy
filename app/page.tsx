@@ -2,9 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { getSiteConfig, getServices, getAddons, getReviews, slugify } from "./lib/content";
 import AddonsSection from "./components/AddonsSection";
-// TEMP (2026-07): hidden while Google Business Profile verifies Jane's as a
-// mobile-only business. Revert this commit to bring the section back.
-// import ServiceModes from "./components/ServiceModes";
+import ServiceModes from "./components/ServiceModes";
 import ReviewsSection from "./components/ReviewsSection";
 
 const BOOKING_URL =
@@ -133,13 +131,10 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Studio or Mobile — TEMP (2026-07): hidden for Google Business Profile
-          mobile-only verification. Revert this commit to restore. */}
-      {/*
+      {/* Studio or Mobile */}
       <section className="max-w-6xl mx-auto px-6 py-24">
         <ServiceModes />
       </section>
-      */}
 
       {/* Why clients choose Jane */}
       <section className="bg-brand-light">
