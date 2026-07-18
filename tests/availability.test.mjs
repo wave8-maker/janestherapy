@@ -25,4 +25,74 @@ assert.deepEqual(days, [
   { date: "2026-07-22", state: "unavailable" },
 ]);
 
+const { getAvailabilitySummary, WINDOW_DAYS } = lib;
+
+// --- missing config → null ---
+delete process.env.SQUARE_ACCESS_TOKEN;
+delete process.env.SQUARE_LOCATION_ID;
+delete process.env.SQUARE_MOCK;
+assert.equal(await getAvailabilitySummary(), null);
+
+// --- happy path with a fake Square API ---
+process.env.SQUARE_ACCESS_TOKEN = "test-token";
+process.env.SQUARE_LOCATION_ID = "LTEST";
+
+const now = new Date("2026-07-20T16:00:00Z"); // 09:00 PDT
+const catalogResponse = {
+  objects: [
+    {
+      type: "ITEM",
+      item_data: {
+        product_type: "APPOINTMENTS_SERVICE",
+        variations: [
+          { id: "VAR60", item_variation_data: { service_duration: 3_600_000 } },
+          { id: "VAR90", item_variation_data: { service_duration: 5_400_000 } },
+        ],
+      },
+    },
+    { type: "ITEM", item_data: { product_type: "REGULAR", variations: [] } },
+  ],
+};
+const availabilityResponse = {
+  availabilities: [
+    { start_at: "2026-07-20T17:00:00Z" },
+    { start_at: "2026-07-20T18:30:00Z" },
+    { start_at: "2026-07-20T20:00:00Z" },
+    { start_at: "2026-07-21T17:00:00Z" },
+  ],
+};
+const requests = [];
+const fakeFetch = async (url, init) => {
+  requests.push({ url: String(url), init });
+  const body = String(url).includes("/v2/catalog/list") ? catalogResponse : availabilityResponse;
+  return new Response(JSON.stringify(body), { status: 200 });
+};
+
+const summary = await getAvailabilitySummary(fakeFetch, now);
+assert.equal(summary.baselineDurationMinutes, 60);
+assert.equal(summary.days.length, WINDOW_DAYS);
+assert.deepEqual(summary.days[0], { date: "2026-07-20", state: "open" });
+assert.deepEqual(summary.days[1], { date: "2026-07-21", state: "few" });
+assert.equal(summary.days[2].state, "unavailable");
+assert.equal(summary.updatedAt, now.toISOString());
+
+// sandbox base URL by default; auth header present; VAR60 chosen (closest to 60 min)
+assert.match(requests[0].url, /^https:\/\/connect\.squareupsandbox\.com\/v2\/catalog\/list/);
+const searchCalls = requests.filter((r) => r.url.includes("/v2/bookings/availability/search"));
+assert.equal(searchCalls.length, 2); // two ~14-day windows
+assert.equal(searchCalls[0].init.headers.Authorization, "Bearer test-token");
+assert.match(searchCalls[0].init.body, /"service_variation_id":"VAR60"/);
+assert.match(searchCalls[0].init.body, /"location_id":"LTEST"/);
+
+// --- Square failure → null, not a throw ---
+const failingFetch = async () => new Response("{}", { status: 500 });
+assert.equal(await getAvailabilitySummary(failingFetch, now), null);
+
+// --- mock mode (non-production only) ---
+process.env.SQUARE_MOCK = "1";
+const mock = await getAvailabilitySummary(failingFetch, now);
+assert.equal(mock.days.length, WINDOW_DAYS);
+assert.equal(mock.days[0].date, "2026-07-20");
+delete process.env.SQUARE_MOCK;
+
 console.log("availability tests passed");
