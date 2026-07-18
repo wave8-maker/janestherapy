@@ -79,8 +79,8 @@ export default function HomePage() {
             </h1>
             <p className="reveal reveal-3 mt-6 text-white/85 text-lg leading-relaxed max-w-md">
               Deep tissue, Swedish, lymphatic drainage, and Traditional Chinese
-              Medicine bodywork — one-on-one with Jane Zhang, CMT, who can
-              travel to you across the South Bay.
+              Medicine bodywork — one-on-one with Jane Zhang, CMT, brought to
+              your door across the South Bay.
             </p>
             <div className="reveal reveal-4 mt-9 flex flex-col sm:flex-row gap-4">
               <Link href={BOOKING_URL} target="_blank" rel="noopener noreferrer" className="btn btn-primary">
@@ -172,8 +172,8 @@ export default function HomePage() {
             Massage services at Jane&apos;s Therapy
           </h2>
           <p className="text-bark-light max-w-xl mx-auto">
-            All sessions are one-on-one with Jane, who can come to you. Add
-            cupping or Gua Sha to any treatment.
+            All sessions are one-on-one with Jane, at your place. Add cupping or
+            Gua Sha to any treatment.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 gap-6">

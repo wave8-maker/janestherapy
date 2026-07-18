@@ -30,7 +30,7 @@ export function GET() {
   const lines: string[] = [
     `# ${SITE_NAME}`,
     "",
-    `> Solo massage therapy practice of ${BUSINESS.legalName} (Certified Massage Therapist) based in ${BUSINESS.city}, ${BUSINESS.region}. Every session is one-on-one with Jane — deep tissue, Swedish, lymphatic drainage, prenatal/postpartum, sports recovery, and Traditional Chinese Medicine bodywork (cupping, Gua Sha, moxibustion). Jane can travel to you across the South Bay.`,
+    `> Solo mobile massage therapy practice of ${BUSINESS.legalName} (Certified Massage Therapist) based in ${BUSINESS.city}, ${BUSINESS.region}. Every session is one-on-one with Jane — deep tissue, Swedish, lymphatic drainage, prenatal/postpartum, sports recovery, and Traditional Chinese Medicine bodywork (cupping, Gua Sha, moxibustion). Jane travels to you across the South Bay.`,
     "",
     "## Services & Pricing (USD)",
     "",
