@@ -32,9 +32,13 @@ there. No booking, no payment, no customer data — read-only.
 - Styling follows the existing site system (Tailwind v4, `app/globals.css`
   tokens, existing component idioms).
 
-## Data: `GET /api/availability`
+## Data: server-side loader (`app/lib/square-availability.ts`)
 
-Route handler following existing `app/api/*` patterns:
+The page is a server component that calls the loader directly and is cached
+with ISR (`export const revalidate = 1800`) — no separate API route is needed
+because there is no client-side interactivity. (Revised at planning time from
+the original `GET /api/availability` route-handler sketch: same behavior,
+fewer moving parts.) The loader:
 
 1. Resolve a **baseline service**: list appointments services from the Square
    Catalog, pick a 60-minute service variation (closest to 60 if none exact).
@@ -43,8 +47,8 @@ Route handler following existing `app/api/*` patterns:
    ~14-day windows to stay well under the per-query range cap) for
    `SQUARE_LOCATION_ID`.
 3. Reduce slots to per-day counts → per-day state (0 / 1–2 / 3+).
-4. Response: `{ days: [{ date, state }], updatedAt, baselineDurationMinutes }`.
-5. Cache the reduced result server-side for ~30 minutes.
+4. Returns `{ days: [{ date, state }], updatedAt, baselineDurationMinutes }`,
+   or `null` on any failure. Page-level ISR (30 minutes) is the cache.
 
 Env vars (server-only): `SQUARE_ACCESS_TOKEN`, `SQUARE_LOCATION_ID`,
 `SQUARE_ENV` (`sandbox` | `production`).
@@ -78,7 +82,8 @@ fabricated availability.
 
 ## Testing
 
-- Unit tests for the reduction logic (slots → day states) and the route
-  handler with mocked Square responses, in the existing `tests/` conventions.
+- Unit tests for the reduction logic (slots → day states) and the loader with
+  mocked Square responses (injected fetch), in the existing `tests/`
+  conventions.
 - Pre-launch manual check: page states match the real Square calendar for a
   few spot-checked days; error path verified by unsetting the token locally.
