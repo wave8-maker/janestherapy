@@ -75,7 +75,7 @@ const navLinks = [
   { href: "/services", label: "Services" },
   { href: "/availability", label: "Availability" },
   { href: "/about", label: "About" },
-  { href: "/location", label: "Location" },
+  { href: "/contact", label: "Contact" },
   { href: "/blog", label: "Blog" },
 ];
 
@@ -165,8 +165,11 @@ export default function RootLayout({
                   <Link href="/services" className="text-white/80 hover:text-brand-light transition-colors">
                     Services &amp; Pricing
                   </Link>
-                  <Link href="/location" className="text-white/80 hover:text-brand-light transition-colors">
-                    Hours &amp; Location
+                  <Link href="/availability" className="text-white/80 hover:text-brand-light transition-colors">
+                    Hours &amp; Availability
+                  </Link>
+                  <Link href="/contact" className="text-white/80 hover:text-brand-light transition-colors">
+                    Contact &amp; Location
                   </Link>
                   <Link href="/#reviews" className="text-white/80 hover:text-brand-light transition-colors">
                     Client Reviews

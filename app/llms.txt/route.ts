@@ -74,7 +74,8 @@ export function GET() {
     `- [Home](${SITE_URL}/): practice overview, conditions treated, client reviews`,
     `- [Services & Pricing](${SITE_URL}/services): full treatment menu with prices`,
     `- [About Jane](${SITE_URL}/about): Jane Zhang's background and approach`,
-    `- [Location & Contact](${SITE_URL}/location): hours, service areas, FAQ`,
+    `- [Availability](${SITE_URL}/availability): hours and approximate openings for the next 4 weeks`,
+    `- [Contact](${SITE_URL}/contact): location, service areas, FAQ`,
     `- [Blog](${SITE_URL}/blog): wellness articles by Jane`,
     "",
   );

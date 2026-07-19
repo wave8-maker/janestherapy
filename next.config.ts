@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      // The page moved when its hours section graduated to /availability.
+      { source: "/location", destination: "/contact", permanent: true },
+    ];
+  },
 };
 
 export default nextConfig;

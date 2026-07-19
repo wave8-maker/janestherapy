@@ -6,7 +6,7 @@ import {
   type AvailabilityDay,
   type DayState,
 } from "../lib/square-availability";
-import { getServiceModes } from "../lib/content";
+import { getServiceModes, getSiteConfig } from "../lib/content";
 
 export const revalidate = 1800;
 
@@ -95,6 +95,7 @@ function CalendarGrid({ days }: { days: AvailabilityDay[] }) {
 export default async function AvailabilityPage() {
   const summary = await getAvailabilitySummary();
   const { bookingUrl } = getServiceModes();
+  const { hours } = getSiteConfig();
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">
@@ -120,6 +121,23 @@ export default async function AvailabilityPage() {
           Jane&apos;s exact openings.
         </p>
       )}
+
+      <section className="mt-12 max-w-sm">
+        <h2 className="font-display text-xl text-bark mb-4">Regular hours</h2>
+        <table className="w-full text-sm">
+          <tbody>
+            {hours.map((h) => (
+              <tr
+                key={h.day}
+                className={h.time === "Closed" ? "text-bark-light/50" : "text-bark-light"}
+              >
+                <td className="py-1.5 font-medium text-bark">{h.day}</td>
+                <td className="py-1.5 text-right">{h.time}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </section>
 
       <div className="mt-10">
         <Link

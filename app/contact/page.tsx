@@ -8,13 +8,13 @@ const BOOKING_URL =
 const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
 
 export const metadata = pageMeta({
-  title: "Location & Contact",
+  title: "Contact",
   description:
     "Jane's Therapy is based in San Jose, CA — visit the studio or book a mobile visit across the South Bay: Palo Alto, Mountain View, Sunnyvale, Santa Clara, Cupertino, Los Gatos & more. Text 669-292-4472.",
-  path: "/location",
+  path: "/contact",
 });
 
-export default function LocationPage() {
+export default function ContactPage() {
   const { hours } = getSiteConfig();
   const mobile = getServiceModes().modes.find((m) => m.key === "mobile");
 
@@ -60,9 +60,9 @@ export default function LocationPage() {
     <div className="max-w-6xl mx-auto px-6 py-20">
       <JsonLd data={faqLd} />
       <div className="mb-14">
-        <p className="eyebrow">Hours &amp; contact</p>
+        <p className="eyebrow">Get in touch</p>
         <h1 className="font-display text-4xl sm:text-5xl text-bark mt-3 mb-3">
-          Location &amp; Contact
+          Contact
         </h1>
         <p className="text-bark-light text-lg">
           Jane is a solo practitioner — reach out directly for anything you need.
@@ -116,17 +116,14 @@ export default function LocationPage() {
           </div>
 
           <div className="card-soft p-7">
-            <h2 className="font-display text-xl text-bark mb-4">Hours</h2>
-            <table className="w-full text-sm">
-              <tbody>
-                {hours.map((h) => (
-                  <tr key={h.day} className={h.time === "Closed" ? "text-bark-light/50" : "text-bark-light"}>
-                    <td className="py-1.5 font-medium text-bark">{h.day}</td>
-                    <td className="py-1.5 text-right">{h.time}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <h2 className="font-display text-xl text-bark mb-2">Looking for an opening?</h2>
+            <p className="text-sm text-bark-light leading-relaxed mb-4">
+              See Jane&apos;s hours and approximate openings for the next four
+              weeks at a glance.
+            </p>
+            <Link href="/availability" className="btn btn-secondary w-full">
+              Check availability
+            </Link>
           </div>
         </div>
 

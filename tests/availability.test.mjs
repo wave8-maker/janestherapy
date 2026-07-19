@@ -110,8 +110,21 @@ assert.match(availabilityPage, /getServiceModes\(\)/, "Book button should reuse 
 assert.match(availabilityPage, /aria-label/, "day cells should be readable by screen readers");
 assert.doesNotMatch(availabilityPage, /"use client"/, "page must stay a server component (token safety)");
 
+assert.match(availabilityPage, /Regular hours/, "availability page should show the weekly hours table");
+assert.match(availabilityPage, /getSiteConfig\(\)/, "hours table should come from siteConfig");
+
 assert.match(read("app/layout.tsx"), /\/availability/, "desktop nav should link to the page");
 assert.match(read("app/components/MobileNav.tsx"), /\/availability/, "mobile nav should link to the page");
 assert.match(read("app/sitemap.ts"), /\/availability/, "sitemap should include the page");
+
+// --- /location → /contact rename ---
+const contactPage = read("app/contact/page.tsx");
+assert.match(contactPage, /path: "\/contact"/, "contact page metadata should use the new URL");
+assert.match(contactPage, /href="\/availability"/, "contact page should link to check availability");
+assert.doesNotMatch(contactPage, /<h2[^>]*>Hours<\/h2>/, "contact page should no longer render the hours card");
+assert.match(read("next.config.ts"), /\/location.+\/contact/s, "old /location URL should redirect to /contact");
+for (const f of ["app/layout.tsx", "app/components/MobileNav.tsx", "app/sitemap.ts"]) {
+  assert.doesNotMatch(read(f), /"\/location"/, `${f} should not link to the removed /location route`);
+}
 
 console.log("availability tests passed");

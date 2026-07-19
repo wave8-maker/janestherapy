@@ -9,7 +9,7 @@ const publicSiteFiles = [
   "app/layout.tsx",
   "app/page.tsx",
   "app/services/page.tsx",
-  "app/location/page.tsx",
+  "app/contact/page.tsx",
   "app/blog/page.tsx",
   "app/blog/[slug]/page.tsx",
   "app/opengraph-image.tsx",
