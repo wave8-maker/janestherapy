@@ -43,7 +43,7 @@ function Btn({ onClick, children, variant = "primary", disabled, small }: {
   const base = small ? "admin-button px-4 py-2 text-sm rounded-lg font-semibold" : "admin-button px-6 py-3 rounded-lg font-bold";
   const cls = {
     primary: "bg-slate-900 text-white hover:bg-slate-700",
-    secondary: "border-2 border-slate-400 text-slate-900 bg-white hover:bg-slate-100",
+    secondary: "border-2 border-slate-600 text-slate-900 bg-white hover:bg-slate-100",
     danger: "bg-red-50 text-red-800 border-2 border-red-300 hover:bg-red-100",
   }[variant];
   return (
@@ -467,14 +467,14 @@ function BlogTab() {
 }
 
 // ── shared field components ───────────────────────────────────────────────────
-const inputCls = "admin-control flex-1 border-2 border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800";
+const inputCls = "admin-control flex-1 border-2 border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800";
 
 function Field({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-bark mb-1">{label}</label>
+      <label className="block text-sm font-bold text-bark mb-1">{label}</label>
       <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
-        className="admin-control w-full border-2 border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800" />
+        className="admin-control w-full border-2 border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800" />
     </div>
   );
 }
@@ -483,9 +483,9 @@ function TextArea({ label, value, onChange, rows = 4, mono, placeholder }: {
 }) {
   return (
     <div>
-      <label className="block text-sm font-medium text-bark mb-1">{label}</label>
+      <label className="block text-sm font-bold text-bark mb-1">{label}</label>
       <textarea value={value} onChange={e => onChange(e.target.value)} rows={rows} placeholder={placeholder}
-        className={`admin-control w-full border-2 border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800 resize-y ${mono ? "font-mono" : ""}`} />
+        className={`admin-control w-full border-2 border-slate-600 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800 resize-y ${mono ? "font-mono" : ""}`} />
     </div>
   );
 }

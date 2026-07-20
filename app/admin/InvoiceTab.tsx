@@ -65,9 +65,6 @@ function todayISO() {
 }
 
 // ── small UI helpers (match admin styling) ────────────────────────────────
-const inputCls = "admin-control w-full border-2 border-slate-400 rounded-lg px-4 py-3 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800";
-const cellCls = "admin-control w-full border-2 border-slate-400 rounded-md px-3 py-2.5 text-sm text-slate-950 bg-white focus:outline-none focus:ring-4 focus:ring-sky-200 focus:border-slate-800";
-
 function Btn({ onClick, children, variant = "primary", small, disabled }: {
   onClick?: () => void; children: React.ReactNode;
   variant?: "primary" | "secondary" | "danger"; small?: boolean; disabled?: boolean;
@@ -75,7 +72,7 @@ function Btn({ onClick, children, variant = "primary", small, disabled }: {
   const base = small ? "admin-button px-4 py-2 text-sm rounded-lg font-semibold" : "admin-button px-6 py-3 rounded-lg font-bold";
   const cls = {
     primary: "bg-slate-900 text-white hover:bg-slate-700",
-    secondary: "border-2 border-slate-400 text-slate-900 bg-white hover:bg-slate-100",
+    secondary: "border-2 border-slate-600 text-slate-900 bg-white hover:bg-slate-100",
     danger: "bg-red-50 text-red-800 border-2 border-red-300 hover:bg-red-100",
   }[variant];
   return (
@@ -84,38 +81,97 @@ function Btn({ onClick, children, variant = "primary", small, disabled }: {
   );
 }
 
-function Field({ label, value, onChange, placeholder }: {
-  label: string; value: string; onChange: (v: string) => void; placeholder?: string;
+/* ── WYSIWYG sheet styling ─────────────────────────────────────────────────
+   The editor renders the same layout as the printed invoice, so every field
+   sits exactly where it will land on the PDF. Scoped `inv-` classes keep the
+   brand colours intact under the admin's high-contrast overrides. */
+const SHEET_CSS = `
+.inv-shell{background:#e7e2da;border-radius:12px;padding:20px;overflow-x:auto;}
+.inv-sheet{background:#fff;color:#2c2018;font-family:Helvetica,Arial,sans-serif;
+  font-size:clamp(15px,0.88em,20px);line-height:1.5;min-width:660px;max-width:820px;margin:0 auto;
+  padding:34px 38px 30px;border-radius:4px;box-shadow:0 6px 22px rgba(44,32,24,.18);}
+.inv-sheet input,.inv-sheet textarea{font:inherit;color:inherit;background:transparent;
+  border:0;border-bottom:1px dashed #cfc2ae;border-radius:2px;padding:2px 4px;width:100%;
+  transition:background-color .12s,border-color .12s;}
+.inv-sheet input::placeholder,.inv-sheet textarea::placeholder{color:#a9998a;font-weight:400;}
+.inv-sheet input:hover,.inv-sheet textarea:hover{background:#f7f2ea;border-bottom-color:#a87c5f;}
+.inv-sheet input:focus,.inv-sheet textarea:focus{outline:none;background:#fdf7ef;
+  border-bottom:1px solid #855c40;box-shadow:0 0 0 3px rgba(168,124,95,.22);}
+.inv-top{display:flex;justify-content:space-between;align-items:flex-start;gap:24px;}
+.inv-from{flex:1;min-width:0;}
+.inv-name input{font-size:1.5em;font-weight:700;letter-spacing:.2px;}
+.inv-sub input{font-size:.8em;color:#4e3d2e;}
+.inv-word{font-size:2.1em;font-weight:700;color:#a87c5f;letter-spacing:1px;white-space:nowrap;padding-top:4px;}
+.inv-rule{height:2px;background:#a87c5f;margin:14px 0 18px;}
+.inv-cols{display:flex;justify-content:space-between;gap:30px;align-items:flex-start;}
+.inv-billto{flex:1;min-width:0;max-width:60%;}
+.inv-lbl{font-size:.7em;font-weight:700;letter-spacing:.6px;color:#855c40;margin-bottom:5px;}
+.inv-billto .inv-p0 input{font-size:.88em;font-weight:700;}
+.inv-billto .inv-p input{font-size:.85em;}
+.inv-meta{border-collapse:collapse;min-width:290px;}
+.inv-meta td{padding:4px 0;font-size:.8em;vertical-align:middle;}
+.inv-meta tr:not(:last-child) td{border-bottom:1px solid #c9b69e;}
+.inv-meta .ml{color:#4e3d2e;font-weight:700;letter-spacing:.4px;padding-right:14px;white-space:nowrap;}
+.inv-meta .mv{text-align:right;}
+.inv-meta .mv-wrap{display:flex;align-items:center;gap:6px;}
+.inv-meta .mv input{text-align:right;}
+.inv-mini{font-size:.85em;font-weight:700;color:#855c40;background:#f3ebe0;border:1px solid #d8c6b0;
+  border-radius:999px;padding:3px 10px;white-space:nowrap;cursor:pointer;}
+.inv-mini:hover{background:#e8dbc9;}
+.inv-items{width:100%;border-collapse:collapse;margin-top:24px;}
+.inv-items th{background:#855c40;color:#fff;font-size:.78em;letter-spacing:.4px;padding:8px 8px;text-align:left;font-weight:700;}
+.inv-items th.r{text-align:right;}
+.inv-items th.x{width:34px;background:#fff;}
+.inv-items td{padding:4px 6px;font-size:.85em;border-bottom:1px solid #c9b69e;vertical-align:middle;}
+.inv-items tbody tr:nth-child(even) td{background:#faf6f0;}
+.inv-items td.r,.inv-items td.r input{text-align:right;}
+.inv-items td.due{font-weight:700;white-space:nowrap;padding-right:8px;}
+.inv-items td.x{border-bottom:0;background:#fff !important;text-align:center;}
+.inv-items tfoot td{padding:9px 8px;font-size:.85em;font-weight:700;background:#efe5d9 !important;border-top:2px solid #a87c5f;border-bottom:0;}
+.inv-items tfoot td.r{text-align:right;}
+.inv-items tfoot td.x{background:#fff !important;border-top:0;}
+.inv-del{color:#c07a72;font-size:1.15em;line-height:1;padding:2px 4px;border-radius:4px;cursor:pointer;}
+.inv-del:hover{color:#a33;background:#fbeceb;}
+.inv-del:disabled{opacity:.25;cursor:default;}
+.inv-add{margin-top:8px;font-size:.85em;font-weight:700;color:#855c40;background:#f7f2ea;
+  border:1px dashed #c9b69e;border-radius:6px;padding:7px 12px;cursor:pointer;width:100%;text-align:left;}
+.inv-add:hover{background:#f0e6d8;border-color:#a87c5f;}
+.inv-due{display:flex;justify-content:flex-end;margin-top:16px;}
+.inv-band{background:#5c7059;color:#fff;border-radius:6px;display:flex;align-items:center;gap:24px;padding:12px 20px;}
+.inv-band .l{font-size:.78em;font-weight:700;letter-spacing:1px;}
+.inv-band .a{font-size:1.3em;font-weight:700;}
+.inv-foot{margin-top:26px;border-top:1px solid #c9b69e;padding-top:12px;}
+.inv-foot h4{margin:0 0 4px;font-size:.78em;font-weight:700;}
+.inv-foot p{margin:0 0 8px;font-size:.78em;color:#4e3d2e;line-height:1.6;}
+.inv-foot textarea{font-size:.8em;resize:vertical;min-height:2.6em;}
+`;
+
+/** Inline field that reads as printed text until you hover or focus it. */
+function Cell({ value, onChange, placeholder, label, className, inputMode }: {
+  value: string; onChange: (v: string) => void; placeholder?: string; label: string;
+  className?: string; inputMode?: "decimal" | "text";
 }) {
   return (
-    <div>
-      <label className="block text-sm font-medium text-bark mb-1">{label}</label>
-      <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder} className={inputCls} />
+    <div className={className}>
+      <input value={value} onChange={e => onChange(e.target.value)} placeholder={placeholder}
+        aria-label={label} title={label} inputMode={inputMode} />
     </div>
   );
 }
 
-function InvoiceSection({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <section className="border-t-2 border-slate-300 pt-6 space-y-4">
-      <h3 className="text-base font-bold text-slate-950">{title}</h3>
-      {children}
-    </section>
-  );
-}
-
-function PartyEditor({ party, onChange }: { party: Party; onChange: (p: Party) => void }) {
+/** The From / Bill To blocks: one line per printed line, in print order. */
+function PartyBlock({ party, onChange, who, nameHint }: {
+  party: Party; onChange: (p: Party) => void; who: string; nameHint: string;
+}) {
   const set = (k: keyof Party) => (v: string) => onChange({ ...party, [k]: v });
   return (
-    <div className="space-y-4">
-      <Field label="名称 Name" value={party.name} onChange={set("name")} />
-      <Field label="第二行 Line 2" value={party.line2} onChange={set("line2")} placeholder="如：联系人 / 头衔 Attn / title" />
-      <Field label="地址 Address" value={party.address} onChange={set("address")} />
-      <div className="grid sm:grid-cols-2 gap-3">
-        <Field label="电话 Phone" value={party.phone} onChange={set("phone")} />
-        <Field label="邮箱 Email" value={party.email} onChange={set("email")} />
-      </div>
-    </div>
+    <>
+      <Cell className="inv-p0" label={`${who} 名称 Name`} value={party.name} onChange={set("name")} placeholder={nameHint} />
+      <Cell className="inv-p" label={`${who} 第二行 Line 2`} value={party.line2} onChange={set("line2")} placeholder="联系人 / 头衔 Attn / title" />
+      <Cell className="inv-p" label={`${who} 地址 Address`} value={party.address} onChange={set("address")} placeholder="地址 Address" />
+      <Cell className="inv-p" label={`${who} 电话 Phone`} value={party.phone} onChange={set("phone")} placeholder="电话 Phone" />
+      <Cell className="inv-p" label={`${who} 邮箱 Email`} value={party.email} onChange={set("email")} placeholder="邮箱 Email" />
+    </>
   );
 }
 
@@ -150,7 +206,7 @@ function buildInvoiceHTML(inv: InvoiceState): string {
   return `<!doctype html><html><head><meta charset="utf-8"><title>${esc(inv.invoiceNo || "Invoice")}</title>
 <style>
   :root{--brand:#a87c5f;--brand-dark:#855c40;--brand-light:#efe5d9;--cream:#faf6f0;
-        --bark:#2c2018;--bark-light:#6e5c4e;--sage:#5c7059;}
+        --bark:#2c2018;--bark-light:#4e3d2e;--line:#c9b69e;--sage:#5c7059;}
   *{box-sizing:border-box;}
   html,body{margin:0;padding:0;}
   body{font-family:Helvetica,Arial,sans-serif;color:var(--bark);
@@ -158,37 +214,37 @@ function buildInvoiceHTML(inv: InvoiceState): string {
   .sheet{max-width:760px;margin:0 auto;padding:42px 46px;}
   .top{display:flex;justify-content:space-between;align-items:flex-start;}
   .biz{font-size:24px;font-weight:700;letter-spacing:.2px;}
-  .biz-sub{font-size:11px;color:var(--bark-light);margin-top:3px;line-height:1.5;}
+  .biz-sub{font-size:12px;color:var(--bark-light);margin-top:3px;line-height:1.5;}
   .word{font-size:34px;font-weight:700;color:var(--brand);letter-spacing:1px;}
   .rule{height:2px;background:var(--brand);margin:14px 0 20px;}
   .cols{display:flex;justify-content:space-between;gap:30px;}
-  .pname{font-size:12.5px;font-weight:700;color:var(--bark);line-height:1.6;}
-  .pl{font-size:12px;color:var(--bark);line-height:1.6;}
-  .blocklbl{font-size:10px;font-weight:700;letter-spacing:.6px;color:var(--brand-dark);margin-bottom:5px;}
+  .pname{font-size:13.5px;font-weight:700;color:var(--bark);line-height:1.6;}
+  .pl{font-size:13px;color:var(--bark);line-height:1.6;}
+  .blocklbl{font-size:11px;font-weight:700;letter-spacing:.6px;color:var(--brand-dark);margin-bottom:5px;}
   table.meta{border-collapse:collapse;min-width:260px;}
-  table.meta td{padding:5px 0;font-size:11.5px;}
+  table.meta td{padding:5px 0;font-size:12.5px;}
   table.meta .ml{color:var(--bark-light);font-weight:700;letter-spacing:.4px;padding-right:18px;}
   table.meta .mv{text-align:right;color:var(--bark);}
-  table.meta tr:not(:last-child) td{border-bottom:1px solid var(--brand-light);}
+  table.meta tr:not(:last-child) td{border-bottom:1px solid var(--line);}
   table.items{width:100%;border-collapse:collapse;margin-top:26px;}
-  table.items thead th{background:var(--brand-dark);color:#fff;font-size:11px;
+  table.items thead th{background:var(--brand-dark);color:#fff;font-size:12px;
        letter-spacing:.4px;padding:9px 9px;text-align:left;}
   table.items thead th.r{text-align:right;}
-  table.items tbody td{padding:9px 9px;font-size:12px;border-bottom:1px solid var(--brand-light);vertical-align:top;}
+  table.items tbody td{padding:9px 9px;font-size:13px;border-bottom:1px solid var(--line);vertical-align:top;}
   table.items tbody tr:nth-child(even){background:var(--cream);}
   table.items td.r{text-align:right;}
   table.items td.b{font-weight:700;}
   table.items td.desc{color:var(--bark);}
-  table.items tfoot td{padding:10px 9px;font-size:12px;font-weight:700;background:var(--brand-light);border-top:2px solid var(--brand);}
+  table.items tfoot td{padding:10px 9px;font-size:13px;font-weight:700;background:var(--brand-light);border-top:2px solid var(--brand);}
   table.items tfoot td.r{text-align:right;}
   .due{display:flex;justify-content:flex-end;margin-top:18px;}
   .due-band{background:var(--sage);color:#fff;border-radius:6px;display:flex;align-items:center;
        gap:26px;padding:13px 22px;}
   .due-band .lbl{font-size:12px;font-weight:700;letter-spacing:1px;}
   .due-band .amt{font-size:20px;font-weight:700;}
-  .foot{margin-top:30px;border-top:1px solid var(--brand-light);padding-top:12px;}
-  .foot h4{margin:0 0 4px;font-size:11px;color:var(--bark);}
-  .foot p{margin:0 0 8px;font-size:11px;color:var(--bark-light);line-height:1.6;}
+  .foot{margin-top:30px;border-top:1px solid var(--line);padding-top:12px;}
+  .foot h4{margin:0 0 4px;font-size:12px;color:var(--bark);}
+  .foot p{margin:0 0 8px;font-size:12px;color:var(--bark-light);line-height:1.6;}
   @media print{.sheet{padding:0;} @page{margin:14mm;}}
 </style></head>
 <body><div class="sheet">
@@ -307,107 +363,154 @@ export default function InvoiceTab() {
   }
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-5">
+      <style>{SHEET_CSS}</style>
+
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <p className="text-sm font-semibold text-bark">承包发票生成器 <span className="font-normal text-bark-light">Contractor Invoice Generator</span></p>
           <p className="text-sm text-bark-light mt-1 max-w-xl">
-            按工作室的双月报表给 Trio Wellness（或其他工作室）开票。每行应付金额 = 销售额 + 小费。<br />
-            <span className="text-bark-light/80">Bill a studio from their bi-monthly report. Amount Due = Sales + Gratuity.</span>
+            直接在下面这张「发票纸」上填写，位置就是打印出来的位置。每行应付 = 销售额 + 小费。<br />
+            <span className="text-bark-light/80">Fill in the sheet below — it matches the printed PDF. Amount Due = Sales + Gratuity.</span>
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
           <Btn variant="secondary" small onClick={loadDefaults}>套用常用信息 Load Defaults</Btn>
+          <Btn variant="secondary" small onClick={saveDefaults}>保存常用信息 Save Defaults</Btn>
+          {defaultsSaved && <span className="text-sm text-sage self-center">已保存 Saved</span>}
           <Btn variant="secondary" small onClick={() => setInv(emptyState())}>清空重填 Reset</Btn>
         </div>
       </div>
 
-      <InvoiceSection title="发票信息 Invoice Info">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-bark mb-1">发票号 Invoice #</label>
-            <div className="flex gap-2">
-              <input value={inv.invoiceNo} onChange={e => patch({ invoiceNo: e.target.value })} placeholder="TRIO-2026-0615" className={inputCls} />
-              <Btn small variant="secondary" onClick={autoInvoiceNo}>自动 Auto</Btn>
+      {/* ── the sheet: same layout as the generated PDF ───────────────────── */}
+      <div className="inv-shell">
+        <div className="inv-sheet">
+          <div className="inv-top">
+            <div className="inv-from">
+              <div className="inv-name">
+                <Cell label="开票方名称 Your business name" value={inv.from.name}
+                  onChange={v => patch({ from: { ...inv.from, name: v } })} placeholder="开票方名称 Your business" />
+              </div>
+              <div className="inv-sub">
+                <Cell label="开票方 头衔 Title line" value={inv.from.line2}
+                  onChange={v => patch({ from: { ...inv.from, line2: v } })} placeholder="Jane Zhang, CMT · Massage Therapist" />
+                <Cell label="开票方 地址 Address" value={inv.from.address}
+                  onChange={v => patch({ from: { ...inv.from, address: v } })} placeholder="城市 City, CA" />
+                <Cell label="开票方 邮箱 Email" value={inv.from.email}
+                  onChange={v => patch({ from: { ...inv.from, email: v } })} placeholder="邮箱 Email" />
+                <Cell label="开票方 电话 Phone" value={inv.from.phone}
+                  onChange={v => patch({ from: { ...inv.from, phone: v } })} placeholder="电话 Phone" />
+              </div>
             </div>
+            <div className="inv-word">INVOICE</div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-bark mb-1">开票日期 Invoice Date</label>
-            <div className="flex gap-2">
-              <input type="date" value={inv.invoiceDate} onChange={e => patch({ invoiceDate: e.target.value })} className={inputCls} />
-              <Btn small variant="secondary" onClick={setTodayInvoiceDate}>今天 Today</Btn>
+
+          <div className="inv-rule" />
+
+          <div className="inv-cols">
+            <div className="inv-billto">
+              <div className="inv-lbl">BILL TO · 收票方</div>
+              <PartyBlock who="收票方 Bill to" nameHint="工作室名称 Studio name"
+                party={inv.billTo} onChange={p => patch({ billTo: p })} />
             </div>
+            <table className="inv-meta">
+              <tbody>
+                <tr>
+                  <td className="ml">INVOICE #<br />发票号</td>
+                  <td className="mv">
+                    <div className="mv-wrap">
+                      <input value={inv.invoiceNo} onChange={e => patch({ invoiceNo: e.target.value })}
+                        placeholder="TRIO-2026-0615" aria-label="发票号 Invoice number" />
+                      <button type="button" className="inv-mini" onClick={autoInvoiceNo}>自动 Auto</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td className="ml">INVOICE DATE<br />开票日期</td>
+                  <td className="mv">
+                    <div className="mv-wrap">
+                      <input type="date" value={inv.invoiceDate} onChange={e => patch({ invoiceDate: e.target.value })}
+                        aria-label="开票日期 Invoice date" />
+                      <button type="button" className="inv-mini" onClick={setTodayInvoiceDate}>今天 Today</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
           </div>
-        </div>
-      </InvoiceSection>
 
-      <InvoiceSection title="开票方 From">
-        <PartyEditor party={inv.from} onChange={p => patch({ from: p })} />
-      </InvoiceSection>
-
-      <InvoiceSection title="收票方 Bill To">
-        <PartyEditor party={inv.billTo} onChange={p => patch({ billTo: p })} />
-      </InvoiceSection>
-
-      <InvoiceSection title="服务明细 Line Items">
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] border-separate border-spacing-y-1.5">
+          <table className="inv-items">
             <thead>
-              <tr className="text-left text-xs text-bark-light">
-                <th className="font-medium px-1 w-24">日期 Date</th>
-                <th className="font-medium px-1">服务说明 Description</th>
-                <th className="font-medium px-1 w-24 text-right">销售 Sales</th>
-                <th className="font-medium px-1 w-24 text-right">小费 Grat.</th>
-                <th className="font-medium px-1 w-24 text-right">应付 Due</th>
-                <th className="w-8"></th>
+              <tr>
+                <th style={{ width: "15%" }}>Date · 日期</th>
+                <th>Description · 服务说明</th>
+                <th className="r" style={{ width: "14%" }}>Sales · 销售</th>
+                <th className="r" style={{ width: "14%" }}>Gratuity · 小费</th>
+                <th className="r" style={{ width: "19%" }}>Amount Due · 应付</th>
+                <th className="x" />
               </tr>
             </thead>
             <tbody>
               {inv.items.map((it, i) => (
-                <tr key={i} className="align-top">
-                  <td className="px-1"><input value={it.date} onChange={e => setItem(i, { date: e.target.value })} placeholder="6/3/26" className={cellCls} /></td>
-                  <td className="px-1"><input value={it.description} onChange={e => setItem(i, { description: e.target.value })} placeholder="60-min Prenatal (w/ ...)" className={cellCls} /></td>
-                  <td className="px-1"><input value={it.sales} onChange={e => setItem(i, { sales: e.target.value })} placeholder="110" inputMode="decimal" className={`${cellCls} text-right`} /></td>
-                  <td className="px-1"><input value={it.gratuity} onChange={e => setItem(i, { gratuity: e.target.value })} placeholder="20" inputMode="decimal" className={`${cellCls} text-right`} /></td>
-                  <td className="px-1 text-right text-sm text-bark font-semibold pt-2.5 whitespace-nowrap">{money(rowDue(it))}</td>
-                  <td className="px-1 pt-1.5 text-center">
-                    <button onClick={() => removeRow(i)} title="删除 Remove"
-                      className="text-red-400 hover:text-red-600 text-lg leading-none disabled:opacity-30"
+                <tr key={i}>
+                  <td><input value={it.date} onChange={e => setItem(i, { date: e.target.value })}
+                    placeholder="6/3/26" aria-label={`第 ${i + 1} 行 日期 Date`} /></td>
+                  <td><input value={it.description} onChange={e => setItem(i, { description: e.target.value })}
+                    placeholder="60-min Prenatal Massage" aria-label={`第 ${i + 1} 行 服务说明 Description`} /></td>
+                  <td className="r"><input value={it.sales} onChange={e => setItem(i, { sales: e.target.value })}
+                    placeholder="110" inputMode="decimal" aria-label={`第 ${i + 1} 行 销售额 Sales`} /></td>
+                  <td className="r"><input value={it.gratuity} onChange={e => setItem(i, { gratuity: e.target.value })}
+                    placeholder="20" inputMode="decimal" aria-label={`第 ${i + 1} 行 小费 Gratuity`} /></td>
+                  <td className="r due">{money(rowDue(it))}</td>
+                  <td className="x">
+                    <button type="button" className="inv-del" onClick={() => removeRow(i)}
+                      title="删除此行 Remove line" aria-label={`删除第 ${i + 1} 行 Remove line`}
                       disabled={inv.items.length <= 1}>×</button>
                   </td>
                 </tr>
               ))}
             </tbody>
             <tfoot>
-              <tr className="text-sm font-semibold text-bark">
-                <td className="px-1 pt-2"></td>
-                <td className="px-1 pt-2">合计 Totals</td>
-                <td className="px-1 pt-2 text-right">{money(totals.sales)}</td>
-                <td className="px-1 pt-2 text-right">{money(totals.grat)}</td>
-                <td className="px-1 pt-2 text-right">{money(totals.due)}</td>
-                <td></td>
+              <tr>
+                <td />
+                <td>Totals · 合计</td>
+                <td className="r">{money(totals.sales)}</td>
+                <td className="r">{money(totals.grat)}</td>
+                <td className="r">{money(totals.due)}</td>
+                <td className="x" />
               </tr>
             </tfoot>
           </table>
-        </div>
-        <div className="mt-2"><Btn small variant="secondary" onClick={addRow}>+ 添加一行 Add Line</Btn></div>
-      </InvoiceSection>
 
-      <InvoiceSection title="备注（可选）Notes (optional)">
-        <Field label="备注 Notes" value={inv.notes} onChange={v => patch({ notes: v })} placeholder="如：付款方式 / Payment method, Venmo, etc." />
-      </InvoiceSection>
+          <button type="button" className="inv-add" onClick={addRow}>+ 添加一行 Add line</button>
 
-      {/* amount due + actions */}
-      <div className="flex items-center justify-between flex-wrap gap-4 border-t-2 border-slate-300 pt-6">
-        <div className="bg-sage text-white rounded-xl px-5 py-3 flex items-center gap-5">
-          <span className="text-sm font-semibold tracking-wide">应付金额 AMOUNT DUE</span>
-          <span className="text-xl font-bold">{money(totals.due)}</span>
+          <div className="inv-due">
+            <div className="inv-band">
+              <span className="l">AMOUNT DUE · 应付金额</span>
+              <span className="a">{money(totals.due)}</span>
+            </div>
+          </div>
+
+          <div className="inv-foot">
+            <h4>How this is calculated</h4>
+            <p>
+              Amount Due is calculated as sales income plus gratuities collected on Jane&apos;s behalf.
+              Calculation: {money(totals.sales)} sales + {money(totals.grat)} gratuity = <b>{money(totals.due)}</b>.
+            </p>
+            <textarea value={inv.notes} onChange={e => patch({ notes: e.target.value })}
+              aria-label="备注 Notes（可选 optional）"
+              placeholder="备注（可选）Notes — 如付款方式 payment method, Venmo, etc." />
+            <p style={{ marginTop: 8 }}>
+              Thank you! Please remit payment to {inv.from.name || "…"}. Questions: {inv.from.email || "…"}
+              {inv.from.phone ? ` / ${inv.from.phone}` : ""}.
+            </p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Btn variant="secondary" onClick={saveDefaults}>保存常用信息 Save Defaults</Btn>
-          {defaultsSaved && <span className="text-sm text-sage">已保存 Saved</span>}
-          <Btn onClick={generate} disabled={totals.due === 0}>生成 / 打印 PDF · Generate PDF</Btn>
-        </div>
+      </div>
+
+      <div className="flex items-center justify-end gap-3 flex-wrap">
+        <span className="text-sm text-bark-light">检查无误后生成 PDF · Review, then generate</span>
+        <Btn onClick={generate} disabled={totals.due === 0}>生成 / 打印 PDF · Generate PDF</Btn>
       </div>
     </div>
   );
