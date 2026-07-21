@@ -577,11 +577,6 @@ function AdminShell() {
           color: #52606d;
           opacity: 1;
         }
-        .admin-panel {
-          background: #ffffff;
-          border: 2px solid #b6c2cf;
-          box-shadow: 0 1px 2px rgba(31, 41, 51, 0.08);
-        }
         .admin-font-small { font-size: 14px; }
         .admin-font-medium { font-size: 18px; }
         .admin-font-large { font-size: 21px; }
@@ -594,9 +589,6 @@ function AdminShell() {
         .admin-font-small .text-xl { font-size: 1.35rem; line-height: 1.95rem; }
         .admin-font-medium .text-xl { font-size: 1.55rem; line-height: 2.15rem; }
         .admin-font-large .text-xl { font-size: 1.85rem; line-height: 2.45rem; }
-        .admin-font-small .text-2xl { font-size: 1.6rem; line-height: 2.15rem; }
-        .admin-font-medium .text-2xl { font-size: 1.9rem; line-height: 2.45rem; }
-        .admin-font-large .text-2xl { font-size: 2.25rem; line-height: 2.85rem; }
       `}</style>
       <aside className={`${sidebarOpen ? "w-80" : "w-24"} min-h-screen shrink-0 border-r-2 border-slate-300 bg-white transition-[width] duration-300 ease-in-out flex flex-col`}>
         <div className="min-h-24 px-4 border-b-2 border-slate-300 flex items-center gap-3">
@@ -693,22 +685,15 @@ function AdminShell() {
         </div>
       </aside>
 
+      {/* No page title and no panel around the tab: the highlighted item in the
+          sidebar already says where you are, and every tab draws its own cards. */}
       <main className="flex-1 min-w-0 px-5 py-6 lg:px-10 lg:py-10 transition-[padding] duration-300">
-        <div className="mb-7">
-          <p className="text-sm text-slate-700 font-semibold">{t("shell.current")}</p>
-          <h2 className="text-2xl font-bold text-slate-950">
-            {t(TABS.find(item => item.key === tab)!.label)}
-          </h2>
-        </div>
-
-        <div className="admin-panel w-full rounded-lg p-6 lg:p-8">
-          {tab === "settings" && <SettingsTab />}
-          {tab === "services" && <ServicesTab />}
-          {tab === "addons" && <AddonsTab />}
-          {tab === "blog" && <BlogTab />}
-          {tab === "intake" && <IntakeTab />}
-          {tab === "invoice" && <InvoiceTab />}
-        </div>
+        {tab === "settings" && <SettingsTab />}
+        {tab === "services" && <ServicesTab />}
+        {tab === "addons" && <AddonsTab />}
+        {tab === "blog" && <BlogTab />}
+        {tab === "intake" && <IntakeTab />}
+        {tab === "invoice" && <InvoiceTab />}
       </main>
     </div>
   );

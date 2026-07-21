@@ -23,6 +23,12 @@ for (const [, key, body] of entries) {
   assert.ok(values[0].trim(), `${key} is missing the Chinese string`);
   assert.ok(values[1].trim(), `${key} is missing the English string`);
   assert.doesNotMatch(values[1], CJK, `${key}: the English string still contains Chinese`);
+  // A Chinese entry that swallows its English twin whole is the old bilingual
+  // label wearing a new coat — "城市 City, CA" reads as two labels, not one.
+  assert.ok(
+    !values[0].includes(values[1]),
+    `${key}: the Chinese string repeats the English one ("${values[0]}")`
+  );
 }
 
 // ── one language on screen at a time ──────────────────────────────────────────
