@@ -173,7 +173,9 @@ export default function IntakeWizard() {
       });
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error ?? "Submission failed. Please ask Jane for help.");
+        setError(
+          data.error ?? "We couldn't save your form. Nothing you entered is lost — please let Jane know."
+        );
         return;
       }
       try {
@@ -183,7 +185,7 @@ export default function IntakeWizard() {
       }
       setSubmitted(true);
     } catch {
-      setError("Network error. Please ask Jane for help.");
+      setError("Network error. Nothing you entered is lost — please let Jane know.");
     } finally {
       setSubmitting(false);
     }

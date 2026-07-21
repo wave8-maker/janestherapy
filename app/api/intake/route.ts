@@ -45,6 +45,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, id: submission.id });
   } catch (e) {
     console.error("Intake submission failed:", e);
-    return NextResponse.json({ error: "Failed to save intake form" }, { status: 500 });
+    // The client kept everything they typed — the wizard only clears its draft
+    // on a successful save — so tell them that rather than implying it is gone.
+    return NextResponse.json(
+      { error: "We couldn't save your form. Nothing you entered is lost — please let Jane know." },
+      { status: 500 }
+    );
   }
 }

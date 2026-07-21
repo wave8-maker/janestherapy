@@ -15,8 +15,22 @@ export interface SigningEvidence {
 const LOCAL_DIR = path.join(process.cwd(), "data", "intakes");
 const BLOB_PREFIX = "intakes/";
 
+/**
+ * Blob in production, the local `data/intakes` folder in development.
+ *
+ * The deployed filesystem is read-only, so falling back to it there silently
+ * turns every signed submission into a 500 at the last step of the form. Say so
+ * instead: a misconfigured store should name itself, not look like a bug.
+ */
 function useBlob(): boolean {
-  return Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  if (process.env.BLOB_READ_WRITE_TOKEN) return true;
+  if (process.env.VERCEL) {
+    throw new Error(
+      "BLOB_READ_WRITE_TOKEN is not set. Intake records cannot be saved on Vercel, " +
+        "where the filesystem is read-only — connect a Blob store to the project."
+    );
+  }
+  return false;
 }
 
 function blobPath(id: string): string {
