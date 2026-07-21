@@ -57,6 +57,20 @@ Jane reviews and prints these under admin → `客户登记 Intake`; the Print b
 reuses the invoice tool's approach (render a sheet in a new window, then the
 browser's own Save as PDF).
 
+### Where records live
+
+Production writes to the **`janestherapy-intake` Vercel Blob store** (private
+access), connected to the project so `BLOB_READ_WRITE_TOKEN` is injected
+automatically. Nothing to renew, nothing that expires.
+
+Local development writes plain JSON to `data/intakes/` (gitignored) — keeping
+test submissions out of the real store. `.env.local` carries a commented-out
+`BLOB_READ_WRITE_TOKEN`; uncomment it only to inspect production data locally.
+
+There is no filesystem fallback in production: the deployed disk is read-only,
+so a missing token throws with its own name in the message rather than failing
+at the last step of a signed form.
+
 ### Consent text
 
 `content/consents.json` holds all six clauses plus a `version`. **The current
