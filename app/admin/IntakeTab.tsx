@@ -171,64 +171,56 @@ function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
         <DetailRow label="Room Temperature" value={submission.roomTemperature} />
       </dl>
 
-      <section className="space-y-3">
-        <h3 className="text-base font-semibold text-bark">
-          签署记录 <span className="text-bark-light/70">Consent record</span>
-          {submission.consentVersion && (
-            <span className="ml-2 text-sm font-normal text-bark-light">
-              version {submission.consentVersion}
-            </span>
-          )}
-        </h3>
-        {(submission.consentSnapshot ?? []).length === 0 && (
-          <p className="text-sm text-bark-light">
-            这份记录早于电子签名功能。No consent record stored with this submission.
-          </p>
-        )}
-        {(submission.consentSnapshot ?? []).map((item) => {
-          const at = submission.consents?.[item.key];
-          return (
-            <details key={item.key} className="rounded-xl border border-brand-light bg-white px-4 py-3">
-              <summary className="cursor-pointer text-sm font-medium text-bark">
-                <span className={at ? "text-green-700" : "text-red-600"}>{at ? "☑" : "☐"}</span>{" "}
-                {item.title}
-                <span className="ml-2 text-xs font-normal text-bark-light">
-                  {at ? `agreed ${stamp(at)}` : "not agreed"}
-                </span>
-              </summary>
-              <div className="mt-2 space-y-2 text-sm text-bark-light">
-                {item.body.map((p, i) => (
-                  <p key={i}>{p}</p>
-                ))}
-                <p className="font-medium text-bark">{item.acknowledgement}</p>
-              </div>
-            </details>
-          );
-        })}
-      </section>
+      <LegalRecordNote submission={submission} onPrint={onPrint} />
+    </div>
+  );
+}
 
-      <section className="space-y-2">
-        <h3 className="text-base font-semibold text-bark">
-          电子签名 <span className="text-bark-light/70">Signature</span>
-        </h3>
-        {submission.signatureDataUrl ? (
-          /* eslint-disable-next-line @next/next/no-img-element -- a data: URL, not an optimizable asset */
-          <img
-            src={submission.signatureDataUrl}
-            alt={`Signature of ${submission.printedName || submission.name}`}
-            className="max-h-32 rounded-xl border border-brand-light bg-white p-2"
-          />
-        ) : (
-          <p className="text-sm text-bark-light">未签名 · No signature on file.</p>
-        )}
-        <p className="text-sm text-bark-light">
-          {submission.printedName && <>Printed name: {submission.printedName} · </>}
-          IP {submission.meta?.ip || "—"}
+/**
+ * The consent text and signature image are evidence, not something Jane reads
+ * between clients — the screen just confirms they are on file, and the printout
+ * is where they belong. A record missing either says so rather than staying
+ * quiet about it.
+ */
+function LegalRecordNote({
+  submission,
+  onPrint,
+}: {
+  submission: IntakeSubmission;
+  onPrint: () => void;
+}) {
+  const agreed = Object.keys(submission.consents ?? {}).length;
+  const total = (submission.consentSnapshot ?? []).length;
+  const complete = Boolean(submission.signatureDataUrl) && total > 0 && agreed === total;
+
+  if (!complete) {
+    return (
+      <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3">
+        <p className="text-sm font-semibold text-amber-900">
+          签署记录不完整 <span className="font-normal">Incomplete signing record</span>
         </p>
-        {submission.meta?.userAgent && (
-          <p className="text-xs text-bark-light/80 break-all">{submission.meta.userAgent}</p>
-        )}
-      </section>
+        <p className="mt-1 text-sm text-amber-900">
+          {total === 0
+            ? "这份表格早于电子签名功能，没有同意条款和签名。"
+            : `已同意 ${agreed}/${total} 条`}
+          {!submission.signatureDataUrl && " · 无电子签名"}
+        </p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-light bg-white px-4 py-3">
+      <p className="text-sm text-bark">
+        <span className="text-green-700">✓</span> 签署记录与电子签名已存储
+        <span className="text-bark-light">
+          {" "}
+          · {agreed} 条同意 · 条款版本 {submission.consentVersion} · 打印查看完整内容
+        </span>
+      </p>
+      <Btn small variant="secondary" onClick={onPrint}>
+        打印 / 存 PDF
+      </Btn>
     </div>
   );
 }

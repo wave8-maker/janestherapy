@@ -64,6 +64,13 @@ assert.match(wizard, /DRAFT_TTL_MS = 30 \* 60 \* 1000/, "an abandoned draft must
 assert.match(wizard, /setTimeout\(reset, RESET_DELAY_MS\)/, "the thank-you screen must reset the tablet itself");
 assert.match(stepConsents, /new Date\(\)\.toISOString\(\)/, "each clause records when it was ticked");
 
+// ── admin shows the evidence exists, the printout carries it ──────────────────
+const intakeTab = read("app/admin/IntakeTab.tsx");
+assert.doesNotMatch(intakeTab, /signatureDataUrl\}/, "the signature image belongs on the printout, not the admin screen");
+assert.doesNotMatch(intakeTab, /item\.body\.map/, "clause text belongs on the printout, not the admin screen");
+assert.match(intakeTab, /签署记录与电子签名已存储/, "admin should confirm the evidence is on file");
+assert.match(intakeTab, /签署记录不完整/, "a record missing a signature or a clause must say so");
+
 // ── the wizard has no way out ─────────────────────────────────────────────────
 assert.match(siteLayout, /book\.squareup\.com/, "the booking link belongs to the marketing chrome");
 assert.doesNotMatch(intakeLayout, /<header|<nav|Link/, "the intake shell must not render navigation");
