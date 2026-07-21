@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import RichEditor from "./RichEditor";
 import IntakeTab from "./IntakeTab";
 import InvoiceTab from "./InvoiceTab";
+import { AdminLangProvider, useAdminLang } from "./i18n";
 
 // ── types ────────────────────────────────────────────────────────────────────
 interface Pricing { duration: string; price: string }
@@ -55,12 +56,13 @@ function Btn({ onClick, children, variant = "primary", disabled, small }: {
 }
 
 function SaveBar({ onSave, saving, saved }: { onSave: () => void; saving: boolean; saved: boolean }) {
+  const { t } = useAdminLang();
   return (
     <div className="flex items-center gap-3">
       <Btn onClick={onSave} disabled={saving}>
-        {saving ? "保存中… Saving…" : "保存并发布 Save & Publish"}
+        {saving ? t("common.saving") : t("common.save")}
       </Btn>
-      {saved && <span className="text-sage text-sm">✓ 已保存！网站将在约2分钟后更新。</span>}
+      {saved && <span className="text-sage text-sm">{t("common.savedNotice")}</span>}
     </div>
   );
 }
@@ -77,6 +79,7 @@ function GripIcon() {
 
 // ── SETTINGS TAB ─────────────────────────────────────────────────────────────
 function SettingsTab() {
+  const { t } = useAdminLang();
   const [announcement, setAnnouncement] = useState("");
   const [hours, setHours] = useState<Hour[]>([]);
   const [sha, setSha] = useState<string | undefined>();
@@ -103,20 +106,20 @@ function SettingsTab() {
   return (
     <div className="space-y-8">
       <div>
-        <label className="block text-sm font-medium text-bark mb-2">公告横幅 <span className="font-normal text-bark-light">Announcement Banner</span></label>
+        <label className="block text-sm font-medium text-bark mb-2">{t("settings.announcement")}</label>
         <textarea value={announcement} onChange={e => setAnnouncement(e.target.value)} rows={3}
-          placeholder="留空则隐藏公告 / Leave blank to hide the banner"
+          placeholder={t("settings.announcementPlaceholder")}
           className="w-full border border-brand-light rounded-lg px-4 py-2.5 text-bark focus:outline-none focus:ring-2 focus:ring-brand resize-none" />
       </div>
       <div>
-        <label className="block text-sm font-medium text-bark mb-3">营业时间 <span className="font-normal text-bark-light">Business Hours</span></label>
+        <label className="block text-sm font-medium text-bark mb-3">{t("settings.hours")}</label>
         <div className="space-y-2">
           {hours.map((h, i) => (
             <div key={i} className="flex items-center gap-3">
               <span className="w-28 text-sm text-bark font-medium">{h.day}</span>
               <input value={h.time} onChange={e => {
                 const next = [...hours]; next[i] = { ...h, time: e.target.value }; setHours(next);
-              }} placeholder='如：9:30 AM – 8:00 PM 或 "Closed"'
+              }} placeholder={t("settings.hoursPlaceholder")}
                 className="flex-1 border border-brand-light rounded-lg px-3 py-1.5 text-sm text-bark focus:outline-none focus:ring-2 focus:ring-brand" />
             </div>
           ))}
@@ -129,6 +132,7 @@ function SettingsTab() {
 
 // ── SERVICES TAB ─────────────────────────────────────────────────────────────
 function ServicesTab() {
+  const { t } = useAdminLang();
   const [services, setServices] = useState<Service[]>([]);
   const [sha, setSha] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
@@ -179,7 +183,7 @@ function ServicesTab() {
     setOpen(services.length);
   }
   function removeService(i: number) {
-    if (!confirm("确认删除此服务？Remove this service?")) return;
+    if (!confirm(t("services.confirmRemove"))) return;
     setServices(s => s.filter((_, idx) => idx !== i));
     setOpen(null);
   }
@@ -204,34 +208,34 @@ function ServicesTab() {
             </span>
             <button onClick={() => setOpen(open === i ? null : i)}
               className="flex-1 flex items-center px-2 py-3 text-left">
-              <span className="font-medium text-bark">{svc.name || "未命名 Untitled"}</span>
+              <span className="font-medium text-bark">{svc.name || t("common.untitled")}</span>
             </button>
             <span className="text-bark-light text-sm pr-4">{open === i ? "▲" : "▼"}</span>
           </div>
           {open === i && (
             <div className="p-5 bg-white border-t border-brand-light space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
-                <Field label="服务名称 Service Name" value={svc.name} onChange={v => update(i, { name: v })} />
-                <Field label="标签（可选）Badge" value={svc.badge} onChange={v => update(i, { badge: v })} placeholder="如：Signature 👍" />
+                <Field label={t("services.name")} value={svc.name} onChange={v => update(i, { name: v })} />
+                <Field label={t("services.badge")} value={svc.badge} onChange={v => update(i, { badge: v })} placeholder={t("services.badgePlaceholder")} />
               </div>
-              <TextArea label="描述 Description" value={svc.description} onChange={v => update(i, { description: v })} />
+              <TextArea label={t("common.description")} value={svc.description} onChange={v => update(i, { description: v })} />
               <div>
-                <label className="block text-sm font-medium text-bark mb-2">价格 <span className="font-normal text-bark-light">Pricing</span></label>
+                <label className="block text-sm font-medium text-bark mb-2">{t("common.pricing")}</label>
                 {svc.pricing.map((p, pi) => (
                   <div key={pi} className="flex gap-2 mb-2">
                     <input value={p.duration} onChange={e => {
                       const next = [...svc.pricing]; next[pi] = { ...p, duration: e.target.value }; update(i, { pricing: next });
-                    }} placeholder="时长 / 60 minutes" className={inputCls} />
+                    }} placeholder={t("services.durationPlaceholder")} className={inputCls} />
                     <input value={p.price} onChange={e => {
                       const next = [...svc.pricing]; next[pi] = { ...p, price: e.target.value }; update(i, { pricing: next });
-                    }} placeholder="价格 / $120" className={inputCls} />
+                    }} placeholder={t("services.pricePlaceholder")} className={inputCls} />
                     <Btn small variant="danger" onClick={() => update(i, { pricing: svc.pricing.filter((_, x) => x !== pi) })}>✕</Btn>
                   </div>
                 ))}
-                <Btn small variant="secondary" onClick={() => update(i, { pricing: [...svc.pricing, { duration: "", price: "" }] })}>+ 添加价格 Add Price</Btn>
+                <Btn small variant="secondary" onClick={() => update(i, { pricing: [...svc.pricing, { duration: "", price: "" }] })}>{t("common.addPrice")}</Btn>
               </div>
               <div>
-                <label className="block text-sm font-medium text-bark mb-2">附加说明（可选）<span className="font-normal text-bark-light">Extra Details</span></label>
+                <label className="block text-sm font-medium text-bark mb-2">{t("services.extraDetails")}</label>
                 {svc.details.map((d, di) => (
                   <div key={di} className="flex gap-2 mb-2">
                     <input value={d} onChange={e => {
@@ -240,15 +244,15 @@ function ServicesTab() {
                     <Btn small variant="danger" onClick={() => update(i, { details: svc.details.filter((_, x) => x !== di) })}>✕</Btn>
                   </div>
                 ))}
-                <Btn small variant="secondary" onClick={() => update(i, { details: [...svc.details, ""] })}>+ 添加说明 Add Detail</Btn>
+                <Btn small variant="secondary" onClick={() => update(i, { details: [...svc.details, ""] })}>{t("services.addDetail")}</Btn>
               </div>
-              <Btn variant="danger" small onClick={() => removeService(i)}>删除服务 Remove Service</Btn>
+              <Btn variant="danger" small onClick={() => removeService(i)}>{t("services.remove")}</Btn>
             </div>
           )}
         </div>
       ))}
       <div className="flex flex-wrap gap-3 pt-2">
-        <Btn variant="secondary" onClick={addService}>+ 添加服务 Add Service</Btn>
+        <Btn variant="secondary" onClick={addService}>{t("services.add")}</Btn>
         <SaveBar onSave={save} saving={saving} saved={saved} />
       </div>
     </div>
@@ -257,6 +261,7 @@ function ServicesTab() {
 
 // ── ADDONS TAB ───────────────────────────────────────────────────────────────
 function AddonsTab() {
+  const { t } = useAdminLang();
   const [addons, setAddons] = useState<Addon[]>([]);
   const [sha, setSha] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
@@ -303,7 +308,7 @@ function AddonsTab() {
   }
 
   function removeAddon(i: number) {
-    if (!confirm("确认删除此附加服务？Remove this add-on?")) return;
+    if (!confirm(t("addons.confirmRemove"))) return;
     setAddons(a => a.filter((_, idx) => idx !== i));
     setOpen(null);
   }
@@ -328,30 +333,30 @@ function AddonsTab() {
             </span>
             <button onClick={() => setOpen(open === i ? null : i)}
               className="flex-1 flex items-center px-2 py-3 text-left">
-              <span className="font-medium text-bark">{addon.name || "未命名 Untitled"}</span>
+              <span className="font-medium text-bark">{addon.name || t("common.untitled")}</span>
             </button>
             <span className="text-bark-light text-sm pr-4">{open === i ? "▲" : "▼"}</span>
           </div>
           {open === i && (
             <div className="p-5 bg-white border-t border-brand-light space-y-4">
-              <Field label="附加服务名称 Add-on Name" value={addon.name} onChange={v => update(i, { name: v })} />
-              <TextArea label="描述 Description" value={addon.description} onChange={v => update(i, { description: v })} />
+              <Field label={t("addons.name")} value={addon.name} onChange={v => update(i, { name: v })} />
+              <TextArea label={t("common.description")} value={addon.description} onChange={v => update(i, { description: v })} />
               <div>
-                <label className="block text-sm font-medium text-bark mb-2">价格 <span className="font-normal text-bark-light">Pricing</span></label>
+                <label className="block text-sm font-medium text-bark mb-2">{t("common.pricing")}</label>
                 {addon.pricing.map((p, pi) => (
                   <div key={pi} className="flex gap-2 mb-2">
                     <input value={p.duration} onChange={e => {
                       const next = [...addon.pricing]; next[pi] = { ...p, duration: e.target.value }; update(i, { pricing: next });
-                    }} placeholder="时长（无则留空）/ Duration" className={inputCls} />
+                    }} placeholder={t("addons.durationPlaceholder")} className={inputCls} />
                     <input value={p.price} onChange={e => {
                       const next = [...addon.pricing]; next[pi] = { ...p, price: e.target.value }; update(i, { pricing: next });
-                    }} placeholder="价格 / $30" className={inputCls} />
+                    }} placeholder={t("addons.pricePlaceholder")} className={inputCls} />
                     <Btn small variant="danger" onClick={() => update(i, { pricing: addon.pricing.filter((_, x) => x !== pi) })}>✕</Btn>
                   </div>
                 ))}
-                <Btn small variant="secondary" onClick={() => update(i, { pricing: [...addon.pricing, { duration: "", price: "" }] })}>+ 添加价格 Add Price</Btn>
+                <Btn small variant="secondary" onClick={() => update(i, { pricing: [...addon.pricing, { duration: "", price: "" }] })}>{t("common.addPrice")}</Btn>
               </div>
-              <Btn variant="danger" small onClick={() => removeAddon(i)}>删除附加服务 Remove Add-on</Btn>
+              <Btn variant="danger" small onClick={() => removeAddon(i)}>{t("addons.remove")}</Btn>
             </div>
           )}
         </div>
@@ -360,7 +365,7 @@ function AddonsTab() {
         <Btn variant="secondary" onClick={() => {
           setAddons(a => [...a, { name: "New Add-on", description: "", pricing: [{ duration: "", price: "" }] }]);
           setOpen(addons.length);
-        }}>+ 添加附加服务 Add Add-on</Btn>
+        }}>{t("addons.add")}</Btn>
         <SaveBar onSave={save} saving={saving} saved={saved} />
       </div>
     </div>
@@ -369,6 +374,7 @@ function AddonsTab() {
 
 // ── BLOG TAB ─────────────────────────────────────────────────────────────────
 function BlogTab() {
+  const { t } = useAdminLang();
   const [posts, setPosts] = useState<{ name: string; slug: string; sha: string }[]>([]);
   const [editing, setEditing] = useState<Post | null>(null);
   const [editSha, setEditSha] = useState<string | undefined>();
@@ -421,7 +427,7 @@ function BlogTab() {
   }
 
   async function deletePost(slug: string, sha: string) {
-    if (!confirm(`确认删除 "${slug}"？`)) return;
+    if (!confirm(`${t("blog.confirmDelete")} "${slug}"?`)) return;
     await ghDelete(`content/blog/${slug}.md`, sha);
     if (editing?.slug === slug) setEditing(null);
     await loadList();
@@ -430,14 +436,14 @@ function BlogTab() {
   if (editing) {
     return (
       <div className="space-y-4">
-        <button onClick={() => setEditing(null)} className="text-brand text-sm hover:underline">← 返回文章列表 Back to posts</button>
+        <button onClick={() => setEditing(null)} className="text-brand text-sm hover:underline">{t("blog.back")}</button>
         <div className="grid sm:grid-cols-2 gap-4">
-          <Field label="标题 Title" value={editing.title} onChange={v => setEditing(p => p ? { ...p, title: v } : p)} />
-          <Field label="日期 Date" value={editing.date} onChange={v => setEditing(p => p ? { ...p, date: v } : p)} placeholder="YYYY-MM-DD" />
+          <Field label={t("blog.title")} value={editing.title} onChange={v => setEditing(p => p ? { ...p, title: v } : p)} />
+          <Field label={t("blog.date")} value={editing.date} onChange={v => setEditing(p => p ? { ...p, date: v } : p)} placeholder="YYYY-MM-DD" />
         </div>
-        <TextArea label="摘要（显示在博客列表）Excerpt" value={editing.excerpt} onChange={v => setEditing(p => p ? { ...p, excerpt: v } : p)} rows={2} />
+        <TextArea label={t("blog.excerpt")} value={editing.excerpt} onChange={v => setEditing(p => p ? { ...p, excerpt: v } : p)} rows={2} />
         <div>
-          <label className="block text-sm font-medium text-bark mb-1">内容 Content</label>
+          <label className="block text-sm font-medium text-bark mb-1">{t("blog.content")}</label>
           <RichEditor
             key={editorKey}
             initialContent={editing.content}
@@ -451,14 +457,14 @@ function BlogTab() {
 
   return (
     <div className="space-y-4">
-      <Btn onClick={newPost}>+ 新建文章 New Post</Btn>
-      {posts.length === 0 && <p className="text-bark-light text-sm">暂无文章。No posts yet.</p>}
+      <Btn onClick={newPost}>{t("blog.new")}</Btn>
+      {posts.length === 0 && <p className="text-bark-light text-sm">{t("blog.empty")}</p>}
       {posts.map(p => (
         <div key={p.slug} className="flex items-center justify-between bg-white border border-brand-light rounded-xl px-5 py-3">
           <span className="text-bark font-medium">{p.slug}</span>
           <div className="flex gap-2">
-            <Btn small variant="secondary" onClick={() => openPost(p.slug)}>编辑 Edit</Btn>
-            <Btn small variant="danger" onClick={() => deletePost(p.slug, p.sha)}>删除 Delete</Btn>
+            <Btn small variant="secondary" onClick={() => openPost(p.slug)}>{t("common.edit")}</Btn>
+            <Btn small variant="danger" onClick={() => deletePost(p.slug, p.sha)}>{t("common.delete")}</Btn>
           </div>
         </div>
       ))}
@@ -491,17 +497,33 @@ function TextArea({ label, value, onChange, rows = 4, mono, placeholder }: {
 }
 
 // ── ROOT PAGE ─────────────────────────────────────────────────────────────────
-const TABS = ["设置 Settings", "服务项目 Services", "附加服务 Add-ons", "博客编辑 Blog Editor", "客户登记 Intake", "发票 Invoice"] as const;
-type Tab = typeof TABS[number];
+const TABS = [
+  { key: "settings", label: "nav.settings" },
+  { key: "services", label: "nav.services" },
+  { key: "addons", label: "nav.addons" },
+  { key: "blog", label: "nav.blog" },
+  { key: "intake", label: "nav.intake" },
+  { key: "invoice", label: "nav.invoice" },
+] as const;
+type Tab = typeof TABS[number]["key"];
 type FontSize = "small" | "medium" | "large";
-const FONT_SIZE_OPTIONS: { value: FontSize; label: "小" | "中" | "大" }[] = [
-  { value: "small", label: "小" },
-  { value: "medium", label: "中" },
-  { value: "large", label: "大" },
-];
+const FONT_SIZE_OPTIONS = [
+  { value: "small", label: "shell.font.small" },
+  { value: "medium", label: "shell.font.medium" },
+  { value: "large", label: "shell.font.large" },
+] as const;
 
 export default function AdminPage() {
-  const [tab, setTab] = useState<Tab>("设置 Settings");
+  return (
+    <AdminLangProvider>
+      <AdminShell />
+    </AdminLangProvider>
+  );
+}
+
+function AdminShell() {
+  const { t, lang, setLang } = useAdminLang();
+  const [tab, setTab] = useState<Tab>("settings");
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [fontSize, setFontSize] = useState<FontSize>("medium");
   const router = useRouter();
@@ -590,34 +612,62 @@ export default function AdminPage() {
           {sidebarOpen && (
             <div className="min-w-0">
               <h1 className="font-bold text-slate-950 leading-tight truncate">Jane&apos;s Therapy</h1>
-              <p className="text-sm text-slate-700 mt-1">管理后台 Admin</p>
+              <p className="text-sm text-slate-700 mt-1">{t("shell.admin")}</p>
             </div>
           )}
         </div>
 
         <nav className="flex-1 px-3 py-5 space-y-2">
-          {TABS.map(t => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              title={sidebarOpen ? undefined : t}
-              className={`w-full min-h-14 rounded-lg px-4 text-sm font-bold transition-colors flex items-center border-2 ${sidebarOpen ? "justify-start text-left" : "justify-center"} ${tab === t ? "bg-slate-900 border-slate-900 text-white shadow-sm" : "bg-white border-transparent text-slate-800 hover:text-slate-950 hover:bg-slate-100 hover:border-slate-300"}`}
-            >
-              {sidebarOpen ? t : t.slice(0, 1)}
-            </button>
-          ))}
+          {TABS.map(item => {
+            const label = t(item.label);
+            return (
+              <button
+                key={item.key}
+                type="button"
+                onClick={() => setTab(item.key)}
+                title={sidebarOpen ? undefined : label}
+                className={`w-full min-h-14 rounded-lg px-4 text-sm font-bold transition-colors flex items-center border-2 ${sidebarOpen ? "justify-start text-left" : "justify-center"} ${tab === item.key ? "bg-slate-900 border-slate-900 text-white shadow-sm" : "bg-white border-transparent text-slate-800 hover:text-slate-950 hover:bg-slate-100 hover:border-slate-300"}`}
+              >
+                {sidebarOpen ? label : label.slice(0, 1)}
+              </button>
+            );
+          })}
         </nav>
 
         <div className="px-3 py-5 border-t-2 border-slate-300">
-          {sidebarOpen && <p className="text-sm font-bold text-slate-800 mb-3">字号</p>}
+          {sidebarOpen && <p className="text-sm font-bold text-slate-800 mb-3">{t("shell.language")}</p>}
+          <div className={`grid gap-2 ${sidebarOpen ? "grid-cols-2" : "grid-cols-1"}`}>
+            {([
+              { value: "zh", label: "中文" },
+              { value: "en", label: "English" },
+            ] as const).map(option => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={lang === option.value}
+                title={option.label}
+                onClick={() => setLang(option.value)}
+                className={`admin-button min-h-14 rounded-lg border-2 px-2 text-sm font-bold transition-colors focus:outline-none focus:ring-4 focus:ring-sky-200 ${
+                  lang === option.value
+                    ? "border-slate-900 bg-slate-900 text-white"
+                    : "border-slate-400 bg-white text-slate-900 hover:bg-slate-100"
+                }`}
+              >
+                {sidebarOpen ? option.label : option.value === "zh" ? "中" : "EN"}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="px-3 py-5 border-t-2 border-slate-300">
+          {sidebarOpen && <p className="text-sm font-bold text-slate-800 mb-3">{t("shell.fontSize")}</p>}
           <div className={`grid gap-2 ${sidebarOpen ? "grid-cols-3" : "grid-cols-1"}`}>
             {FONT_SIZE_OPTIONS.map(option => (
               <button
                 key={option.value}
                 type="button"
                 aria-pressed={fontSize === option.value}
-                title={`字号 ${option.label}`}
+                title={`${t("shell.fontSize")} ${t(option.label)}`}
                 onClick={() => setFontSize(option.value)}
                 className={`admin-button min-h-14 rounded-lg border-2 px-2 text-sm font-bold transition-colors focus:outline-none focus:ring-4 focus:ring-sky-200 ${
                   fontSize === option.value
@@ -625,7 +675,7 @@ export default function AdminPage() {
                     : "border-slate-400 bg-white text-slate-900 hover:bg-slate-100"
                 }`}
               >
-                {option.label}
+                {t(option.label)}
               </button>
             ))}
           </div>
@@ -635,27 +685,29 @@ export default function AdminPage() {
           <button
             type="button"
             onClick={logout}
-            title={sidebarOpen ? undefined : "退出登录 Log out"}
+            title={sidebarOpen ? undefined : t("shell.logout")}
             className={`admin-button w-full min-h-14 rounded-lg px-4 text-sm font-bold text-slate-800 bg-white border-2 border-slate-300 hover:text-slate-950 hover:bg-slate-100 transition-colors flex items-center ${sidebarOpen ? "justify-start" : "justify-center"}`}
           >
-            {sidebarOpen ? "退出登录 Log out" : "X"}
+            {sidebarOpen ? t("shell.logout") : "X"}
           </button>
         </div>
       </aside>
 
       <main className="flex-1 min-w-0 px-5 py-6 lg:px-10 lg:py-10 transition-[padding] duration-300">
         <div className="mb-7">
-          <p className="text-sm text-slate-700 font-semibold">当前页面 Current</p>
-          <h2 className="text-2xl font-bold text-slate-950">{tab}</h2>
+          <p className="text-sm text-slate-700 font-semibold">{t("shell.current")}</p>
+          <h2 className="text-2xl font-bold text-slate-950">
+            {t(TABS.find(item => item.key === tab)!.label)}
+          </h2>
         </div>
 
         <div className="admin-panel w-full rounded-lg p-6 lg:p-8">
-          {tab === "设置 Settings" && <SettingsTab />}
-          {tab === "服务项目 Services" && <ServicesTab />}
-          {tab === "附加服务 Add-ons" && <AddonsTab />}
-          {tab === "博客编辑 Blog Editor" && <BlogTab />}
-          {tab === "客户登记 Intake" && <IntakeTab />}
-          {tab === "发票 Invoice" && <InvoiceTab />}
+          {tab === "settings" && <SettingsTab />}
+          {tab === "services" && <ServicesTab />}
+          {tab === "addons" && <AddonsTab />}
+          {tab === "blog" && <BlogTab />}
+          {tab === "intake" && <IntakeTab />}
+          {tab === "invoice" && <InvoiceTab />}
         </div>
       </main>
     </div>

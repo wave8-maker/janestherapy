@@ -66,10 +66,13 @@ assert.match(stepConsents, /new Date\(\)\.toISOString\(\)/, "each clause records
 
 // ── admin shows the evidence exists, the printout carries it ──────────────────
 const intakeTab = read("app/admin/IntakeTab.tsx");
+const adminI18n = read("app/admin/i18n.tsx");
 assert.doesNotMatch(intakeTab, /signatureDataUrl\}/, "the signature image belongs on the printout, not the admin screen");
 assert.doesNotMatch(intakeTab, /item\.body\.map/, "clause text belongs on the printout, not the admin screen");
-assert.match(intakeTab, /签署记录与电子签名已存储/, "admin should confirm the evidence is on file");
-assert.match(intakeTab, /签署记录不完整/, "a record missing a signature or a clause must say so");
+assert.match(intakeTab, /t\("intake\.recordStored"\)/, "admin should confirm the evidence is on file");
+assert.match(intakeTab, /t\("intake\.recordIncomplete"\)/, "a record missing a signature or a clause must say so");
+assert.match(adminI18n, /"intake\.recordStored"/, "the confirmation wording must exist in both languages");
+assert.match(adminI18n, /"intake\.recordIncomplete"/, "the warning wording must exist in both languages");
 
 // ── the wizard has no way out ─────────────────────────────────────────────────
 assert.match(siteLayout, /book\.squareup\.com/, "the booking link belongs to the marketing chrome");

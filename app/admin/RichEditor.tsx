@@ -5,6 +5,7 @@ import TiptapImage from "@tiptap/extension-image";
 import TiptapLink from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import { useRef, useState } from "react";
+import { useAdminLang } from "./i18n";
 
 interface Props {
   initialContent: string;
@@ -56,6 +57,7 @@ async function toWebP(blob: Blob): Promise<string> {
 }
 
 export default function RichEditor({ initialContent, onChange }: Props) {
+  const { t } = useAdminLang();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
@@ -65,7 +67,7 @@ export default function RichEditor({ initialContent, onChange }: Props) {
       StarterKit,
       TiptapImage.configure({ inline: false, allowBase64: true }),
       TiptapLink.configure({ openOnClick: false }),
-      Placeholder.configure({ placeholder: "开始写作… Start writing…" }),
+      Placeholder.configure({ placeholder: t("editor.placeholder") }),
     ],
     content: initialContent || "",
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -109,7 +111,7 @@ export default function RichEditor({ initialContent, onChange }: Props) {
       const dataUrl = await toWebP(blob);
       editor.chain().focus().setImage({ src: dataUrl, alt: file.name }).run();
     } catch {
-      alert("图片插入失败 Image insert failed");
+      alert(t("editor.imageFailed"));
     } finally {
       setUploading(false);
     }
@@ -120,7 +122,7 @@ export default function RichEditor({ initialContent, onChange }: Props) {
       editor.chain().focus().unsetLink().run();
       return;
     }
-    const url = prompt("请输入链接地址 Enter URL:");
+    const url = prompt(t("editor.enterUrl"));
     if (url) editor?.chain().focus().setLink({ href: url }).run();
   }
 
@@ -128,47 +130,47 @@ export default function RichEditor({ initialContent, onChange }: Props) {
 
   const toolbarItems = (
     <>
-      <ToolBtn active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title="粗体 Bold">
+      <ToolBtn active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title={t("editor.bold")}>
         <b>B</b>
       </ToolBtn>
-      <ToolBtn active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} title="斜体 Italic">
+      <ToolBtn active={editor.isActive("italic")} onClick={() => editor.chain().focus().toggleItalic().run()} title={t("editor.italic")}>
         <em>I</em>
       </ToolBtn>
-      <ToolBtn active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()} title="删除线 Strike">
+      <ToolBtn active={editor.isActive("strike")} onClick={() => editor.chain().focus().toggleStrike().run()} title={t("editor.strike")}>
         <s>S</s>
       </ToolBtn>
       <Divider />
-      <ToolBtn active={editor.isActive("heading", { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title="大标题 Heading 1">
+      <ToolBtn active={editor.isActive("heading", { level: 1 })} onClick={() => editor.chain().focus().toggleHeading({ level: 1 }).run()} title={t("editor.h1")}>
         H1
       </ToolBtn>
-      <ToolBtn active={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title="中标题 Heading 2">
+      <ToolBtn active={editor.isActive("heading", { level: 2 })} onClick={() => editor.chain().focus().toggleHeading({ level: 2 }).run()} title={t("editor.h2")}>
         H2
       </ToolBtn>
-      <ToolBtn active={editor.isActive("heading", { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title="小标题 Heading 3">
+      <ToolBtn active={editor.isActive("heading", { level: 3 })} onClick={() => editor.chain().focus().toggleHeading({ level: 3 }).run()} title={t("editor.h3")}>
         H3
       </ToolBtn>
       <Divider />
-      <ToolBtn active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} title="无序列表 Bullet list">
-        • 列表
+      <ToolBtn active={editor.isActive("bulletList")} onClick={() => editor.chain().focus().toggleBulletList().run()} title={t("editor.bulletList")}>
+        • {t("editor.listLabel")}
       </ToolBtn>
-      <ToolBtn active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()} title="有序列表 Ordered list">
-        1. 列表
+      <ToolBtn active={editor.isActive("orderedList")} onClick={() => editor.chain().focus().toggleOrderedList().run()} title={t("editor.orderedList")}>
+        1. {t("editor.listLabel")}
       </ToolBtn>
-      <ToolBtn active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()} title="引用 Blockquote">
+      <ToolBtn active={editor.isActive("blockquote")} onClick={() => editor.chain().focus().toggleBlockquote().run()} title={t("editor.blockquote")}>
         ❝
       </ToolBtn>
       <Divider />
-      <ToolBtn active={editor.isActive("link")} onClick={promptLink} title="链接 Link">
+      <ToolBtn active={editor.isActive("link")} onClick={promptLink} title={t("editor.link")}>
         🔗
       </ToolBtn>
-      <ToolBtn disabled={uploading} onClick={() => fileInputRef.current?.click()} title="插入图片 Insert image">
-        {uploading ? "…" : "🖼 图片"}
+      <ToolBtn disabled={uploading} onClick={() => fileInputRef.current?.click()} title={t("editor.insertImage")}>
+        {uploading ? "…" : `🖼 ${t("editor.image")}`}
       </ToolBtn>
       <Divider />
-      <ToolBtn disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} title="撤销 Undo">
+      <ToolBtn disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} title={t("editor.undo")}>
         ↩
       </ToolBtn>
-      <ToolBtn disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} title="重做 Redo">
+      <ToolBtn disabled={!editor.can().redo()} onClick={() => editor.chain().focus().redo().run()} title={t("editor.redo")}>
         ↪
       </ToolBtn>
     </>
@@ -180,13 +182,13 @@ export default function RichEditor({ initialContent, onChange }: Props) {
       <div className="bg-gray-50 border-b border-brand-light">
         {/* Mobile: hamburger header */}
         <div className="flex items-center justify-between px-2 py-1.5 sm:hidden">
-          <span className="text-xs text-bark-light">格式工具 Formatting</span>
+          <span className="text-xs text-bark-light">{t("editor.formatting")}</span>
           <button
             type="button"
             onMouseDown={e => e.preventDefault()}
             onClick={() => setMenuOpen(o => !o)}
             className="p-1.5 rounded text-bark hover:bg-brand-light transition-colors"
-            title="格式菜单 Formatting menu"
+            title={t("editor.formattingMenu")}
           >
             {menuOpen ? (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useAdminLang } from "./i18n";
 
 /* ──────────────────────────────────────────────────────────────────────────
    Contractor Invoice tool
@@ -163,14 +164,15 @@ function Cell({ value, onChange, placeholder, label, className, inputMode }: {
 function PartyBlock({ party, onChange, who, nameHint }: {
   party: Party; onChange: (p: Party) => void; who: string; nameHint: string;
 }) {
+  const { t } = useAdminLang();
   const set = (k: keyof Party) => (v: string) => onChange({ ...party, [k]: v });
   return (
     <>
-      <Cell className="inv-p0" label={`${who} 名称 Name`} value={party.name} onChange={set("name")} placeholder={nameHint} />
-      <Cell className="inv-p" label={`${who} 第二行 Line 2`} value={party.line2} onChange={set("line2")} placeholder="联系人 / 头衔 Attn / title" />
-      <Cell className="inv-p" label={`${who} 地址 Address`} value={party.address} onChange={set("address")} placeholder="地址 Address" />
-      <Cell className="inv-p" label={`${who} 电话 Phone`} value={party.phone} onChange={set("phone")} placeholder="电话 Phone" />
-      <Cell className="inv-p" label={`${who} 邮箱 Email`} value={party.email} onChange={set("email")} placeholder="邮箱 Email" />
+      <Cell className="inv-p0" label={`${who} · ${t("invoice.name")}`} value={party.name} onChange={set("name")} placeholder={nameHint} />
+      <Cell className="inv-p" label={`${who} · ${t("invoice.line2")}`} value={party.line2} onChange={set("line2")} placeholder={t("invoice.attnPlaceholder")} />
+      <Cell className="inv-p" label={`${who} · ${t("field.address")}`} value={party.address} onChange={set("address")} placeholder={t("field.address")} />
+      <Cell className="inv-p" label={`${who} · ${t("field.phone")}`} value={party.phone} onChange={set("phone")} placeholder={t("field.phone")} />
+      <Cell className="inv-p" label={`${who} · ${t("field.email")}`} value={party.email} onChange={set("email")} placeholder={t("field.email")} />
     </>
   );
 }
@@ -295,6 +297,7 @@ function buildInvoiceHTML(inv: InvoiceState): string {
 const LS_KEY = "janeInvoiceDefaults_v1";
 
 export default function InvoiceTab() {
+  const { t } = useAdminLang();
   const [inv, setInv] = useState<InvoiceState>(emptyState);
   const [defaultsSaved, setDefaultsSaved] = useState(false);
 
@@ -324,7 +327,7 @@ export default function InvoiceTab() {
       setDefaultsSaved(true);
       window.setTimeout(() => setDefaultsSaved(false), 3000);
     } catch {
-      alert("无法保存常用信息。Could not save defaults.");
+      alert(t("invoice.defaultsError"));
     }
   }
 
@@ -357,7 +360,7 @@ export default function InvoiceTab() {
   function generate() {
     const html = buildInvoiceHTML(inv);
     const w = window.open("", "_blank");
-    if (!w) { alert("请允许弹出窗口以生成发票。Please allow pop-ups to generate the invoice."); return; }
+    if (!w) { alert(t("invoice.popupBlocked")); return; }
     w.document.write(html);
     w.document.close();
   }
@@ -368,17 +371,14 @@ export default function InvoiceTab() {
 
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
-          <p className="text-sm font-semibold text-bark">承包发票生成器 <span className="font-normal text-bark-light">Contractor Invoice Generator</span></p>
-          <p className="text-sm text-bark-light mt-1 max-w-xl">
-            直接在下面这张「发票纸」上填写，位置就是打印出来的位置。每行应付 = 销售额 + 小费。<br />
-            <span className="text-bark-light/80">Fill in the sheet below — it matches the printed PDF. Amount Due = Sales + Gratuity.</span>
-          </p>
+          <p className="text-sm font-semibold text-bark">{t("invoice.title")}</p>
+          <p className="text-sm text-bark-light mt-1 max-w-xl">{t("invoice.intro")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Btn variant="secondary" small onClick={loadDefaults}>套用常用信息 Load Defaults</Btn>
-          <Btn variant="secondary" small onClick={saveDefaults}>保存常用信息 Save Defaults</Btn>
-          {defaultsSaved && <span className="text-sm text-sage self-center">已保存 Saved</span>}
-          <Btn variant="secondary" small onClick={() => setInv(emptyState())}>清空重填 Reset</Btn>
+          <Btn variant="secondary" small onClick={loadDefaults}>{t("invoice.loadDefaults")}</Btn>
+          <Btn variant="secondary" small onClick={saveDefaults}>{t("invoice.saveDefaults")}</Btn>
+          {defaultsSaved && <span className="text-sm text-sage self-center">{t("invoice.saved")}</span>}
+          <Btn variant="secondary" small onClick={() => setInv(emptyState())}>{t("invoice.reset")}</Btn>
         </div>
       </div>
 
@@ -388,18 +388,18 @@ export default function InvoiceTab() {
           <div className="inv-top">
             <div className="inv-from">
               <div className="inv-name">
-                <Cell label="开票方名称 Your business name" value={inv.from.name}
-                  onChange={v => patch({ from: { ...inv.from, name: v } })} placeholder="开票方名称 Your business" />
+                <Cell label={t("invoice.fromName")} value={inv.from.name}
+                  onChange={v => patch({ from: { ...inv.from, name: v } })} placeholder={t("invoice.fromName")} />
               </div>
               <div className="inv-sub">
-                <Cell label="开票方 头衔 Title line" value={inv.from.line2}
+                <Cell label={t("invoice.fromTitle")} value={inv.from.line2}
                   onChange={v => patch({ from: { ...inv.from, line2: v } })} placeholder="Jane Zhang, CMT · Massage Therapist" />
-                <Cell label="开票方 地址 Address" value={inv.from.address}
-                  onChange={v => patch({ from: { ...inv.from, address: v } })} placeholder="城市 City, CA" />
-                <Cell label="开票方 邮箱 Email" value={inv.from.email}
-                  onChange={v => patch({ from: { ...inv.from, email: v } })} placeholder="邮箱 Email" />
-                <Cell label="开票方 电话 Phone" value={inv.from.phone}
-                  onChange={v => patch({ from: { ...inv.from, phone: v } })} placeholder="电话 Phone" />
+                <Cell label={t("invoice.fromAddress")} value={inv.from.address}
+                  onChange={v => patch({ from: { ...inv.from, address: v } })} placeholder={t("invoice.cityPlaceholder")} />
+                <Cell label={t("invoice.fromEmail")} value={inv.from.email}
+                  onChange={v => patch({ from: { ...inv.from, email: v } })} placeholder={t("field.email")} />
+                <Cell label={t("invoice.fromPhone")} value={inv.from.phone}
+                  onChange={v => patch({ from: { ...inv.from, phone: v } })} placeholder={t("field.phone")} />
               </div>
             </div>
             <div className="inv-word">INVOICE</div>
@@ -409,29 +409,29 @@ export default function InvoiceTab() {
 
           <div className="inv-cols">
             <div className="inv-billto">
-              <div className="inv-lbl">BILL TO · 收票方</div>
-              <PartyBlock who="收票方 Bill to" nameHint="工作室名称 Studio name"
+              <div className="inv-lbl">{t("invoice.billTo").toUpperCase()}</div>
+              <PartyBlock who={t("invoice.billTo")} nameHint={t("invoice.studioName")}
                 party={inv.billTo} onChange={p => patch({ billTo: p })} />
             </div>
             <table className="inv-meta">
               <tbody>
                 <tr>
-                  <td className="ml">INVOICE #<br />发票号</td>
+                  <td className="ml">{t("invoice.invoiceNo")}</td>
                   <td className="mv">
                     <div className="mv-wrap">
                       <input value={inv.invoiceNo} onChange={e => patch({ invoiceNo: e.target.value })}
-                        placeholder="TRIO-2026-0615" aria-label="发票号 Invoice number" />
-                      <button type="button" className="inv-mini" onClick={autoInvoiceNo}>自动 Auto</button>
+                        placeholder="TRIO-2026-0615" aria-label={t("invoice.invoiceNo")} />
+                      <button type="button" className="inv-mini" onClick={autoInvoiceNo}>{t("invoice.auto")}</button>
                     </div>
                   </td>
                 </tr>
                 <tr>
-                  <td className="ml">INVOICE DATE<br />开票日期</td>
+                  <td className="ml">{t("invoice.invoiceDate")}</td>
                   <td className="mv">
                     <div className="mv-wrap">
                       <input type="date" value={inv.invoiceDate} onChange={e => patch({ invoiceDate: e.target.value })}
-                        aria-label="开票日期 Invoice date" />
-                      <button type="button" className="inv-mini" onClick={setTodayInvoiceDate}>今天 Today</button>
+                        aria-label={t("invoice.invoiceDate")} />
+                      <button type="button" className="inv-mini" onClick={setTodayInvoiceDate}>{t("invoice.today")}</button>
                     </div>
                   </td>
                 </tr>
@@ -442,11 +442,11 @@ export default function InvoiceTab() {
           <table className="inv-items">
             <thead>
               <tr>
-                <th style={{ width: "15%" }}>Date · 日期</th>
-                <th>Description · 服务说明</th>
-                <th className="r" style={{ width: "14%" }}>Sales · 销售</th>
-                <th className="r" style={{ width: "14%" }}>Gratuity · 小费</th>
-                <th className="r" style={{ width: "19%" }}>Amount Due · 应付</th>
+                <th style={{ width: "15%" }}>{t("invoice.colDate")}</th>
+                <th>{t("invoice.colDescription")}</th>
+                <th className="r" style={{ width: "14%" }}>{t("invoice.colSales")}</th>
+                <th className="r" style={{ width: "14%" }}>{t("invoice.colGratuity")}</th>
+                <th className="r" style={{ width: "19%" }}>{t("invoice.colDue")}</th>
                 <th className="x" />
               </tr>
             </thead>
@@ -454,17 +454,17 @@ export default function InvoiceTab() {
               {inv.items.map((it, i) => (
                 <tr key={i}>
                   <td><input value={it.date} onChange={e => setItem(i, { date: e.target.value })}
-                    placeholder="6/3/26" aria-label={`第 ${i + 1} 行 日期 Date`} /></td>
+                    placeholder="6/3/26" aria-label={`${t("invoice.row")} ${i + 1} · ${t("invoice.colDate")}`} /></td>
                   <td><input value={it.description} onChange={e => setItem(i, { description: e.target.value })}
-                    placeholder="60-min Prenatal Massage" aria-label={`第 ${i + 1} 行 服务说明 Description`} /></td>
+                    placeholder="60-min Prenatal Massage" aria-label={`${t("invoice.row")} ${i + 1} · ${t("invoice.colDescription")}`} /></td>
                   <td className="r"><input value={it.sales} onChange={e => setItem(i, { sales: e.target.value })}
-                    placeholder="110" inputMode="decimal" aria-label={`第 ${i + 1} 行 销售额 Sales`} /></td>
+                    placeholder="110" inputMode="decimal" aria-label={`${t("invoice.row")} ${i + 1} · ${t("invoice.colSales")}`} /></td>
                   <td className="r"><input value={it.gratuity} onChange={e => setItem(i, { gratuity: e.target.value })}
-                    placeholder="20" inputMode="decimal" aria-label={`第 ${i + 1} 行 小费 Gratuity`} /></td>
+                    placeholder="20" inputMode="decimal" aria-label={`${t("invoice.row")} ${i + 1} · ${t("invoice.colGratuity")}`} /></td>
                   <td className="r due">{money(rowDue(it))}</td>
                   <td className="x">
                     <button type="button" className="inv-del" onClick={() => removeRow(i)}
-                      title="删除此行 Remove line" aria-label={`删除第 ${i + 1} 行 Remove line`}
+                      title={t("invoice.removeLine")} aria-label={`${t("invoice.removeLine")} — ${t("invoice.row")} ${i + 1}`}
                       disabled={inv.items.length <= 1}>×</button>
                   </td>
                 </tr>
@@ -473,7 +473,7 @@ export default function InvoiceTab() {
             <tfoot>
               <tr>
                 <td />
-                <td>Totals · 合计</td>
+                <td>{t("invoice.totals")}</td>
                 <td className="r">{money(totals.sales)}</td>
                 <td className="r">{money(totals.grat)}</td>
                 <td className="r">{money(totals.due)}</td>
@@ -482,11 +482,11 @@ export default function InvoiceTab() {
             </tfoot>
           </table>
 
-          <button type="button" className="inv-add" onClick={addRow}>+ 添加一行 Add line</button>
+          <button type="button" className="inv-add" onClick={addRow}>{t("invoice.addLine")}</button>
 
           <div className="inv-due">
             <div className="inv-band">
-              <span className="l">AMOUNT DUE · 应付金额</span>
+              <span className="l">{t("invoice.amountDue").toUpperCase()}</span>
               <span className="a">{money(totals.due)}</span>
             </div>
           </div>
@@ -498,8 +498,8 @@ export default function InvoiceTab() {
               Calculation: {money(totals.sales)} sales + {money(totals.grat)} gratuity = <b>{money(totals.due)}</b>.
             </p>
             <textarea value={inv.notes} onChange={e => patch({ notes: e.target.value })}
-              aria-label="备注 Notes（可选 optional）"
-              placeholder="备注（可选）Notes — 如付款方式 payment method, Venmo, etc." />
+              aria-label={t("invoice.notes")}
+              placeholder={t("invoice.notesPlaceholder")} />
             <p style={{ marginTop: 8 }}>
               Thank you! Please remit payment to {inv.from.name || "…"}. Questions: {inv.from.email || "…"}
               {inv.from.phone ? ` / ${inv.from.phone}` : ""}.
@@ -509,8 +509,8 @@ export default function InvoiceTab() {
       </div>
 
       <div className="flex items-center justify-end gap-3 flex-wrap">
-        <span className="text-sm text-bark-light">检查无误后生成 PDF · Review, then generate</span>
-        <Btn onClick={generate} disabled={totals.due === 0}>生成 / 打印 PDF · Generate PDF</Btn>
+        <span className="text-sm text-bark-light">{t("invoice.reviewThen")}</span>
+        <Btn onClick={generate} disabled={totals.due === 0}>{t("invoice.generate")}</Btn>
       </div>
     </div>
   );
