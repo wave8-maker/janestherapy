@@ -2,6 +2,15 @@ import { mkdir, readdir, readFile, writeFile, unlink } from "fs/promises";
 import path from "path";
 import { get, list, put, del } from "@vercel/blob";
 import type { IntakeFormData, IntakeSubmission } from "./intake-types";
+import { normalizeSubmission } from "./intake-types";
+import type { ConsentItem } from "./consents";
+
+/** Everything the server — not the tablet — vouches for about a signing. */
+export interface SigningEvidence {
+  consentVersion: string;
+  consentSnapshot: ConsentItem[];
+  meta: { ip: string; userAgent: string };
+}
 
 const LOCAL_DIR = path.join(process.cwd(), "data", "intakes");
 const BLOB_PREFIX = "intakes/";
@@ -22,9 +31,13 @@ async function ensureLocalDir() {
   await mkdir(LOCAL_DIR, { recursive: true });
 }
 
-export async function saveIntake(data: IntakeFormData): Promise<IntakeSubmission> {
+export async function saveIntake(
+  data: IntakeFormData,
+  evidence: SigningEvidence
+): Promise<IntakeSubmission> {
   const submission: IntakeSubmission = {
     ...data,
+    ...evidence,
     id: newId(),
     submittedAt: new Date().toISOString(),
   };
@@ -61,7 +74,7 @@ export async function listIntakes(): Promise<IntakeSubmission[]> {
   const submissions = await Promise.all(
     files.map(async (file) => {
       const raw = await readFile(path.join(LOCAL_DIR, file), "utf-8");
-      return JSON.parse(raw) as IntakeSubmission;
+      return normalizeSubmission(JSON.parse(raw));
     })
   );
   return submissions.sort(
@@ -73,7 +86,7 @@ async function readBlobSubmission(pathname: string): Promise<IntakeSubmission | 
   const result = await get(pathname, { access: "private" });
   if (!result) return null;
   const text = await new Response(result.stream).text();
-  return JSON.parse(text) as IntakeSubmission;
+  return normalizeSubmission(JSON.parse(text));
 }
 
 export async function getIntake(id: string): Promise<IntakeSubmission | null> {
@@ -84,7 +97,7 @@ export async function getIntake(id: string): Promise<IntakeSubmission | null> {
   const filePath = path.join(LOCAL_DIR, `${id}.json`);
   try {
     const raw = await readFile(filePath, "utf-8");
-    return JSON.parse(raw) as IntakeSubmission;
+    return normalizeSubmission(JSON.parse(raw));
   } catch {
     return null;
   }

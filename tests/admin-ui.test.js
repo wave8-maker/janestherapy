@@ -7,11 +7,12 @@ const adminPage = fs.readFileSync(path.join(root, "app/admin/page.tsx"), "utf8")
 const invoiceTab = fs.readFileSync(path.join(root, "app/admin/InvoiceTab.tsx"), "utf8");
 const publicSiteFiles = [
   "app/layout.tsx",
-  "app/page.tsx",
-  "app/services/page.tsx",
-  "app/contact/page.tsx",
-  "app/blog/page.tsx",
-  "app/blog/[slug]/page.tsx",
+  "app/(site)/layout.tsx",
+  "app/(site)/page.tsx",
+  "app/(site)/services/page.tsx",
+  "app/(site)/contact/page.tsx",
+  "app/(site)/blog/page.tsx",
+  "app/(site)/blog/[slug]/page.tsx",
   "app/opengraph-image.tsx",
   "app/lib/seo.ts",
 ].map((file) => fs.readFileSync(path.join(root, file), "utf8")).join("\n");

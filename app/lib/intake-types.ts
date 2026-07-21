@@ -1,6 +1,14 @@
+import type { ConsentItem } from "./consents";
+
 export interface PainMarker {
   x: number;
   y: number;
+}
+
+export interface EmergencyContact {
+  name: string;
+  relationship: string;
+  phone: string;
 }
 
 export interface IntakeFormData {
@@ -14,6 +22,12 @@ export interface IntakeFormData {
   referredBy: string;
   hearAboutUs: string[];
   hearAboutUsOther: string;
+  emergencyContact: EmergencyContact;
+  /** Checked boxes from HEALTH_CONDITIONS — the heart of the disclosure record. */
+  conditions: string[];
+  conditionsOther: string;
+  /** Required: the client affirms they reviewed the condition list honestly. */
+  healthAttested: boolean;
   hasInjuries: boolean | null;
   injuryDetails: string;
   hasSurgeries: boolean | null;
@@ -21,21 +35,102 @@ export interface IntakeFormData {
   medicalConditions: string;
   isPregnant: boolean | null;
   pregnancyDetails: string;
-  allergies: string;
-  bodyworkPreference: string;
+  goals: string[];
+  goalsOther: string;
+  pressure: string;
+  painLevel: number | null;
   areasToAvoid: string;
-  service: string;
-  serviceDuration: string;
   enhancements: string[];
   sessionPreference: string;
   painMarkersFront: PainMarker[];
   painMarkersBack: PainMarker[];
+  /** Consent key → ISO timestamp of the moment the client ticked that box. */
+  consents: Record<string, string>;
+  /** PNG data URL of the handwritten signature. */
+  signatureDataUrl: string;
+  printedName: string;
 }
 
-export interface IntakeSubmission extends IntakeFormData {
-  id: string;
-  submittedAt: string;
+/**
+ * Questions earlier versions of the form asked. The wizard no longer collects
+ * them, but records signed before they were dropped still carry the answers, so
+ * admin and the printout keep showing them when present.
+ */
+export interface LegacyIntakeFields {
+  medications?: string;
+  allergies?: string;
+  physician?: string;
+  service?: string;
+  serviceDuration?: string;
+  bodyworkPreference?: string;
+  musicPreference?: string;
+  roomTemperature?: string;
 }
+
+export interface IntakeSubmission extends IntakeFormData, LegacyIntakeFields {
+  id: string;
+  /** Stamped by the server — the tablet's clock is not trusted. */
+  submittedAt: string;
+  /** Version of content/consents.json that was displayed. */
+  consentVersion: string;
+  /** Verbatim copy of the clauses shown, frozen at signing time. */
+  consentSnapshot: ConsentItem[];
+  meta: {
+    ip: string;
+    userAgent: string;
+  };
+}
+
+/**
+ * Named conditions the client ticks off one by one. Asking by name — rather than
+ * with an open "any medical conditions?" box — is what turns a later omission into
+ * a specific, provable misstatement.
+ */
+export const HEALTH_CONDITIONS = [
+  "High Blood Pressure",
+  "Low Blood Pressure",
+  "Diabetes",
+  "Heart Disease",
+  "Pacemaker or Implanted Device",
+  "Stroke",
+  "Cancer",
+  "Pregnancy",
+  "Recent Surgery",
+  "Recent Injury",
+  "Blood Thinners / Anticoagulants",
+  "Osteoporosis",
+  "Neuropathy",
+  "Skin Infection or Open Wound",
+  "Varicose Veins",
+  "Blood Clots",
+  "Autoimmune Disease",
+  "Other",
+] as const;
+
+/** Conditions that raise a flag in the admin list so Jane sees them before the session. */
+export const ALERT_CONDITIONS: readonly string[] = [
+  "High Blood Pressure",
+  "Diabetes",
+  "Heart Disease",
+  "Pacemaker or Implanted Device",
+  "Stroke",
+  "Cancer",
+  "Pregnancy",
+  "Recent Surgery",
+  "Blood Thinners / Anticoagulants",
+  "Blood Clots",
+];
+
+export const VISIT_GOALS = [
+  "Pain Relief",
+  "Relaxation",
+  "Stress Relief",
+  "Sports Recovery",
+  "Mobility",
+  "Other",
+] as const;
+
+export const PRESSURE_LEVELS = ["Light", "Medium", "Firm", "Deep"] as const;
 
 export const HEAR_ABOUT_OPTIONS = [
   "Yelp",
@@ -46,12 +141,6 @@ export const HEAR_ABOUT_OPTIONS = [
   "Quora",
 ] as const;
 
-export const BODYWORK_PREFERENCES = [
-  "Really focused body work on specific trouble areas only",
-  "Focused work on trouble areas and light work elsewhere",
-  "A well balanced full body massage w/ no real specific areas",
-] as const;
-
 export const SESSION_PREFERENCES = [
   "Very minimal talking so I can relax my mind",
   "Some feedback along the way is preferred",
@@ -59,23 +148,9 @@ export const SESSION_PREFERENCES = [
   "No extra feedback/chatter, just quiet relaxation",
 ] as const;
 
-export const INTAKE_SERVICES = [
-  { name: "Glow from Head to Toe", durations: ["90", "120"] },
-  { name: "Clinical Deep Tissue", durations: ["30", "45", "60", "75", "90", "120"] },
-  { name: "Swedish Massage", durations: ["60", "75", "90", "120"] },
-  { name: "Prenatal Massage", durations: ["60", "75", "90", "120"] },
-  { name: "Reflexology", durations: ["60", "75", "90", "120"] },
-  { name: "Lymphatic Drainage", durations: ["60", "75", "90", "120"] },
-  { name: "Sports Massage", durations: ["60", "75", "90", "120"] },
-  { name: "Body Shaping", durations: ["60", "75", "90", "120"] },
-  { name: "Facial Care", durations: ["60", "75", "90", "120"] },
-] as const;
-
 export const ENHANCEMENT_OPTIONS = [
-  "Repair Sunburnt/Extremely Dry/Itching/Chapped Skin",
   "Foot Exfoliating",
   "Aromatherapy Essential Oils",
-  "Himalayan Salt Stones",
   "CBD",
   "Quick Jaw and Scalp Massage (15 min extra)",
 ] as const;
@@ -94,6 +169,10 @@ export function emptyIntakeForm(): IntakeFormData {
     referredBy: "",
     hearAboutUs: [],
     hearAboutUsOther: "",
+    emergencyContact: { name: "", relationship: "", phone: "" },
+    conditions: [],
+    conditionsOther: "",
+    healthAttested: false,
     hasInjuries: null,
     injuryDetails: "",
     hasSurgeries: null,
@@ -101,14 +180,43 @@ export function emptyIntakeForm(): IntakeFormData {
     medicalConditions: "",
     isPregnant: null,
     pregnancyDetails: "",
-    allergies: "",
-    bodyworkPreference: "",
+    goals: [],
+    goalsOther: "",
+    pressure: "",
+    painLevel: null,
     areasToAvoid: "",
-    service: "",
-    serviceDuration: "",
     enhancements: [],
     sessionPreference: "",
     painMarkersFront: [],
     painMarkersBack: [],
+    consents: {},
+    signatureDataUrl: "",
+    printedName: "",
+  };
+}
+
+/**
+ * Fills in fields added after a record was written, so submissions saved by
+ * earlier versions of the form still render in admin without optional-chaining
+ * every field at every call site.
+ */
+export function normalizeSubmission(raw: Partial<IntakeSubmission>): IntakeSubmission {
+  return {
+    ...emptyIntakeForm(),
+    ...raw,
+    id: raw.id ?? "",
+    submittedAt: raw.submittedAt ?? "",
+    date: raw.date ?? "",
+    emergencyContact: raw.emergencyContact ?? { name: "", relationship: "", phone: "" },
+    conditions: raw.conditions ?? [],
+    hearAboutUs: raw.hearAboutUs ?? [],
+    enhancements: raw.enhancements ?? [],
+    goals: raw.goals ?? [],
+    painMarkersFront: raw.painMarkersFront ?? [],
+    painMarkersBack: raw.painMarkersBack ?? [],
+    consents: raw.consents ?? {},
+    consentVersion: raw.consentVersion ?? "",
+    consentSnapshot: raw.consentSnapshot ?? [],
+    meta: raw.meta ?? { ip: "", userAgent: "" },
   };
 }

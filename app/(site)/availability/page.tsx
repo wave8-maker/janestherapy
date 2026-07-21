@@ -5,8 +5,8 @@ import {
   BUSINESS_TIMEZONE,
   type AvailabilityDay,
   type DayState,
-} from "../lib/square-availability";
-import { getServiceModes, getSiteConfig } from "../lib/content";
+} from "@/app/lib/square-availability";
+import { getServiceModes, getSiteConfig } from "@/app/lib/content";
 
 export const revalidate = 1800;
 

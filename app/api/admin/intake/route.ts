@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/app/lib/admin-auth";
 import { deleteIntake, getIntake, listIntakes } from "@/app/lib/intake-storage";
+import { ALERT_CONDITIONS } from "@/app/lib/intake-types";
 
 export async function GET() {
   if (!(await isAdminAuthenticated())) {
@@ -8,15 +9,18 @@ export async function GET() {
   }
 
   const submissions = await listIntakes();
-  const summary = submissions.map(({ id, name, phone, email, date, service, serviceDuration, submittedAt }) => ({
-    id,
-    name,
-    phone,
-    email,
-    date,
-    service,
-    serviceDuration,
-    submittedAt,
+  const summary = submissions.map((s) => ({
+    id: s.id,
+    name: s.name,
+    phone: s.phone,
+    email: s.email,
+    date: s.date,
+    submittedAt: s.submittedAt,
+    goals: s.goals,
+    // Surfaced in the list so a condition needing care is visible before Jane
+    // opens the record.
+    alerts: s.conditions.filter((c) => ALERT_CONDITIONS.includes(c)),
+    signed: Boolean(s.signatureDataUrl),
   }));
   return NextResponse.json({ submissions: summary });
 }

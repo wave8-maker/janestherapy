@@ -1,0 +1,83 @@
+{
+  "version": "1.0-draft",
+  "updated": "2026-07-21",
+  "reviewNote": "DRAFT — not attorney-reviewed. Have a California attorney review this text (especially `dispute`) before using it with real clients. When the wording changes, bump `version`; submissions already on file keep their own snapshot of the text that was shown.",
+  "items": [
+    {
+      "key": "treatment",
+      "title": "Consent to Treatment",
+      "summary": "What massage therapy is, and what it is not.",
+      "acknowledgement": "I understand and consent to today's treatment.",
+      "body": [
+        "I am voluntarily requesting massage therapy for the purposes of relaxation, stress relief, and relief of muscular tension.",
+        "I understand that massage therapy is not a substitute for medical care, and that my therapist does not diagnose illness or injury, prescribe medication, perform spinal adjustments, or treat any medical condition.",
+        "I understand that massage may cause temporary effects including soreness, tenderness, light bruising, or fatigue, and that in rare cases more significant reactions can occur.",
+        "I understand that I may ask my therapist to adjust the pressure, skip an area, or end the session at any time and for any reason, and that my request will be honored immediately.",
+        "I understand that draping will be used throughout the session and that I will remain covered except for the area being worked on."
+      ]
+    },
+    {
+      "key": "health",
+      "title": "Health Disclosure and Accuracy",
+      "summary": "Your promise that the health information you just gave is complete and true.",
+      "acknowledgement": "I certify that the health information I have provided is complete and accurate.",
+      "body": [
+        "I certify that the health information I have provided on this form is complete, accurate, and true to the best of my knowledge.",
+        "I specifically confirm that I have disclosed whether I have any of the following: high or low blood pressure, diabetes, heart disease, a pacemaker or other implanted device, a history of stroke, cancer or current cancer treatment, pregnancy, recent surgery, recent injury, use of blood thinners or other anticoagulants, osteoporosis, neuropathy, skin infection or open wounds, varicose veins, blood clots, autoimmune disease, or any other condition that could affect the safety of massage.",
+        "I understand that some conditions make certain massage techniques unsafe, and that my therapist relies entirely on the information I provide when deciding how to work with my body.",
+        "I agree to tell my therapist before or during the session about any change in my health, any medication I begin taking, and any discomfort I feel while on the table.",
+        "I understand that withholding, omitting, or misstating health information may result in harm to me, and I accept responsibility for the accuracy of what I have reported."
+      ]
+    },
+    {
+      "key": "boundaries",
+      "title": "Professional Boundaries",
+      "summary": "This is a professional therapeutic practice.",
+      "acknowledgement": "I understand and agree to these professional boundaries.",
+      "body": [
+        "This practice provides professional, therapeutic massage only. Any solicitation, sexual remark, sexual advance, or other inappropriate conduct is strictly prohibited.",
+        "I understand that if I engage in such conduct, the session will end immediately, no refund will be given, and I will not be permitted to book again.",
+        "I understand that my therapist may also end a session at any time if continuing would be unsafe or inappropriate for any reason.",
+        "I agree to arrive clean, sober, and free of the influence of alcohol or recreational drugs, and I understand the session may be declined if I do not."
+      ]
+    },
+    {
+      "key": "policies",
+      "title": "Business Policies",
+      "summary": "Scheduling, lateness, payment, and refunds.",
+      "acknowledgement": "I understand and agree to these business policies.",
+      "body": [
+        "Cancellation: please give at least 24 hours' notice to cancel or reschedule. Cancellations with less than 24 hours' notice may be charged 50% of the scheduled service.",
+        "No-show: if I do not arrive and do not cancel, I may be charged the full price of the scheduled service.",
+        "Late arrival: sessions end at their scheduled time so that the next client is not delayed. If I arrive late, my session will be shortened, and the full price still applies. Arriving more than 15 minutes late may require rescheduling.",
+        "Payment: payment is due at the end of the session unless arranged otherwise in advance. Prices for add-on enhancements are in addition to the base service price.",
+        "Refunds: services already performed are non-refundable. Prepaid packages and gift certificates are non-refundable but are transferable to another person."
+      ]
+    },
+    {
+      "key": "privacy",
+      "title": "Privacy Notice",
+      "summary": "How your information is kept and used.",
+      "acknowledgement": "I understand and agree to this privacy notice.",
+      "body": [
+        "The information on this form, together with any notes taken about my sessions, is kept confidential and is used only to plan and deliver my care.",
+        "My information will not be sold, and will not be shared with anyone outside this practice except with my written permission, or where disclosure is required by law.",
+        "Records are retained for the period required by California law and are then destroyed.",
+        "No photographs or video of me will be taken for any purpose, including before-and-after images or marketing, without my separate written consent given at that time."
+      ]
+    },
+    {
+      "key": "dispute",
+      "title": "Dispute Resolution",
+      "summary": "How a disagreement would be handled. Please read carefully.",
+      "acknowledgement": "I have read and agree to this dispute resolution provision.",
+      "body": [
+        "If a dispute arises between me and this practice, I agree that we will first attempt to resolve it directly and in good faith.",
+        "If direct discussion does not resolve the dispute within 30 days, I agree that we will next submit the dispute to non-binding mediation in Santa Clara County, California, sharing the mediator's fee equally.",
+        "If mediation does not resolve the dispute, I agree that it will be settled by binding arbitration administered in Santa Clara County, California, under the rules of a recognized arbitration provider, and that judgment on the award may be entered in any court with jurisdiction.",
+        "I understand that agreeing to arbitration means giving up the right to have the dispute decided by a judge or jury in court.",
+        "Nothing in this provision limits either party's right to bring a claim in small claims court, or to report a concern to the California Massage Therapy Council or any other regulatory body."
+      ]
+    }
+  ]
+}

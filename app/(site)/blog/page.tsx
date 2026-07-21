@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { getBlogPosts } from "../lib/content";
-import { pageMeta } from "../lib/seo";
+import { getBlogPosts } from "@/app/lib/content";
+import { pageMeta } from "@/app/lib/seo";
 
 export const metadata = pageMeta({
   title: "Blog",

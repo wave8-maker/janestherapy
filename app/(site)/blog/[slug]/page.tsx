@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getBlogPost, getBlogPosts } from "../../lib/content";
-import JsonLd from "../../components/JsonLd";
-import { SITE_URL, SITE_NAME } from "../../lib/seo";
+import { getBlogPost, getBlogPosts } from "@/app/lib/content";
+import JsonLd from "@/app/components/JsonLd";
+import { SITE_URL, SITE_NAME } from "@/app/lib/seo";
 import { marked } from "marked";
 
 export async function generateStaticParams() {

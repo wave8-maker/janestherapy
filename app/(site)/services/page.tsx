@@ -1,9 +1,9 @@
 import Link from "next/link";
-import { getServices, getAddons, slugify } from "../lib/content";
-import AddonsSection from "../components/AddonsSection";
-import ServiceModes from "../components/ServiceModes";
-import JsonLd from "../components/JsonLd";
-import { pageMeta, serviceJsonLd } from "../lib/seo";
+import { getServices, getAddons, slugify } from "@/app/lib/content";
+import AddonsSection from "@/app/components/AddonsSection";
+import ServiceModes from "@/app/components/ServiceModes";
+import JsonLd from "@/app/components/JsonLd";
+import { pageMeta, serviceJsonLd } from "@/app/lib/seo";
 
 const BOOKING_URL =
   "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";

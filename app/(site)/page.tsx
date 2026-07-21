@@ -1,9 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { getSiteConfig, getServices, getAddons, getReviews, slugify } from "./lib/content";
-import AddonsSection from "./components/AddonsSection";
-import ServiceModes from "./components/ServiceModes";
-import ReviewsSection from "./components/ReviewsSection";
+import { getSiteConfig, getServices, getAddons, getReviews, slugify } from "@/app/lib/content";
+import AddonsSection from "@/app/components/AddonsSection";
+import ServiceModes from "@/app/components/ServiceModes";
+import ReviewsSection from "@/app/components/ReviewsSection";
 
 const BOOKING_URL =
   "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";

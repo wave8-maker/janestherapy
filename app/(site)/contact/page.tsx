@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { getSiteConfig, getServiceModes } from "../lib/content";
-import JsonLd from "../components/JsonLd";
-import { pageMeta } from "../lib/seo";
+import { getSiteConfig, getServiceModes } from "@/app/lib/content";
+import JsonLd from "@/app/components/JsonLd";
+import { pageMeta } from "@/app/lib/seo";
 
 const BOOKING_URL =
   "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";

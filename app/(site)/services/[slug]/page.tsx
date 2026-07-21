@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getServices, getServiceBySlug, slugify } from "../../lib/content";
-import JsonLd from "../../components/JsonLd";
-import { serviceJsonLd, SITE_URL, SITE_NAME } from "../../lib/seo";
+import { getServices, getServiceBySlug, slugify } from "@/app/lib/content";
+import JsonLd from "@/app/components/JsonLd";
+import { serviceJsonLd, SITE_URL, SITE_NAME } from "@/app/lib/seo";
 
 const BOOKING_URL =
   "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";

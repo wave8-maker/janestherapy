@@ -7,10 +7,10 @@ export const metadata: Metadata = {
   alternates: { canonical: "/intake" },
 };
 
+/**
+ * No site header, no footer, no links out — on the studio tablet the wizard is
+ * the whole world. The chrome lives in the (site) route group instead.
+ */
 export default function IntakeLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="min-h-screen bg-cream bg-warm-glow">
-      {children}
-    </div>
-  );
+  return <main className="min-h-screen flex-1 bg-cream bg-warm-glow">{children}</main>;
 }

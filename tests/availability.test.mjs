@@ -102,7 +102,7 @@ delete process.env.SQUARE_MOCK;
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const read = (f) => fs.readFileSync(path.join(root, f), "utf8");
 
-const availabilityPage = read("app/availability/page.tsx");
+const availabilityPage = read("app/(site)/availability/page.tsx");
 assert.match(availabilityPage, /export const revalidate = 1800/, "page should ISR every 30 minutes");
 assert.match(availabilityPage, /getAvailabilitySummary\(\)/, "page should load the summary server-side");
 assert.match(availabilityPage, /approximate/i, "page should carry the for-reference disclaimer");
@@ -113,17 +113,17 @@ assert.doesNotMatch(availabilityPage, /"use client"/, "page must stay a server c
 assert.match(availabilityPage, /Regular hours/, "availability page should show the weekly hours table");
 assert.match(availabilityPage, /getSiteConfig\(\)/, "hours table should come from siteConfig");
 
-assert.match(read("app/layout.tsx"), /\/availability/, "desktop nav should link to the page");
+assert.match(read("app/(site)/layout.tsx"), /\/availability/, "desktop nav should link to the page");
 assert.match(read("app/components/MobileNav.tsx"), /\/availability/, "mobile nav should link to the page");
 assert.match(read("app/sitemap.ts"), /\/availability/, "sitemap should include the page");
 
 // --- /location → /contact rename ---
-const contactPage = read("app/contact/page.tsx");
+const contactPage = read("app/(site)/contact/page.tsx");
 assert.match(contactPage, /path: "\/contact"/, "contact page metadata should use the new URL");
 assert.match(contactPage, /href="\/availability"/, "contact page should link to check availability");
 assert.doesNotMatch(contactPage, /<h2[^>]*>Hours<\/h2>/, "contact page should no longer render the hours card");
 assert.match(read("next.config.ts"), /\/location.+\/contact/s, "old /location URL should redirect to /contact");
-for (const f of ["app/layout.tsx", "app/components/MobileNav.tsx", "app/sitemap.ts"]) {
+for (const f of ["app/(site)/layout.tsx", "app/components/MobileNav.tsx", "app/sitemap.ts"]) {
   assert.doesNotMatch(read(f), /"\/location"/, `${f} should not link to the removed /location route`);
 }
 
