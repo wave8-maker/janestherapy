@@ -1,7 +1,7 @@
 # Client Intake & Consent Wizard — Design
 
 **Date:** 2026-07-21
-**Surface:** `client.janestherapy.com` — an in-studio tablet the client fills out on arrival.
+**Surface:** `/intake` — an in-studio tablet the client fills out on arrival.
 **Client-facing language:** English only. Admin stays bilingual, matching the rest of `/admin`.
 
 ## Why
@@ -19,16 +19,18 @@ Honest scope: under California law a liability waiver does not cover gross negli
 reduces exposure; it is not immunity. The consent text below is a **draft** and must be
 reviewed by a California attorney before real use — especially the arbitration clause.
 
-## Deployment reality
+## Where it lives
 
-The site is hosted on **Vercel**; Cloudflare only provides DNS and CDN for the zone. The
-subdomain is therefore a second domain on the *same* Vercel project, wired with host-based
-rules in `next.config.ts` — no new project, no migration.
+A `client.janestherapy.com` subdomain was considered and dropped — it added Vercel and
+Cloudflare setup for no gain over the URL clients and Jane already know. The wizard stays at
+`janestherapy.com/intake`.
 
-- `client.janestherapy.com/` → rewrites to `/intake`
-- `client.janestherapy.com/<anything else>` → redirects back to `/`
-- `janestherapy.com/intake` → 301 to `https://client.janestherapy.com/`
-- `/admin` stays on the apex domain only
+What the subdomain was going to buy — a page with no way out — comes from the `app/(site)`
+route group instead: the header, footer, and Book Now link render only for marketing pages,
+so the wizard has no navigation at all. Locking the tablet to the one page is then the
+device's job (Guided Access / screen pinning).
+
+The site is hosted on **Vercel**; Cloudflare only provides DNS and CDN for the zone.
 
 ## The six steps
 

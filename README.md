@@ -37,19 +37,13 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 ## Client intake, consent, and signature
 
-`client.janestherapy.com` is the studio tablet's only address: a six-step wizard
-(welcome → about you → health → session → agreements → signature) that a client
-fills in on arrival. It is the same Vercel project as the marketing site; the
-hosts are separated by the rules in `next.config.ts`:
+`/intake` is a six-step wizard (welcome → about you → health → session →
+agreements → signature) that a client fills in on the studio tablet on arrival.
 
-- `client.janestherapy.com/` rewrites to `/intake`
-- any other path on that host bounces back to `/`
-- `janestherapy.com/intake` 301s to the subdomain
-- the marketing chrome lives in the `app/(site)` route group, so the wizard has
-  no header, no footer, and no link that could take a client out of the kiosk
-
-To wire the subdomain: add `client.janestherapy.com` in Vercel → Project →
-Domains, then add the CNAME Vercel gives you in Cloudflare DNS.
+The marketing chrome lives in the `app/(site)` route group, so the wizard renders
+with no header, no footer, and no Book Now link — nothing a client could tap to
+leave the form and end up in Square. The page is `noindex` and `/intake` is
+disallowed in `robots.ts`.
 
 ### What a signed submission stores
 
