@@ -34,6 +34,49 @@ function Btn({ onClick, children, variant = "primary", small }: {
   );
 }
 
+/**
+ * Printing and deleting are rare next to reading the record, so they sit as
+ * quiet icons rather than competing with the content for attention.
+ */
+function IconBtn({ onClick, label, danger, children }: {
+  onClick: () => void; label: string; danger?: boolean; children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className={`inline-flex h-9 w-9 items-center justify-center rounded-lg border border-brand-light text-bark-light transition-colors focus:outline-none focus:ring-2 focus:ring-sage/40 ${
+        danger
+          ? "hover:border-red-300 hover:bg-red-50 hover:text-red-600"
+          : "hover:border-brand/50 hover:bg-brand-light/50 hover:text-bark"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
+function PrinterIcon() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path d="M6 7V3h8v4" strokeLinecap="round" strokeLinejoin="round" />
+      <rect x="3" y="7" width="14" height="7" rx="1.5" />
+      <path d="M6 12h8v5H6z" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+function TrashIcon() {
+  return (
+    <svg viewBox="0 0 20 20" className="h-4 w-4" fill="none" stroke="currentColor" strokeWidth="1.6" aria-hidden="true">
+      <path d="M3.5 5.5h13M8 5.5V4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v1.5" strokeLinecap="round" />
+      <path d="M5.5 5.5 6.3 16a1 1 0 0 0 1 .9h5.4a1 1 0 0 0 1-.9l.8-10.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
 function DetailRow({ label, value }: { label: string; value: string | boolean | null | undefined }) {
   const { t } = useAdminLang();
   if (value === null || value === undefined || value === "") return null;
@@ -67,8 +110,12 @@ function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <Btn variant="secondary" small onClick={onBack}>{t("intake.back")}</Btn>
         <div className="flex gap-2">
-          <Btn small onClick={onPrint}>{t("intake.print")}</Btn>
-          <Btn variant="danger" small onClick={onDelete}>{t("common.delete")}</Btn>
+          <IconBtn onClick={onPrint} label={t("intake.print")}>
+            <PrinterIcon />
+          </IconBtn>
+          <IconBtn onClick={onDelete} label={t("common.delete")} danger>
+            <TrashIcon />
+          </IconBtn>
         </div>
       </div>
       <div>
@@ -174,7 +221,7 @@ function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
         <DetailRow label={t("field.roomTemperature")} value={submission.roomTemperature} />
       </dl>
 
-      <LegalRecordNote submission={submission} onPrint={onPrint} />
+      <LegalRecordNote submission={submission} />
     </div>
   );
 }
@@ -185,13 +232,7 @@ function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
  * is where they belong. A record missing either says so rather than staying
  * quiet about it.
  */
-function LegalRecordNote({
-  submission,
-  onPrint,
-}: {
-  submission: IntakeSubmission;
-  onPrint: () => void;
-}) {
+function LegalRecordNote({ submission }: { submission: IntakeSubmission }) {
   const { t } = useAdminLang();
   const agreed = Object.keys(submission.consents ?? {}).length;
   const total = (submission.consentSnapshot ?? []).length;
@@ -214,19 +255,14 @@ function LegalRecordNote({
   }
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-light bg-white px-4 py-3">
-      <p className="text-sm text-bark">
-        <span className="text-green-700">✓</span> {t("intake.recordStored")}
-        <span className="text-bark-light">
-          {" "}
-          · {agreed} {t("intake.consentsAgreed")} · {t("intake.termsVersion")} {submission.consentVersion} ·{" "}
-          {t("intake.printToView")}
-        </span>
-      </p>
-      <Btn small variant="secondary" onClick={onPrint}>
-        {t("intake.print")}
-      </Btn>
-    </div>
+    <p className="text-sm text-bark">
+      <span className="text-green-700">✓</span> {t("intake.recordStored")}
+      <span className="text-bark-light">
+        {" "}
+        · {agreed} {t("intake.consentsAgreed")} · {t("intake.termsVersion")} {submission.consentVersion} ·{" "}
+        {t("intake.printToView")}
+      </span>
+    </p>
   );
 }
 

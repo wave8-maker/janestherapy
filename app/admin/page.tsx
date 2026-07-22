@@ -14,9 +14,22 @@ interface Hour    { day: string; time: string }
 interface Post    { slug: string; title: string; date: string; excerpt: string; content: string }
 
 // ── github helpers ────────────────────────────────────────────────────────────
+/**
+ * A failed content call used to surface as an empty tab: the promise rejected,
+ * nothing caught it, and the page looked like a studio with no services. These
+ * two report which side said no, so the screen can say so too.
+ *
+ * The proxy answers "Unauthorized" when the admin session lapsed; a body of
+ * "GitHub error" means the session was fine and GitHub refused the token.
+ */
+function ghFailure(status: number, body: { error?: string }): Error {
+  if (status === 401 && body.error === "GitHub error") return new Error("github-auth");
+  return new Error("load-failed");
+}
+
 async function ghGet(path: string) {
   const r = await fetch(`/api/admin/github?path=${encodeURIComponent(path)}`);
-  if (!r.ok) throw new Error(`Failed to load ${path}`);
+  if (!r.ok) throw ghFailure(r.status, await r.json().catch(() => ({})));
   return r.json();
 }
 async function ghSave(path: string, content: string, sha?: string) {
@@ -25,7 +38,7 @@ async function ghSave(path: string, content: string, sha?: string) {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ path, content, sha }),
   });
-  if (!r.ok) throw new Error(await r.text());
+  if (!r.ok) throw ghFailure(r.status, await r.json().catch(() => ({})));
 }
 async function ghDelete(path: string, sha: string) {
   const r = await fetch("/api/admin/github", {
@@ -67,6 +80,17 @@ function SaveBar({ onSave, saving, saved }: { onSave: () => void; saving: boolea
   );
 }
 
+/** Says which failure happened, in the language the admin is set to. */
+function LoadError({ code }: { code: string }) {
+  const { t } = useAdminLang();
+  if (!code) return null;
+  return (
+    <div role="alert" className="mb-5 rounded-lg border-2 border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+      {t(code === "github-auth" ? "error.githubAuth" : code === "save-failed" ? "error.saveFailed" : "error.loadFailed")}
+    </div>
+  );
+}
+
 function GripIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor" className="text-bark-light/50 group-hover:text-bark-light transition-colors">
@@ -85,6 +109,7 @@ function SettingsTab() {
   const [sha, setSha] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     ghGet("content/siteConfig.json").then(({ content, sha }) => {
@@ -92,19 +117,26 @@ function SettingsTab() {
       setAnnouncement(d.announcement ?? "");
       setHours(d.hours ?? []);
       setSha(sha);
-    });
+    }).catch((e: Error) => setError(e.message));
   }, []);
 
   async function save() {
-    setSaving(true); setSaved(false);
+    setSaving(true); setSaved(false); setError("");
     const content = JSON.stringify({ announcement, hours }, null, 2);
-    await ghSave("content/siteConfig.json", content, sha);
-    setSaving(false); setSaved(true);
-    setTimeout(() => setSaved(false), 5000);
+    try {
+      await ghSave("content/siteConfig.json", content, sha);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 5000);
+    } catch (e) {
+      setError((e as Error).message === "github-auth" ? "github-auth" : "save-failed");
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
     <div className="space-y-8">
+      <LoadError code={error} />
       <div>
         <label className="block text-sm font-medium text-bark mb-2">{t("settings.announcement")}</label>
         <textarea value={announcement} onChange={e => setAnnouncement(e.target.value)} rows={3}
@@ -142,18 +174,26 @@ function ServicesTab() {
   const [dragOver, setDragOver] = useState<number | null>(null);
   const canDrag = useRef(false);
 
+  const [error, setError] = useState("");
+
   useEffect(() => {
     ghGet("content/services.json").then(({ content, sha }) => {
       setServices(JSON.parse(content).items ?? []);
       setSha(sha);
-    });
+    }).catch((e: Error) => setError(e.message));
   }, []);
 
   async function save() {
-    setSaving(true); setSaved(false);
-    await ghSave("content/services.json", JSON.stringify({ items: services }, null, 2), sha);
-    setSaving(false); setSaved(true);
-    setTimeout(() => setSaved(false), 5000);
+    setSaving(true); setSaved(false); setError("");
+    try {
+      await ghSave("content/services.json", JSON.stringify({ items: services }, null, 2), sha);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 5000);
+    } catch (e) {
+      setError((e as Error).message === "github-auth" ? "github-auth" : "save-failed");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function update(i: number, patch: Partial<Service>) {
@@ -190,6 +230,7 @@ function ServicesTab() {
 
   return (
     <div className="space-y-2">
+      <LoadError code={error} />
       {services.map((svc, i) => (
         <div key={i}
           draggable
@@ -271,18 +312,26 @@ function AddonsTab() {
   const [dragOver, setDragOver] = useState<number | null>(null);
   const canDrag = useRef(false);
 
+  const [error, setError] = useState("");
+
   useEffect(() => {
     ghGet("content/addons.json").then(({ content, sha }) => {
       setAddons(JSON.parse(content).items ?? []);
       setSha(sha);
-    });
+    }).catch((e: Error) => setError(e.message));
   }, []);
 
   async function save() {
-    setSaving(true); setSaved(false);
-    await ghSave("content/addons.json", JSON.stringify({ items: addons }, null, 2), sha);
-    setSaving(false); setSaved(true);
-    setTimeout(() => setSaved(false), 5000);
+    setSaving(true); setSaved(false); setError("");
+    try {
+      await ghSave("content/addons.json", JSON.stringify({ items: addons }, null, 2), sha);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 5000);
+    } catch (e) {
+      setError((e as Error).message === "github-auth" ? "github-auth" : "save-failed");
+    } finally {
+      setSaving(false);
+    }
   }
 
   function update(i: number, patch: Partial<Addon>) {
@@ -315,6 +364,7 @@ function AddonsTab() {
 
   return (
     <div className="space-y-2">
+      <LoadError code={error} />
       {addons.map((addon, i) => (
         <div key={i}
           draggable
@@ -382,10 +432,11 @@ function BlogTab() {
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [editorKey, setEditorKey] = useState(0);
+  const [error, setError] = useState("");
 
   const loadList = useCallback(async () => {
-    const res = await ghGet("content/blog");
-    if (!res.files) return;
+    const res = await ghGet("content/blog").catch((e: Error) => { setError(e.message); return null; });
+    if (!res?.files) return;
     setPosts(res.files.filter((f: { name: string }) => f.name.endsWith(".md")).map((f: { name: string; sha: string }) => ({
       name: f.name,
       slug: f.name.replace(/\.md$/, ""),
@@ -415,15 +466,21 @@ function BlogTab() {
 
   async function savePost() {
     if (!editing) return;
-    setSaving(true); setSaved(false);
+    setSaving(true); setSaved(false); setError("");
     const slug = isNew
       ? editing.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || `post-${Date.now()}`
       : editing.slug;
     const fm = `---\ntitle: "${editing.title}"\ndate: ${editing.date}\nexcerpt: "${editing.excerpt}"\n---\n\n`;
-    await ghSave(`content/blog/${slug}.md`, fm + editing.content, editSha);
-    setSaving(false); setSaved(true);
-    setTimeout(() => setSaved(false), 5000);
-    if (isNew) { setIsNew(false); setEditing(p => p ? { ...p, slug } : p); await loadList(); }
+    try {
+      await ghSave(`content/blog/${slug}.md`, fm + editing.content, editSha);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 5000);
+      if (isNew) { setIsNew(false); setEditing(p => p ? { ...p, slug } : p); await loadList(); }
+    } catch (e) {
+      setError((e as Error).message === "github-auth" ? "github-auth" : "save-failed");
+    } finally {
+      setSaving(false);
+    }
   }
 
   async function deletePost(slug: string, sha: string) {
@@ -436,6 +493,7 @@ function BlogTab() {
   if (editing) {
     return (
       <div className="space-y-4">
+        <LoadError code={error} />
         <button onClick={() => setEditing(null)} className="text-brand text-sm hover:underline">{t("blog.back")}</button>
         <div className="grid sm:grid-cols-2 gap-4">
           <Field label={t("blog.title")} value={editing.title} onChange={v => setEditing(p => p ? { ...p, title: v } : p)} />
@@ -457,6 +515,7 @@ function BlogTab() {
 
   return (
     <div className="space-y-4">
+      <LoadError code={error} />
       <Btn onClick={newPost}>{t("blog.new")}</Btn>
       {posts.length === 0 && <p className="text-bark-light text-sm">{t("blog.empty")}</p>}
       {posts.map(p => (
