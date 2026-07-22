@@ -122,7 +122,7 @@ function SettingsTab() {
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
     } catch (e) {
-      setError((e as Error).message === "github-auth" ? "github-auth" : "save-failed");
+      setError((e as Error).message === "session-expired" ? "session-expired" : "save-failed");
     } finally {
       setSaving(false);
     }
@@ -182,7 +182,7 @@ function ServicesTab() {
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
     } catch (e) {
-      setError((e as Error).message === "github-auth" ? "github-auth" : "save-failed");
+      setError((e as Error).message === "session-expired" ? "session-expired" : "save-failed");
     } finally {
       setSaving(false);
     }
@@ -318,7 +318,7 @@ function AddonsTab() {
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
     } catch (e) {
-      setError((e as Error).message === "github-auth" ? "github-auth" : "save-failed");
+      setError((e as Error).message === "session-expired" ? "session-expired" : "save-failed");
     } finally {
       setSaving(false);
     }
@@ -455,12 +455,12 @@ function BlogTab() {
       : editing.slug;
     const fm = `---\ntitle: "${editing.title}"\ndate: ${editing.date}\nexcerpt: "${editing.excerpt}"\n---\n\n`;
     try {
-        await ghSave(`blog/${slug}.md`, fm + editing.content);
+      await ghSave(`blog/${slug}.md`, fm + editing.content);
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
       if (isNew) { setIsNew(false); setEditing(p => p ? { ...p, slug } : p); await loadList(); }
     } catch (e) {
-      setError((e as Error).message === "github-auth" ? "github-auth" : "save-failed");
+      setError((e as Error).message === "session-expired" ? "session-expired" : "save-failed");
     } finally {
       setSaving(false);
     }
