@@ -132,9 +132,11 @@ in the `policies` clause are placeholders to confirm. After editing, bump
 
 ### Tablet configuration
 
-- `KIOSK_PIN` — 4-digit staff PIN, verified server-side by `/api/kiosk/pin`. It
-  gates the "Staff" control that clears an abandoned form. With no value set the
-  gate refuses everything rather than opening.
+- A quiet "Start over" link clears the form and returns to the welcome screen —
+  for the client who changes their mind and for Jane when someone walked away
+  mid-form. It asks first if anything was typed. There is no PIN on it: it only
+  destroys, never reveals, and gating it made Jane type a code to clean up after
+  a client who had already left.
 - On the tablet: open the URL and add it to the home screen for a full-screen,
   address-bar-free app, then lock it there with iPad Guided Access or Android
   screen pinning.

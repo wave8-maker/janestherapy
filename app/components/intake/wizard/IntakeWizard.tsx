@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getConsentBundle } from "@/app/lib/consents";
 import { emptyIntakeForm, type IntakeFormData } from "@/app/lib/intake-types";
-import StaffGate from "./StaffGate";
 import StepConsents from "./StepConsents";
 import StepHealth from "./StepHealth";
 import StepPersonal from "./StepPersonal";
@@ -61,7 +60,6 @@ export default function IntakeWizard() {
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const [staffOpen, setStaffOpen] = useState(false);
   const [restored, setRestored] = useState(false);
   const lastActivity = useRef(Date.now());
 
@@ -70,7 +68,6 @@ export default function IntakeWizard() {
     setStep(0);
     setError("");
     setSubmitted(false);
-    setStaffOpen(false);
     setRestored(false);
     lastActivity.current = Date.now();
     try {
@@ -140,6 +137,20 @@ export default function IntakeWizard() {
         : [...prev[key], option],
     }));
     setError("");
+  }
+
+  /**
+   * Discards whatever is on screen and goes back to the beginning — for the
+   * client who changes their mind, and for Jane when someone walked away
+   * mid-form. It only ever destroys, never reveals, so it needs no gate; it does
+   * ask first, because five minutes of answers are easy to lose by mistake.
+   */
+  function startOver() {
+    const started = form.name.trim() || form.phone.trim() || form.conditions.length > 0;
+    if (started && !confirm("Clear this form and start over? Anything entered will be lost.")) {
+      return;
+    }
+    reset();
   }
 
   function goTo(next: number) {
@@ -269,13 +280,15 @@ export default function IntakeWizard() {
           >
             {restored ? "Continue" : "Start"}
           </button>
-          <button
-            type="button"
-            onClick={() => setStaffOpen(true)}
-            className="mx-auto mt-8 block text-xs text-bark-light/70 underline underline-offset-4"
-          >
-            Staff
-          </button>
+          {restored && (
+            <button
+              type="button"
+              onClick={startOver}
+              className="mx-auto mt-8 block text-xs text-bark-light/70 underline underline-offset-4"
+            >
+              Start over
+            </button>
+          )}
         </div>
       ) : (
         <div className="pb-32">
@@ -285,10 +298,10 @@ export default function IntakeWizard() {
             </p>
             <button
               type="button"
-              onClick={() => setStaffOpen(true)}
+              onClick={startOver}
               className="text-xs text-bark-light/70 underline underline-offset-4"
             >
-              Staff
+              Start over
             </button>
           </header>
 
@@ -336,7 +349,6 @@ export default function IntakeWizard() {
         </div>
       )}
 
-      {staffOpen && <StaffGate onClose={() => setStaffOpen(false)} onStartOver={reset} />}
     </>
   );
 }
