@@ -566,9 +566,30 @@ export default function AdminPage() {
 function AdminShell() {
   const { t, lang, setLang } = useAdminLang();
   const [tab, setTab] = useState<Tab>("settings");
+  /** Desktop: narrow or wide. On a phone the sidebar is a drawer instead. */
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const [fontSize, setFontSize] = useState<FontSize>("medium");
   const router = useRouter();
+
+  // A drawer that slides over the page has no room to be a row of icons, so it
+  // always shows full labels. Starting as "not mobile" is the safe first paint:
+  // it renders the same expanded labels a phone wants, off-screen either way.
+  useEffect(() => {
+    const narrow = window.matchMedia("(max-width: 1023px)");
+    const sync = () => setIsMobile(narrow.matches);
+    sync();
+    narrow.addEventListener("change", sync);
+    return () => narrow.removeEventListener("change", sync);
+  }, []);
+
+  const expanded = isMobile || sidebarOpen;
+
+  function openTab(next: Tab) {
+    setTab(next);
+    setDrawerOpen(false);
+  }
 
   async function logout() {
     await fetch("/api/admin/logout", { method: "POST" });
@@ -576,7 +597,7 @@ function AdminShell() {
   }
 
   return (
-    <div className={`admin-readable min-h-screen flex admin-font-${fontSize}`}>
+    <div className={`admin-readable min-h-screen lg:flex admin-font-${fontSize}`}>
       <style>{`
         .admin-readable {
           background: #f7f9fb;
@@ -632,18 +653,66 @@ function AdminShell() {
         .admin-font-medium .text-xl { font-size: 1.55rem; line-height: 2.15rem; }
         .admin-font-large .text-xl { font-size: 1.85rem; line-height: 2.45rem; }
       `}</style>
-      <aside className={`${sidebarOpen ? "w-80" : "w-24"} min-h-screen shrink-0 border-r-2 border-slate-300 bg-white transition-[width] duration-300 ease-in-out flex flex-col`}>
+      {/* Phone header. The sidebar is off-screen there, so this is the only
+          thing saying which tab is open — on desktop the highlighted nav item
+          says it and this bar is gone. */}
+      <header className="lg:hidden sticky top-0 z-30 flex items-center gap-3 border-b-2 border-slate-300 bg-white px-4 py-3">
+        <button
+          type="button"
+          aria-label="Open admin menu"
+          aria-expanded={drawerOpen}
+          onClick={() => setDrawerOpen(true)}
+          className="admin-button h-12 w-12 shrink-0 rounded-lg border-2 border-slate-400 bg-white text-slate-950 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-200"
+        >
+          <span aria-hidden="true" className="text-xl font-bold leading-none">≡</span>
+        </button>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-bold text-slate-950">
+            {t(TABS.find(item => item.key === tab)!.label)}
+          </p>
+          <p className="truncate text-xs text-slate-600">Jane&apos;s Therapy · {t("shell.admin")}</p>
+        </div>
+      </header>
+
+      {drawerOpen && (
+        <button
+          type="button"
+          aria-label="Close admin menu"
+          onClick={() => setDrawerOpen(false)}
+          className="lg:hidden fixed inset-0 z-40 bg-slate-900/40"
+        />
+      )}
+
+      {/* Two things this markup got wrong once, both silent:
+          `max-lg:w-80` rather than a bare `w-80`, because sharing the width
+          property with `lg:w-24` let the unprefixed rule win; and one
+          `transition-[transform,width]` rather than `transition-transform` plus
+          `lg:transition-[width]`, because the second pair left the width
+          transition stuck and desktop collapse changed only the labels. */}
+      <aside
+        className={`fixed inset-y-0 left-0 z-50 max-lg:w-80 max-lg:max-w-[85vw] overflow-y-auto lg:static lg:z-auto lg:overflow-visible ${
+          drawerOpen ? "max-lg:flex" : "max-lg:hidden"
+        } ${sidebarOpen ? "lg:w-80" : "lg:w-24"} min-h-screen min-w-0 shrink-0 border-r-2 border-slate-300 bg-white lg:flex flex-col`}
+      >
         <div className="min-h-24 px-4 border-b-2 border-slate-300 flex items-center gap-3">
           <button
             type="button"
             aria-label="Toggle admin sidebar"
             aria-expanded={sidebarOpen}
             onClick={() => setSidebarOpen(open => !open)}
-            className="admin-button h-14 w-14 shrink-0 rounded-lg border-2 border-slate-400 text-slate-950 bg-white hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-200 transition-colors text-xl font-bold"
+            className="admin-button hidden h-14 w-14 shrink-0 rounded-lg border-2 border-slate-400 text-slate-950 bg-white hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-200 transition-colors text-xl font-bold lg:block"
           >
             {sidebarOpen ? "<" : ">"}
           </button>
-          {sidebarOpen && (
+          <button
+            type="button"
+            aria-label="Close admin menu"
+            onClick={() => setDrawerOpen(false)}
+            className="admin-button h-14 w-14 shrink-0 rounded-lg border-2 border-slate-400 text-slate-950 bg-white hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-sky-200 text-xl font-bold lg:hidden"
+          >
+            ✕
+          </button>
+          {expanded && (
             <div className="min-w-0">
               <h1 className="font-bold text-slate-950 leading-tight truncate">Jane&apos;s Therapy</h1>
               <p className="text-sm text-slate-700 mt-1">{t("shell.admin")}</p>
@@ -658,19 +727,19 @@ function AdminShell() {
               <button
                 key={item.key}
                 type="button"
-                onClick={() => setTab(item.key)}
-                title={sidebarOpen ? undefined : label}
-                className={`w-full min-h-14 rounded-lg px-4 text-sm font-bold transition-colors flex items-center border-2 ${sidebarOpen ? "justify-start text-left" : "justify-center"} ${tab === item.key ? "bg-slate-900 border-slate-900 text-white shadow-sm" : "bg-white border-transparent text-slate-800 hover:text-slate-950 hover:bg-slate-100 hover:border-slate-300"}`}
+                onClick={() => openTab(item.key)}
+                title={expanded ? undefined : label}
+                className={`w-full min-h-14 rounded-lg px-4 text-sm font-bold transition-colors flex items-center border-2 ${expanded ? "justify-start text-left" : "justify-center"} ${tab === item.key ? "bg-slate-900 border-slate-900 text-white shadow-sm" : "bg-white border-transparent text-slate-800 hover:text-slate-950 hover:bg-slate-100 hover:border-slate-300"}`}
               >
-                {sidebarOpen ? label : label.slice(0, 1)}
+                {expanded ? label : label.slice(0, 1)}
               </button>
             );
           })}
         </nav>
 
         <div className="px-3 py-5 border-t-2 border-slate-300">
-          {sidebarOpen && <p className="text-sm font-bold text-slate-800 mb-3">{t("shell.language")}</p>}
-          <div className={`grid gap-2 ${sidebarOpen ? "grid-cols-2" : "grid-cols-1"}`}>
+          {expanded && <p className="text-sm font-bold text-slate-800 mb-3">{t("shell.language")}</p>}
+          <div className={`grid gap-2 ${expanded ? "grid-cols-2" : "grid-cols-1"}`}>
             {([
               { value: "zh", label: "中文" },
               { value: "en", label: "English" },
@@ -687,15 +756,15 @@ function AdminShell() {
                     : "border-slate-400 bg-white text-slate-900 hover:bg-slate-100"
                 }`}
               >
-                {sidebarOpen ? option.label : option.value === "zh" ? "中" : "EN"}
+                {expanded ? option.label : option.value === "zh" ? "中" : "EN"}
               </button>
             ))}
           </div>
         </div>
 
         <div className="px-3 py-5 border-t-2 border-slate-300">
-          {sidebarOpen && <p className="text-sm font-bold text-slate-800 mb-3">{t("shell.fontSize")}</p>}
-          <div className={`grid gap-2 ${sidebarOpen ? "grid-cols-3" : "grid-cols-1"}`}>
+          {expanded && <p className="text-sm font-bold text-slate-800 mb-3">{t("shell.fontSize")}</p>}
+          <div className={`grid gap-2 ${expanded ? "grid-cols-3" : "grid-cols-1"}`}>
             {FONT_SIZE_OPTIONS.map(option => (
               <button
                 key={option.value}
@@ -719,17 +788,17 @@ function AdminShell() {
           <button
             type="button"
             onClick={logout}
-            title={sidebarOpen ? undefined : t("shell.logout")}
-            className={`admin-button w-full min-h-14 rounded-lg px-4 text-sm font-bold text-slate-800 bg-white border-2 border-slate-300 hover:text-slate-950 hover:bg-slate-100 transition-colors flex items-center ${sidebarOpen ? "justify-start" : "justify-center"}`}
+            title={expanded ? undefined : t("shell.logout")}
+            className={`admin-button w-full min-h-14 rounded-lg px-4 text-sm font-bold text-slate-800 bg-white border-2 border-slate-300 hover:text-slate-950 hover:bg-slate-100 transition-colors flex items-center ${expanded ? "justify-start" : "justify-center"}`}
           >
-            {sidebarOpen ? t("shell.logout") : "X"}
+            {expanded ? t("shell.logout") : "X"}
           </button>
         </div>
       </aside>
 
       {/* No page title and no panel around the tab: the highlighted item in the
           sidebar already says where you are, and every tab draws its own cards. */}
-      <main className="flex-1 min-w-0 px-5 py-6 lg:px-10 lg:py-10 transition-[padding] duration-300">
+      <main className="min-w-0 px-4 py-5 sm:px-5 sm:py-6 lg:flex-1 lg:px-10 lg:py-10 lg:transition-[padding] lg:duration-300">
         {tab === "settings" && <SettingsTab />}
         {tab === "services" && <ServicesTab />}
         {tab === "addons" && <AddonsTab />}
