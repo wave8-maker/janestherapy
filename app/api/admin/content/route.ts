@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { del, get, list, put } from "@vercel/blob";
-import { readFile } from "fs/promises";
+import { readFile, readdir, unlink, writeFile } from "fs/promises";
 import path from "path";
 import { CONTENT_PREFIX } from "@/app/lib/content";
 
@@ -67,6 +67,10 @@ export async function GET(req: Request) {
   if (!name) return NextResponse.json({ error: "Unknown content path" }, { status: 400 });
 
   if (name === "blog") {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      const names = await readdir(path.join(process.cwd(), "content", "blog")).catch(() => []);
+      return NextResponse.json({ files: names.filter((n) => n.endsWith(".md")).map((n) => ({ name: n })) });
+    }
     const { blobs } = await list({ prefix: `${CONTENT_PREFIX}blog/` });
     const files = blobs
       .map((b) => ({ name: b.pathname.slice(`${CONTENT_PREFIX}blog/`.length) }))
@@ -89,6 +93,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Unknown content path" }, { status: 400 });
   }
 
+  // Reads fall back to the repo's files without a store; writes have to as well,
+  // or `npm run dev` shows content it cannot save and the editor looks broken.
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    await writeFile(path.join(process.cwd(), "content", name), content, "utf-8");
+    refreshSite();
+    return NextResponse.json({ ok: true });
+  }
+
   await archive(name);
   await put(`${CONTENT_PREFIX}${name}`, content, {
     access: "private",
@@ -107,6 +119,12 @@ export async function DELETE(req: Request) {
   const name = resolve(requested ?? null);
   if (!name || !name.startsWith("blog/")) {
     return NextResponse.json({ error: "Only blog posts can be deleted" }, { status: 400 });
+  }
+
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    await unlink(path.join(process.cwd(), "content", name)).catch(() => {});
+    refreshSite();
+    return NextResponse.json({ ok: true });
   }
 
   await archive(name);

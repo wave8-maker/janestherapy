@@ -1,32 +1,39 @@
 #!/usr/bin/env node
 /**
- * Generate a hashed admin user entry for the ADMIN_USERS env var.
+ * Generate the admin password hash.
  *
  * Usage:
- *   node scripts/admin-hash.js <username> <password>
+ *   node scripts/admin-hash.js '<password>'
  *
- * Prints a JSON fragment you can place inside ADMIN_USERS in .env.local
- * (or your hosting provider's environment variables). Passwords are never
- * stored in plaintext — only the scrypt hash is emitted.
+ * Prints the line to paste into .env.local, and into the hosting provider's
+ * environment variables. The password itself is never stored anywhere — only the
+ * scrypt hash, which cannot be turned back into the password.
  *
- * To add several users, combine the fragments into one JSON object, e.g.
- *   ADMIN_USERS={"hubo":"scrypt.16384...","hongmei":"scrypt.16384..."}
+ * Quote the password so the shell does not eat characters like ! or $.
  */
 const { scryptSync, randomBytes } = require("crypto");
 
-const [, , username, password] = process.argv;
-if (!username || !password) {
-  console.error("Usage: node scripts/admin-hash.js <username> <password>");
+const password = process.argv[2];
+if (!password) {
+  console.error("Usage: node scripts/admin-hash.js '<password>'");
+  process.exit(1);
+}
+if (password.length < 12) {
+  console.error(
+    `\nThat password is ${password.length} characters. Logging in needs nothing else,\n` +
+      "so use at least 12 — a phrase of a few unrelated words works well.\n"
+  );
   process.exit(1);
 }
 
-const N = 16384, r = 8, p = 1, KEYLEN = 64;
+const N = 16384,
+  r = 8,
+  p = 1,
+  KEYLEN = 64;
 const salt = randomBytes(16);
 const hash = scryptSync(password, salt, KEYLEN, { N, r, p });
-const stored = `scrypt.${N}.${salt.toString("hex")}.${hash.toString("hex")}`;
 
-console.log("\nUser entry (add inside ADMIN_USERS JSON):");
-console.log(`  ${JSON.stringify(username)}: ${JSON.stringify(stored)}`);
-console.log("\nFull single-user value:");
-console.log(`ADMIN_USERS={${JSON.stringify(username)}:${JSON.stringify(stored)}}`);
-console.log("");
+console.log("\nAdd this to .env.local and to the hosting environment variables:\n");
+console.log(`ADMIN_PASSWORD_HASH=scrypt.${N}.${salt.toString("hex")}.${hash.toString("hex")}`);
+console.log("\nThen remove ADMIN_USERS, ADMIN_USERNAME and ADMIN_PASSWORD — they are only");
+console.log("still accepted so an existing deployment keeps working until this is set.\n");

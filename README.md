@@ -35,6 +35,24 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Admin login
+
+One password, no username — there is one person behind the door, so a username
+was a field to fill in that proved nothing. Configure it as a scrypt hash:
+
+```bash
+node scripts/admin-hash.js 'your passphrase'   # prints ADMIN_PASSWORD_HASH=…
+```
+
+Put the printed line in `.env.local` and in the hosting environment variables,
+then delete `ADMIN_USERS`, `ADMIN_USERNAME` and `ADMIN_PASSWORD` — those are
+still accepted (any password they hold logs in, username ignored) purely so an
+existing deployment keeps working until the hash is set.
+
+Since the password is the entire credential, use a long one, and a wrong attempt
+deliberately takes about a second to answer — with scrypt on top, that holds an
+online guesser to roughly one try per second.
+
 ## Where editable content lives
 
 Announcement, hours, services, add-ons, and blog posts are edited in `/admin` and

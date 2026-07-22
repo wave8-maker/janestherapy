@@ -1,16 +1,18 @@
 /**
- * Admin credential verification (no database).
+ * Admin password verification (no database, no username).
  *
- * Hashed accounts are stored in the ADMIN_USERS env var as JSON:
- *   ADMIN_USERS={"hubo":"scrypt.16384.<saltHex>.<hashHex>", ...}
- * Passwords are hashed with scrypt; only the hash is ever stored.
+ * There is one person behind this door, so asking who they are added a field to
+ * fill in without adding anything to prove. The password is the whole credential.
  *
- * For backward compatibility, a single legacy plaintext account configured via
- * ADMIN_USERNAME / ADMIN_PASSWORD is still accepted (used by the existing
- * production deployment until it is migrated to ADMIN_USERS).
+ * Configure it as a scrypt hash — generate one with `node scripts/admin-hash.js`:
+ *   ADMIN_PASSWORD_HASH=scrypt.16384.<saltHex>.<hashHex>
  *
- * Node-only (uses node:crypto scrypt). Imported by the login route, which runs
- * in the Node.js runtime — never by the Edge middleware.
+ * The older per-user settings still work, so an existing deployment keeps letting
+ * its owner in on the same password while ADMIN_PASSWORD_HASH is being set up:
+ * any password in ADMIN_USERS, or a plaintext ADMIN_PASSWORD, is accepted.
+ *
+ * Node-only (uses node:crypto scrypt). Imported by the login route, which runs in
+ * the Node.js runtime — never by the proxy.
  */
 import { scryptSync, randomBytes, timingSafeEqual } from "crypto";
 
@@ -50,31 +52,36 @@ function safeStrEqual(a: string, b: string): boolean {
   return timingSafeEqual(ab, bb);
 }
 
-export function verifyCredentials(username: string, password: string): boolean {
-  if (typeof username !== "string" || typeof password !== "string") return false;
-  if (!username || !password) return false;
+/** Every hash this deployment accepts, the preferred one first. */
+function configuredHashes(): string[] {
+  const hashes: string[] = [];
+  const single = process.env.ADMIN_PASSWORD_HASH;
+  if (single) hashes.push(single);
 
-  // 1) Hashed accounts (preferred)
   const raw = process.env.ADMIN_USERS;
   if (raw) {
     try {
-      const users = JSON.parse(raw) as Record<string, string>;
-      const stored = users[username];
-      if (stored && verifyHash(password, stored)) return true;
+      hashes.push(...Object.values(JSON.parse(raw) as Record<string, string>));
     } catch {
-      /* malformed ADMIN_USERS — ignore and fall through */
+      /* malformed ADMIN_USERS — ignore it */
     }
   }
+  return hashes;
+}
 
-  // 2) Legacy single plaintext account (backward compatibility)
-  const legacyUser = process.env.ADMIN_USERNAME;
-  const legacyPass = process.env.ADMIN_PASSWORD;
-  if (legacyUser && legacyPass) {
-    // evaluate both comparisons to avoid early-exit timing differences
-    const uOk = safeStrEqual(username, legacyUser);
-    const pOk = safeStrEqual(password, legacyPass);
-    if (uOk && pOk) return true;
+export function verifyPassword(password: string): boolean {
+  if (typeof password !== "string" || !password) return false;
+
+  // Every configured hash is checked rather than stopping at the first match, so
+  // the work done — and the time taken — does not reveal which one was right.
+  let matched = false;
+  for (const stored of configuredHashes()) {
+    if (verifyHash(password, stored)) matched = true;
   }
+  if (matched) return true;
+
+  const legacyPlaintext = process.env.ADMIN_PASSWORD;
+  if (legacyPlaintext && safeStrEqual(password, legacyPlaintext)) return true;
 
   return false;
 }
