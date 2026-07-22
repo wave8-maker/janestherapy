@@ -13,8 +13,6 @@ import StepVisit from "./StepVisit";
 const DRAFT_KEY = "jt-intake-draft";
 /** A draft older than this belongs to someone who already left. */
 const DRAFT_TTL_MS = 30 * 60 * 1000;
-/** How long the thank-you screen stays up before the tablet resets itself. */
-const RESET_DELAY_MS = 5000;
 
 const STEPS = ["Welcome", "About You", "Health", "Session", "Agreements", "Signature"] as const;
 const CONSENT_KEYS = getConsentBundle().items.map((i) => i.key);
@@ -202,13 +200,8 @@ export default function IntakeWizard() {
     }
   }
 
-  // Thank-you screen: shows a first name and nothing else, then clears itself.
-  useEffect(() => {
-    if (!submitted) return;
-    const timer = window.setTimeout(reset, RESET_DELAY_MS);
-    return () => window.clearTimeout(timer);
-  }, [submitted, reset]);
-
+  // Thank-you screen: shows a first name and waits. It clears only when the next
+  // client taps "New intake" — never on a timer that could wipe it too early.
   if (submitted) {
     const firstName = form.printedName.trim().split(/\s+/)[0] || form.name.trim().split(/\s+/)[0];
     return (
@@ -237,6 +230,13 @@ export default function IntakeWizard() {
         <h2 className="mt-6 font-display text-3xl text-bark">
           Thank you{firstName ? `, ${firstName}` : ""}!
         </h2>
+        <button
+          type="button"
+          onClick={reset}
+          className="mx-auto mt-12 block text-sm text-bark-light/70 underline underline-offset-4"
+        >
+          New intake
+        </button>
       </div>
     );
   }
