@@ -9,7 +9,7 @@ const BOOKING_URL =
   "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services";
 
 export async function generateStaticParams() {
-  return getServices().map((s) => ({ slug: slugify(s.name) }));
+  return (await getServices()).map((s) => ({ slug: slugify(s.name) }));
 }
 
 export async function generateMetadata({
@@ -18,7 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const svc = getServiceBySlug(slug);
+  const svc = await getServiceBySlug(slug);
   if (!svc) return {};
   const title = svc.name;
   const description = svc.tagline
@@ -45,7 +45,7 @@ export default async function ServiceDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const svc = getServiceBySlug(slug);
+  const svc = await getServiceBySlug(slug);
   if (!svc) notFound();
 
   const story = svc.story && svc.story.length > 0 ? svc.story : [svc.description];

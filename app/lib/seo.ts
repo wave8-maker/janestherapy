@@ -62,8 +62,8 @@ const DAY_MAP: Record<string, string> = {
   Sunday: "Sunday",
 };
 
-function parseHours() {
-  const { hours } = getSiteConfig();
+async function parseHours() {
+  const { hours } = await getSiteConfig();
   return hours
     .filter((h) => h.time && h.time.toLowerCase() !== "closed")
     .map((h) => {
@@ -150,7 +150,7 @@ export function serviceJsonLd(svc: Service) {
 }
 
 /** schema.org LocalBusiness JSON-LD for the practice. */
-export function localBusinessJsonLd() {
+export async function localBusinessJsonLd() {
   return {
     "@context": "https://schema.org",
     "@type": ["LocalBusiness", "HealthAndBeautyBusiness"],
@@ -173,6 +173,6 @@ export function localBusinessJsonLd() {
     },
     areaServed: BUSINESS.areaServed.map((name) => ({ "@type": "Place", name })),
     knowsAbout: [...KNOWS_ABOUT],
-    openingHoursSpecification: parseHours(),
+    openingHoursSpecification: await parseHours(),
   };
 }

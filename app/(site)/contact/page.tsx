@@ -14,8 +14,8 @@ export const metadata = pageMeta({
   path: "/contact",
 });
 
-export default function ContactPage() {
-  const { hours } = getSiteConfig();
+export default async function ContactPage() {
+  const { hours } = await getSiteConfig();
   const mobile = getServiceModes().modes.find((m) => m.key === "mobile");
 
   // Single source of truth for the visible FAQ and the FAQPage JSON-LD.

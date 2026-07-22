@@ -16,9 +16,9 @@ export const metadata = pageMeta({
   path: "/services",
 });
 
-export default function ServicesPage() {
-  const services = getServices();
-  const addons = getAddons();
+export default async function ServicesPage() {
+  const services = await getServices();
+  const addons = await getAddons();
 
   const serviceLd = services.map(serviceJsonLd);
 

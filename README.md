@@ -35,6 +35,38 @@ The easiest way to deploy your Next.js app is to use the [Vercel Platform](https
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
 
+## Where editable content lives
+
+Announcement, hours, services, add-ons, and blog posts are edited in `/admin` and
+stored in the **`janestherapy-intake` Vercel Blob store** under `content/`. The
+files in this repo's `content/` folder are the defaults they were seeded from and
+the fallback whenever the store has nothing to say — local development, a fresh
+store, or a store that refuses the request. A failing store degrades to those
+files; it never takes the build down.
+
+This replaced a route that committed to GitHub with a personal access token.
+The token expired after 67 days and every content tab went silently blank. Blob's
+credential is injected and rotated by Vercel, so nothing here expires.
+
+Two details that are easy to get wrong and are covered by
+`tests/content-store.test.js`:
+
+- reads pass `useCache: false`, because Blob serves its CDN cache by default and
+  would hand a just-saved page its previous wording
+- writes pass `allowOverwrite: true`, because Blob rejects a repeat write to the
+  same pathname and an editor's second save is exactly that
+
+Saving calls `revalidatePath("/", "layout")`, so an edit reaches the site on the
+next visit rather than waiting for a rebuild. The version being replaced is kept
+under `content-history/<name>.<timestamp>` — the rollback that git commits used
+to provide. There is no UI for it; restore with the Blob CLI or SDK.
+
+`scripts/seed-content-blob.mjs` copies the repo's `content/` into the store. It
+is idempotent and only needed when starting a new store.
+
+`content/reviews.json` and `content/serviceModes.json` are not editable in the
+admin, so they stay plain repo files and are read from disk.
+
 ## Client intake, consent, and signature
 
 `/intake` is a six-step wizard (welcome → about you → health → session →

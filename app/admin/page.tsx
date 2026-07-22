@@ -17,36 +17,32 @@ interface Post    { slug: string; title: string; date: string; excerpt: string; 
 /**
  * A failed content call used to surface as an empty tab: the promise rejected,
  * nothing caught it, and the page looked like a studio with no services. These
- * two report which side said no, so the screen can say so too.
- *
- * The proxy answers "Unauthorized" when the admin session lapsed; a body of
- * "GitHub error" means the session was fine and GitHub refused the token.
+ * report which side said no, so the screen can say so too.
  */
-function ghFailure(status: number, body: { error?: string }): Error {
-  if (status === 401 && body.error === "GitHub error") return new Error("github-auth");
-  return new Error("load-failed");
+function contentFailure(status: number): Error {
+  return new Error(status === 401 ? "session-expired" : "load-failed");
 }
 
 async function ghGet(path: string) {
-  const r = await fetch(`/api/admin/github?path=${encodeURIComponent(path)}`);
-  if (!r.ok) throw ghFailure(r.status, await r.json().catch(() => ({})));
+  const r = await fetch(`/api/admin/content?path=${encodeURIComponent(path)}`);
+  if (!r.ok) throw contentFailure(r.status);
   return r.json();
 }
-async function ghSave(path: string, content: string, sha?: string) {
-  const r = await fetch("/api/admin/github", {
+async function ghSave(path: string, content: string) {
+  const r = await fetch("/api/admin/content", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path, content, sha }),
+    body: JSON.stringify({ path, content }),
   });
-  if (!r.ok) throw ghFailure(r.status, await r.json().catch(() => ({})));
+  if (!r.ok) throw contentFailure(r.status);
 }
-async function ghDelete(path: string, sha: string) {
-  const r = await fetch("/api/admin/github", {
+async function ghDelete(path: string) {
+  const r = await fetch("/api/admin/content", {
     method: "DELETE",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path, sha }),
+    body: JSON.stringify({ path }),
   });
-  if (!r.ok) throw new Error("Delete failed");
+  if (!r.ok) throw contentFailure(r.status);
 }
 
 // ── small UI helpers ─────────────────────────────────────────────────────────
@@ -86,7 +82,7 @@ function LoadError({ code }: { code: string }) {
   if (!code) return null;
   return (
     <div role="alert" className="mb-5 rounded-lg border-2 border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-      {t(code === "github-auth" ? "error.githubAuth" : code === "save-failed" ? "error.saveFailed" : "error.loadFailed")}
+      {t(code === "session-expired" ? "error.sessionExpired" : code === "save-failed" ? "error.saveFailed" : "error.loadFailed")}
     </div>
   );
 }
@@ -106,17 +102,15 @@ function SettingsTab() {
   const { t } = useAdminLang();
   const [announcement, setAnnouncement] = useState("");
   const [hours, setHours] = useState<Hour[]>([]);
-  const [sha, setSha] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    ghGet("content/siteConfig.json").then(({ content, sha }) => {
+    ghGet("siteConfig.json").then(({ content }: { content: string }) => {
       const d = JSON.parse(content);
       setAnnouncement(d.announcement ?? "");
       setHours(d.hours ?? []);
-      setSha(sha);
     }).catch((e: Error) => setError(e.message));
   }, []);
 
@@ -124,7 +118,7 @@ function SettingsTab() {
     setSaving(true); setSaved(false); setError("");
     const content = JSON.stringify({ announcement, hours }, null, 2);
     try {
-      await ghSave("content/siteConfig.json", content, sha);
+      await ghSave("siteConfig.json", content);
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
     } catch (e) {
@@ -166,7 +160,6 @@ function SettingsTab() {
 function ServicesTab() {
   const { t } = useAdminLang();
   const [services, setServices] = useState<Service[]>([]);
-  const [sha, setSha] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [open, setOpen] = useState<number | null>(null);
@@ -177,16 +170,15 @@ function ServicesTab() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    ghGet("content/services.json").then(({ content, sha }) => {
+    ghGet("services.json").then(({ content }: { content: string }) => {
       setServices(JSON.parse(content).items ?? []);
-      setSha(sha);
     }).catch((e: Error) => setError(e.message));
   }, []);
 
   async function save() {
     setSaving(true); setSaved(false); setError("");
     try {
-      await ghSave("content/services.json", JSON.stringify({ items: services }, null, 2), sha);
+      await ghSave("services.json", JSON.stringify({ items: services }, null, 2));
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
     } catch (e) {
@@ -304,7 +296,6 @@ function ServicesTab() {
 function AddonsTab() {
   const { t } = useAdminLang();
   const [addons, setAddons] = useState<Addon[]>([]);
-  const [sha, setSha] = useState<string | undefined>();
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
   const [open, setOpen] = useState<number | null>(null);
@@ -315,16 +306,15 @@ function AddonsTab() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    ghGet("content/addons.json").then(({ content, sha }) => {
+    ghGet("addons.json").then(({ content }: { content: string }) => {
       setAddons(JSON.parse(content).items ?? []);
-      setSha(sha);
     }).catch((e: Error) => setError(e.message));
   }, []);
 
   async function save() {
     setSaving(true); setSaved(false); setError("");
     try {
-      await ghSave("content/addons.json", JSON.stringify({ items: addons }, null, 2), sha);
+      await ghSave("addons.json", JSON.stringify({ items: addons }, null, 2));
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
     } catch (e) {
@@ -425,9 +415,8 @@ function AddonsTab() {
 // ── BLOG TAB ─────────────────────────────────────────────────────────────────
 function BlogTab() {
   const { t } = useAdminLang();
-  const [posts, setPosts] = useState<{ name: string; slug: string; sha: string }[]>([]);
+  const [posts, setPosts] = useState<{ slug: string }[]>([]);
   const [editing, setEditing] = useState<Post | null>(null);
-  const [editSha, setEditSha] = useState<string | undefined>();
   const [isNew, setIsNew] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -437,21 +426,16 @@ function BlogTab() {
   const loadList = useCallback(async () => {
     const res = await ghGet("content/blog").catch((e: Error) => { setError(e.message); return null; });
     if (!res?.files) return;
-    setPosts(res.files.filter((f: { name: string }) => f.name.endsWith(".md")).map((f: { name: string; sha: string }) => ({
-      name: f.name,
-      slug: f.name.replace(/\.md$/, ""),
-      sha: f.sha,
-    })));
+    setPosts(res.files.map((f: { name: string }) => ({ slug: f.name.replace(/\.md$/, "") })));
   }, []);
 
   useEffect(() => { loadList(); }, [loadList]);
 
   async function openPost(slug: string) {
-    const { content, sha } = await ghGet(`content/blog/${slug}.md`);
+    const { content } = await ghGet(`blog/${slug}.md`);
     const [, fm, body = ""] = content.split(/^---\s*$/m);
     const get = (key: string) => (fm.match(new RegExp(`^${key}:\\s*(.+)$`, "m")) ?? [])[1]?.replace(/^["']|["']$/g, "").trim() ?? "";
     setEditing({ slug, title: get("title"), date: get("date"), excerpt: get("excerpt"), content: body.trim() });
-    setEditSha(sha);
     setIsNew(false);
     setEditorKey(k => k + 1);
   }
@@ -459,7 +443,6 @@ function BlogTab() {
   function newPost() {
     const today = new Date().toISOString().slice(0, 10);
     setEditing({ slug: "", title: "", date: today, excerpt: "", content: "" });
-    setEditSha(undefined);
     setIsNew(true);
     setEditorKey(k => k + 1);
   }
@@ -472,7 +455,7 @@ function BlogTab() {
       : editing.slug;
     const fm = `---\ntitle: "${editing.title}"\ndate: ${editing.date}\nexcerpt: "${editing.excerpt}"\n---\n\n`;
     try {
-      await ghSave(`content/blog/${slug}.md`, fm + editing.content, editSha);
+        await ghSave(`blog/${slug}.md`, fm + editing.content);
       setSaved(true);
       setTimeout(() => setSaved(false), 5000);
       if (isNew) { setIsNew(false); setEditing(p => p ? { ...p, slug } : p); await loadList(); }
@@ -483,9 +466,9 @@ function BlogTab() {
     }
   }
 
-  async function deletePost(slug: string, sha: string) {
+  async function deletePost(slug: string) {
     if (!confirm(`${t("blog.confirmDelete")} "${slug}"?`)) return;
-    await ghDelete(`content/blog/${slug}.md`, sha);
+    await ghDelete(`blog/${slug}.md`).catch((e: Error) => setError(e.message));
     if (editing?.slug === slug) setEditing(null);
     await loadList();
   }
@@ -523,7 +506,7 @@ function BlogTab() {
           <span className="text-bark font-medium">{p.slug}</span>
           <div className="flex gap-2">
             <Btn small variant="secondary" onClick={() => openPost(p.slug)}>{t("common.edit")}</Btn>
-            <Btn small variant="danger" onClick={() => deletePost(p.slug, p.sha)}>{t("common.delete")}</Btn>
+            <Btn small variant="danger" onClick={() => deletePost(p.slug)}>{t("common.delete")}</Btn>
           </div>
         </div>
       ))}

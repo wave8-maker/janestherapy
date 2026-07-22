@@ -24,10 +24,10 @@ const navLinks = [
   { href: "/blog", label: "Blog" },
 ];
 
-export default function SiteLayout({ children }: { children: React.ReactNode }) {
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <JsonLd data={localBusinessJsonLd()} />
+      <JsonLd data={await localBusinessJsonLd()} />
 
       <header className="bg-cream/85 backdrop-blur-md border-b border-brand-light sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">

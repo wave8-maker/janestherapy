@@ -14,11 +14,11 @@ export const dynamic = "force-static";
  * and answer engines (see llmstxt.org). Generated from the same content
  * files that power the site, so pricing and hours never drift.
  */
-export function GET() {
-  const services = getServices();
-  const addons = getAddons();
+export async function GET() {
+  const services = await getServices();
+  const addons = await getAddons();
   const { modes } = getServiceModes();
-  const { hours } = getSiteConfig();
+  const { hours } = await getSiteConfig();
 
   const mobile = modes.find((m) => m.key === "mobile");
 

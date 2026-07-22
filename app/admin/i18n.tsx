@@ -50,9 +50,9 @@ const STRINGS = {
   "common.view": ["查看", "View"],
   "common.other": ["其他", "Other"],
 
-  "error.githubAuth": [
-    "读不到网站内容：GitHub 访问令牌已失效或过期。请在 GitHub 重新生成一个，更新 Vercel 里的 GITHUB_PAT，然后重新部署。",
-    "Can't read the site content: the GitHub token is invalid or expired. Generate a new one, update GITHUB_PAT in Vercel, then redeploy.",
+  "error.sessionExpired": [
+    "登录已过期，请重新登录。",
+    "Your session expired — please sign in again.",
   ],
   "error.loadFailed": ["读取失败，请刷新重试。", "Couldn't load. Refresh and try again."],
   "error.saveFailed": ["保存失败，内容没有写入。", "Save failed — nothing was written."],

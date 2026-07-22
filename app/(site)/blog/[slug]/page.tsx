@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getBlogPost, getBlogPosts } from "@/app/lib/content";
 import JsonLd from "@/app/components/JsonLd";
@@ -6,7 +7,7 @@ import { SITE_URL, SITE_NAME } from "@/app/lib/seo";
 import { marked } from "marked";
 
 export async function generateStaticParams() {
-  return getBlogPosts().map((p) => ({ slug: p.slug }));
+  return (await getBlogPosts()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({
@@ -15,7 +16,8 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = await getBlogPost(slug);
+  if (!post) return { title: "Post not found" };
   const description =
     post.excerpt || `${post.title} — wellness insights from Jane's Therapy in San Jose.`;
   return {
@@ -40,7 +42,8 @@ export default async function BlogPostPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const post = getBlogPost(slug);
+  const post = await getBlogPost(slug);
+  if (!post) notFound();
   // Content from the rich editor is HTML; legacy posts may be markdown
   const html = post.content.trimStart().startsWith("<")
     ? post.content

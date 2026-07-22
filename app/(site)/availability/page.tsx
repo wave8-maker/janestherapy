@@ -95,7 +95,7 @@ function CalendarGrid({ days }: { days: AvailabilityDay[] }) {
 export default async function AvailabilityPage() {
   const summary = await getAvailabilitySummary();
   const { bookingUrl } = getServiceModes();
-  const { hours } = getSiteConfig();
+  const { hours } = await getSiteConfig();
 
   return (
     <div className="max-w-3xl mx-auto px-6 py-16">

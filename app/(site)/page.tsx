@@ -36,10 +36,10 @@ const highlights = [
   },
 ];
 
-export default function HomePage() {
-  const { announcement } = getSiteConfig();
-  const services = getServices();
-  const addons = getAddons();
+export default async function HomePage() {
+  const { announcement } = await getSiteConfig();
+  const services = await getServices();
+  const addons = await getAddons();
   const reviews = getReviews();
 
   return (
