@@ -1,4 +1,5 @@
 import type { IntakeSubmission } from "@/app/lib/intake-types";
+import { bodyDiagramSvg, hasBodyMarkers } from "@/app/lib/body-diagram";
 
 /**
  * Builds the printable copy of a signed intake — the document Jane hands to an
@@ -79,6 +80,8 @@ export function buildIntakeHTML(s: IntakeSubmission): string {
   .clause p{margin:0 0 5px;color:var(--bark-light);}
   .clause .agreed{margin-top:7px;padding:6px 9px;background:var(--cream);border:1px solid var(--line);
      color:var(--bark);font-weight:700;}
+  .figures{display:flex;gap:36px;margin-top:6px;page-break-inside:avoid;}
+  .figures svg{width:150px;height:auto;}
   .sig{display:flex;gap:26px;align-items:flex-end;margin-top:14px;}
   .sig img{max-height:110px;max-width:330px;border-bottom:1px solid var(--bark);}
   .sig .who{font-size:12px;color:var(--bark-light);}
@@ -150,16 +153,17 @@ export function buildIntakeHTML(s: IntakeSubmission): string {
     ${row("Music", s.musicPreference)}
     ${row("Room temperature", s.roomTemperature)}
     ${row("Enhancements", s.enhancements.join(", "))}
-    ${row(
-      "Marked discomfort",
-      [
-        s.painMarkersFront.length ? `${s.painMarkersFront.length} front` : "",
-        s.painMarkersBack.length ? `${s.painMarkersBack.length} back` : "",
-      ]
-        .filter(Boolean)
-        .join(" · ")
-    )}
   </table>
+
+  ${
+    hasBodyMarkers(s.painMarkersFront, s.painMarkersBack)
+      ? `<h2>Marked discomfort</h2>
+  <div class="figures">
+    ${bodyDiagramSvg(s.painMarkersFront ?? [], "Front")}
+    ${bodyDiagramSvg(s.painMarkersBack ?? [], "Back")}
+  </div>`
+      : ""
+  }
 
   <h2>Agreements — version ${esc(s.consentVersion || "n/a")}</h2>
   ${consentBlocks || "<p>No consent record stored with this submission.</p>"}

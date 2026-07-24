@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import type { IntakeSubmission } from "@/app/lib/intake-types";
 import { buildIntakeHTML } from "./intakePrint";
 import { useAdminLang } from "./i18n";
+import { bodyDiagramSvg, hasBodyMarkers } from "@/app/lib/body-diagram";
 
 interface IntakeSummary {
   id: string;
@@ -93,6 +94,30 @@ function stamp(iso: string): string {
   if (!iso) return "";
   const d = new Date(iso);
   return Number.isNaN(d.getTime()) ? iso : d.toLocaleString();
+}
+
+/** The figures the client tapped, with the marks numbered where they placed them. */
+function BodyMarkers({ submission }: { submission: IntakeSubmission }) {
+  const { t } = useAdminLang();
+  const front = submission.painMarkersFront ?? [];
+  const back = submission.painMarkersBack ?? [];
+  if (!hasBodyMarkers(front, back)) return null;
+
+  return (
+    <section className="space-y-3">
+      <h3 className="text-base font-semibold text-bark">{t("field.painMarkers")}</h3>
+      <div className="flex flex-wrap gap-6">
+        <div
+          className="[&_svg]:h-auto [&_svg]:w-[150px]"
+          dangerouslySetInnerHTML={{ __html: bodyDiagramSvg(front, t("field.front")) }}
+        />
+        <div
+          className="[&_svg]:h-auto [&_svg]:w-[150px]"
+          dangerouslySetInnerHTML={{ __html: bodyDiagramSvg(back, t("field.back")) }}
+        />
+      </div>
+    </section>
+  );
 }
 
 function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
@@ -195,21 +220,6 @@ function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
         />
         <DetailRow label={t("field.enhancements")} value={submission.enhancements.join(", ") || undefined} />
         <DetailRow label={t("field.sessionPreference")} value={submission.sessionPreference} />
-        <DetailRow
-          label={t("field.painMarkers")}
-          value={
-            [
-              (submission.painMarkersFront ?? []).length
-                ? `${t("field.front")}: ${submission.painMarkersFront.length}`
-                : "",
-              (submission.painMarkersBack ?? []).length
-                ? `${t("field.back")}: ${submission.painMarkersBack.length}`
-                : "",
-            ]
-              .filter(Boolean)
-              .join(" · ") || undefined
-          }
-        />
         {/* Questions the form no longer asks — shown only for records that answered them. */}
         <DetailRow label={t("field.medications")} value={submission.medications} />
         <DetailRow label={t("field.allergies")} value={submission.allergies} />
@@ -220,6 +230,8 @@ function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
         <DetailRow label={t("field.music")} value={submission.musicPreference} />
         <DetailRow label={t("field.roomTemperature")} value={submission.roomTemperature} />
       </dl>
+
+      <BodyMarkers submission={submission} />
 
       <LegalRecordNote submission={submission} />
     </div>

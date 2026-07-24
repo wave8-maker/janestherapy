@@ -61,7 +61,8 @@ assert.match(types, /normalizeSubmission/, "records written before signatures ex
 assert.match(fields, /autoComplete="off"/, "form fields must not offer the previous client's answers");
 assert.match(wizard, /localStorage\.removeItem\(DRAFT_KEY\)/, "the draft must be destroyed on submit and on reset");
 assert.match(wizard, /DRAFT_TTL_MS = 30 \* 60 \* 1000/, "an abandoned draft must expire");
-assert.match(wizard, /setTimeout\(reset, RESET_DELAY_MS\)/, "the thank-you screen must reset the tablet itself");
+assert.match(wizard, /New intake/, "the thank-you screen must offer a way to clear for the next client");
+assert.match(wizard, /onClick=\{reset\}/, "the thank-you action must wipe the form");
 assert.match(stepConsents, /new Date\(\)\.toISOString\(\)/, "each clause records when it was ticked");
 
 // ── admin shows the evidence exists, the printout carries it ──────────────────
