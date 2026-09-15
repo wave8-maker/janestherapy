@@ -45,6 +45,33 @@ assert.match(route, /allowOverwrite: true/, "saving over an existing file must b
 // ── an edit reaches the site without a rebuild ────────────────────────────────
 assert.match(route, /revalidatePath\("\/", "layout"\)/, "a save must invalidate the pages built from the content");
 
+// ── the editor asks for paths the route actually serves ───────────────────────
+// Moving off GitHub dropped the `content/` prefix from every path but the blog
+// listing, which kept asking for `content/blog`. The route answered 400, so the
+// tab listed nothing while the site went on serving the posts.
+const allowedSource = (route.match(/const allowed = \/(.+)\/;/) ?? [])[1];
+assert.ok(allowedSource, "the route's allowlist should be readable from its source");
+const allowed = new RegExp(allowedSource);
+const requested = [...adminPage.matchAll(/gh(?:Get|Save|Delete)\(\s*(["`])([^"`]+)\1/g)]
+  .map(([, , requestedPath]) => requestedPath.replace(/\$\{[^}]+\}/g, "a-slug"));
+assert.ok(requested.length >= 5, "expected to find the admin's content calls");
+for (const requestedPath of requested) {
+  assert.ok(
+    requestedPath === "blog" || allowed.test(requestedPath),
+    `the admin asks for "${requestedPath}", which the content route rejects`
+  );
+}
+
+// ── an empty store must not empty the editor either ───────────────────────────
+// The site falls back to the packaged posts when the store lists none; the
+// editor has to agree, or the two disagree about what exists.
+assert.match(
+  route,
+  /try \{[\s\S]*?list\(\{ prefix: `\$\{CONTENT_PREFIX\}blog\/` \}\)[\s\S]*?\} catch/,
+  "listing posts for the editor must survive an unreachable store"
+);
+assert.match(route, /if \(files\.length\)[\s\S]{0,200}?packagedPosts\(\)/, "an empty store should fall back to the packaged posts");
+
 // ── only known files are reachable ────────────────────────────────────────────
 assert.match(route, /siteConfig\\\.json\|services\\\.json\|addons\\\.json/, "the route must allowlist the content it serves");
 assert.match(route, /archive\(name\)/, "the version being replaced should be kept");

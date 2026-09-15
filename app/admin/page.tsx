@@ -424,7 +424,7 @@ function BlogTab() {
   const [error, setError] = useState("");
 
   const loadList = useCallback(async () => {
-    const res = await ghGet("content/blog").catch((e: Error) => { setError(e.message); return null; });
+    const res = await ghGet("blog").catch((e: Error) => { setError(e.message); return null; });
     if (!res?.files) return;
     setPosts(res.files.map((f: { name: string }) => ({ slug: f.name.replace(/\.md$/, "") })));
   }, []);

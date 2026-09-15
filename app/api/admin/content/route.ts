@@ -57,6 +57,12 @@ async function archive(name: string) {
   });
 }
 
+/** The posts that shipped in the repo — the defaults, and the fallback. */
+async function packagedPosts(): Promise<{ name: string }[]> {
+  const names = await readdir(path.join(process.cwd(), "content", "blog")).catch(() => []);
+  return names.filter((n) => n.endsWith(".md")).map((n) => ({ name: n }));
+}
+
 /** Content feeds every marketing page, so an edit invalidates the whole tree. */
 function refreshSite() {
   revalidatePath("/", "layout");
@@ -67,15 +73,22 @@ export async function GET(req: Request) {
   if (!name) return NextResponse.json({ error: "Unknown content path" }, { status: 400 });
 
   if (name === "blog") {
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      const names = await readdir(path.join(process.cwd(), "content", "blog")).catch(() => []);
-      return NextResponse.json({ files: names.filter((n) => n.endsWith(".md")).map((n) => ({ name: n })) });
+    if (process.env.BLOB_READ_WRITE_TOKEN) {
+      let files: { name: string }[] = [];
+      try {
+        const { blobs } = await list({ prefix: `${CONTENT_PREFIX}blog/` });
+        files = blobs
+          .map((b) => ({ name: b.pathname.slice(`${CONTENT_PREFIX}blog/`.length) }))
+          .filter((f) => f.name.endsWith(".md"));
+      } catch {
+        /* unreachable store — fall back to what shipped in the repo */
+      }
+      // The site lists the packaged posts when the store offers none. The editor
+      // has to agree: otherwise Jane looks at an empty tab while the site is
+      // still serving posts, and the store is the only place that knows why.
+      if (files.length) return NextResponse.json({ files });
     }
-    const { blobs } = await list({ prefix: `${CONTENT_PREFIX}blog/` });
-    const files = blobs
-      .map((b) => ({ name: b.pathname.slice(`${CONTENT_PREFIX}blog/`.length) }))
-      .filter((f) => f.name.endsWith(".md"));
-    return NextResponse.json({ files });
+    return NextResponse.json({ files: await packagedPosts() });
   }
 
   const content = await readStored(name);
