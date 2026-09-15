@@ -1,11 +1,27 @@
 "use client";
-import { useEditor, EditorContent } from "@tiptap/react";
+import {
+  useEditor,
+  EditorContent,
+  NodeViewWrapper,
+  ReactNodeViewRenderer,
+  type NodeViewProps,
+} from "@tiptap/react";
+import { mergeAttributes } from "@tiptap/core";
 import StarterKit from "@tiptap/starter-kit";
 import TiptapImage from "@tiptap/extension-image";
 import TiptapLink from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
+import { TableKit } from "@tiptap/extension-table";
 import { useRef, useState } from "react";
 import { useAdminLang } from "./i18n";
+import {
+  imageStyle,
+  parseImageAlign,
+  parseImageWidth,
+  widthPercent,
+  MIN_WIDTH_PERCENT,
+  type ImageAlign,
+} from "./imageStyle";
 
 interface Props {
   initialContent: string;
@@ -38,6 +54,139 @@ function Divider() {
   return <div className="w-px h-4 bg-gray-200 mx-1 self-center" />;
 }
 
+/** The strip that appears under the toolbar while an image or a table is selected. */
+function ContextRow({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-1 px-2 py-1.5 border-t border-brand-light bg-white">
+      <span className="text-xs text-bark-light mr-1">{label}</span>
+      {children}
+    </div>
+  );
+}
+
+const ALIGN_MARGINS: Record<Exclude<ImageAlign, null>, React.CSSProperties> = {
+  left: { marginLeft: 0, marginRight: "auto" },
+  center: { marginLeft: "auto", marginRight: "auto" },
+  right: { marginLeft: "auto", marginRight: 0 },
+};
+
+/**
+ * How an image looks while it is being edited: a handle to drag in the corner
+ * and the width it is heading for. This is the editor's view only — a saved post
+ * still holds a plain `<img>`, sized by the style `renderHTML` writes below.
+ */
+function ImageView({ node, updateAttributes, selected, editor, getPos }: NodeViewProps) {
+  const { t } = useAdminLang();
+  const columnRef = useRef<HTMLDivElement>(null);
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [dragPercent, setDragPercent] = useState<number | null>(null);
+
+  const width = node.attrs.width as string | null;
+  const align = node.attrs.align as ImageAlign;
+  const shownWidth = dragPercent !== null ? `${dragPercent}%` : width;
+
+  function startResize(e: React.PointerEvent<HTMLButtonElement>) {
+    e.preventDefault();
+    const handle = e.currentTarget;
+    const column = columnRef.current;
+    const box = boxRef.current;
+    if (!column || !box) return;
+
+    const available = column.offsetWidth;
+    const startX = e.clientX;
+    const startWidth = box.offsetWidth;
+    let latest = widthPercent(startWidth, available);
+
+    // Capture: once the pointer outruns the handle — and it will, a drag is
+    // faster than a 28px target — the moves still have to arrive here.
+    handle.setPointerCapture(e.pointerId);
+
+    const onMove = (ev: PointerEvent) => {
+      latest = widthPercent(startWidth + (ev.clientX - startX), available);
+      setDragPercent(latest);
+    };
+    // The width is written once, at the end: a commit per pointermove would
+    // bury everything else under a hundred undo steps.
+    const onEnd = () => {
+      handle.releasePointerCapture(e.pointerId);
+      handle.removeEventListener("pointermove", onMove);
+      handle.removeEventListener("pointerup", onEnd);
+      handle.removeEventListener("pointercancel", onEnd);
+      setDragPercent(null);
+      updateAttributes({ width: `${latest}%` });
+    };
+
+    handle.addEventListener("pointermove", onMove);
+    handle.addEventListener("pointerup", onEnd);
+    handle.addEventListener("pointercancel", onEnd);
+  }
+
+  return (
+    <NodeViewWrapper ref={columnRef} className="my-3">
+      <div
+        ref={boxRef}
+        style={{ width: shownWidth ?? "fit-content", maxWidth: "100%", ...(align ? ALIGN_MARGINS[align] : {}) }}
+        className={`relative ${selected ? "outline-2 outline-brand" : ""}`}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={node.attrs.src}
+          alt={node.attrs.alt ?? ""}
+          className={`block rounded-lg ${shownWidth ? "w-full" : "max-w-full"}`}
+          onClick={() => { const pos = getPos(); if (pos !== undefined) editor.commands.setNodeSelection(pos); }}
+        />
+        {selected && (
+          <>
+            <span className="absolute top-1 right-1 px-1.5 py-0.5 rounded bg-bark/70 text-white text-[11px] tabular-nums">
+              {dragPercent ?? (width ? parseInt(width, 10) : 100)}%
+            </span>
+            <button
+              type="button"
+              onPointerDown={startResize}
+              title={t("editor.image.drag")}
+              aria-label={t("editor.image.drag")}
+              // touch-none: without it the browser claims the gesture as a scroll
+              // and the handle never sees a single move on a phone.
+              className="absolute -right-2.5 -bottom-2.5 w-7 h-7 rounded-full bg-brand border-2 border-white shadow cursor-nwse-resize touch-none"
+            />
+          </>
+        )}
+      </div>
+    </NodeViewWrapper>
+  );
+}
+
+/**
+ * The stock image node, plus the width and alignment a resize leaves behind.
+ *
+ * Both live in the image's own `style`, because a post is stored as the HTML the
+ * editor produced — there is nowhere else for them to go.
+ */
+const ResizableImage = TiptapImage.extend({
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      width: {
+        default: null,
+        parseHTML: (element) => parseImageWidth(element.getAttribute("style")),
+        renderHTML: () => ({}), // folded into `style` by renderHTML below
+      },
+      align: {
+        default: null,
+        parseHTML: (element) => parseImageAlign(element.getAttribute("style")),
+        renderHTML: () => ({}),
+      },
+    };
+  },
+  renderHTML({ HTMLAttributes, node }) {
+    const style = imageStyle(node.attrs.width, node.attrs.align);
+    return ["img", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes, style ? { style } : {})];
+  },
+  addNodeView() {
+    return ReactNodeViewRenderer(ImageView);
+  },
+});
+
 async function toWebP(blob: Blob): Promise<string> {
   const url = URL.createObjectURL(blob);
   return new Promise((resolve, reject) => {
@@ -65,9 +214,12 @@ export default function RichEditor({ initialContent, onChange }: Props) {
   const editor = useEditor({
     extensions: [
       StarterKit,
-      TiptapImage.configure({ inline: false, allowBase64: true }),
+      ResizableImage.configure({ inline: false, allowBase64: true }),
       TiptapLink.configure({ openOnClick: false }),
       Placeholder.configure({ placeholder: t("editor.placeholder") }),
+      // Column widths stay off: the drag targets are a few pixels wide, which is
+      // no use on the phone half of this admin.
+      TableKit.configure({ table: { resizable: false } }),
     ],
     content: initialContent || "",
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -84,8 +236,12 @@ export default function RichEditor({ initialContent, onChange }: Props) {
           "[&_li]:my-0.5",
           "[&_blockquote]:border-l-4 [&_blockquote]:border-brand-light [&_blockquote]:pl-4 [&_blockquote]:text-bark-light [&_blockquote]:italic [&_blockquote]:my-3",
           "[&_a]:text-brand [&_a]:underline",
-          "[&_img]:rounded-lg [&_img]:max-w-full [&_img]:my-3",
           "[&_hr]:border-brand-light [&_hr]:my-4",
+          "[&_.tableWrapper]:overflow-x-auto [&_.tableWrapper]:my-3",
+          "[&_table]:w-full [&_table]:table-fixed [&_table]:border-collapse",
+          "[&_th]:border [&_th]:border-brand-light [&_th]:bg-brand-light/50 [&_th]:px-3 [&_th]:py-2 [&_th]:text-left [&_th]:font-semibold [&_th]:align-top",
+          "[&_td]:border [&_td]:border-brand-light [&_td]:px-3 [&_td]:py-2 [&_td]:align-top",
+          "[&_.selectedCell]:bg-brand-light/70",
           "[&_.ProseMirror-selectednode]:ring-2 [&_.ProseMirror-selectednode]:ring-brand",
         ].join(" "),
       },
@@ -128,6 +284,11 @@ export default function RichEditor({ initialContent, onChange }: Props) {
 
   if (!editor) return null;
 
+  const imageAttrs = editor.getAttributes("image");
+  const imagePercent = imageAttrs.width ? parseInt(imageAttrs.width as string, 10) : 100;
+  const setImageAttrs = (attrs: Record<string, unknown>) =>
+    editor.chain().updateAttributes("image", attrs).run();
+
   const toolbarItems = (
     <>
       <ToolBtn active={editor.isActive("bold")} onClick={() => editor.chain().focus().toggleBold().run()} title={t("editor.bold")}>
@@ -165,6 +326,13 @@ export default function RichEditor({ initialContent, onChange }: Props) {
       </ToolBtn>
       <ToolBtn disabled={uploading} onClick={() => fileInputRef.current?.click()} title={t("editor.insertImage")}>
         {uploading ? "…" : `🖼 ${t("editor.image")}`}
+      </ToolBtn>
+      <ToolBtn
+        active={editor.isActive("table")}
+        onClick={() => editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run()}
+        title={t("editor.table.insert")}
+      >
+        ▦ {t("editor.table")}
       </ToolBtn>
       <Divider />
       <ToolBtn disabled={!editor.can().undo()} onClick={() => editor.chain().focus().undo().run()} title={t("editor.undo")}>
@@ -205,6 +373,70 @@ export default function RichEditor({ initialContent, onChange }: Props) {
         <div className={`${menuOpen ? "flex" : "hidden"} sm:flex flex-wrap items-center gap-0.5 px-2 py-1.5`}>
           {toolbarItems}
         </div>
+
+        {/* Contextual rows stay out of the hamburger: they only appear with
+            something selected, and hiding them there would mean two taps to
+            reach the control you just asked for. */}
+        {editor.isActive("image") && (
+          <ContextRow label={t("editor.image")}>
+            <input
+              type="range"
+              min={MIN_WIDTH_PERCENT}
+              max={100}
+              value={imagePercent}
+              onChange={e => setImageAttrs({ width: `${e.target.value}%` })}
+              title={t("editor.image.width")}
+              aria-label={t("editor.image.width")}
+              className="w-32 sm:w-44 accent-brand"
+            />
+            <span className="text-xs text-bark-light tabular-nums w-10">{imagePercent}%</span>
+            <ToolBtn onClick={() => setImageAttrs({ width: null })} title={t("editor.image.reset")}>
+              {t("editor.image.reset")}
+            </ToolBtn>
+            <Divider />
+            <ToolBtn active={imageAttrs.align === "left"} onClick={() => setImageAttrs({ align: "left" })} title={t("editor.image.alignLeft")}>
+              ⇤
+            </ToolBtn>
+            <ToolBtn active={imageAttrs.align === "center"} onClick={() => setImageAttrs({ align: "center" })} title={t("editor.image.alignCenter")}>
+              ⇔
+            </ToolBtn>
+            <ToolBtn active={imageAttrs.align === "right"} onClick={() => setImageAttrs({ align: "right" })} title={t("editor.image.alignRight")}>
+              ⇥
+            </ToolBtn>
+            <Divider />
+            <ToolBtn onClick={() => editor.chain().focus().deleteSelection().run()} title={t("editor.image.remove")}>
+              ✕
+            </ToolBtn>
+          </ContextRow>
+        )}
+
+        {editor.isActive("table") && (
+          <ContextRow label={t("editor.table")}>
+            <ToolBtn onClick={() => editor.chain().focus().addRowBefore().run()} title={t("editor.table.rowBefore")}>
+              ↑+{t("editor.table.rowLabel")}
+            </ToolBtn>
+            <ToolBtn onClick={() => editor.chain().focus().addRowAfter().run()} title={t("editor.table.rowAfter")}>
+              ↓+{t("editor.table.rowLabel")}
+            </ToolBtn>
+            <ToolBtn onClick={() => editor.chain().focus().addColumnBefore().run()} title={t("editor.table.colBefore")}>
+              ←+{t("editor.table.colLabel")}
+            </ToolBtn>
+            <ToolBtn onClick={() => editor.chain().focus().addColumnAfter().run()} title={t("editor.table.colAfter")}>
+              →+{t("editor.table.colLabel")}
+            </ToolBtn>
+            <Divider />
+            <ToolBtn onClick={() => editor.chain().focus().deleteRow().run()} title={t("editor.table.deleteRow")}>
+              −{t("editor.table.rowLabel")}
+            </ToolBtn>
+            <ToolBtn onClick={() => editor.chain().focus().deleteColumn().run()} title={t("editor.table.deleteCol")}>
+              −{t("editor.table.colLabel")}
+            </ToolBtn>
+            <Divider />
+            <ToolBtn onClick={() => editor.chain().focus().deleteTable().run()} title={t("editor.table.delete")}>
+              ✕
+            </ToolBtn>
+          </ContextRow>
+        )}
       </div>
 
       {/* Editor area */}

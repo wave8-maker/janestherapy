@@ -79,7 +79,7 @@ export default async function BlogPostPage({
       <p className="eyebrow text-bark-light/60 mb-3">{dateStr}</p>
       <h1 className="font-display text-3xl sm:text-4xl text-bark leading-tight mb-10">{post.title}</h1>
       <div
-        className="prose prose-stone max-w-none text-bark-light leading-relaxed [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-bark [&_h2]:mt-8 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-bark [&_h3]:mt-6 [&_strong]:text-bark [&_ul]:list-disc [&_ul]:ml-4 [&_li]:my-1"
+        className="post-body"
         dangerouslySetInnerHTML={{ __html: html }}
       />
       <div className="mt-12 pt-8 border-t border-brand-light text-center">
