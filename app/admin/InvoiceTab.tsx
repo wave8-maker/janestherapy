@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAdminLang } from "./i18n";
 
 /* ──────────────────────────────────────────────────────────────────────────
@@ -293,13 +293,128 @@ function buildInvoiceHTML(inv: InvoiceState): string {
 </body></html>`;
 }
 
+// ── saved presets (From + Bill To), kept in this browser ─────────────────────
+interface Preset { id: string; name: string; from: Party; billTo: Party }
+
+const PRESETS_KEY = "janeInvoicePresets_v1";
+const LEGACY_KEY = "janeInvoiceDefaults_v1"; // the old single "defaults" slot
+
+function newId() {
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+}
+
+function readPresets(): Preset[] {
+  try {
+    const raw = localStorage.getItem(PRESETS_KEY);
+    if (raw) return JSON.parse(raw);
+    const legacy = localStorage.getItem(LEGACY_KEY);
+    const d = legacy ? JSON.parse(legacy) : null;
+    const from: Party = d?.from ?? JANE;
+    const billTo: Party = d?.billTo ?? TRIO;
+    return [{ id: newId(), name: billTo.name || from.name || "Invoice", from, billTo }];
+  } catch {
+    return [{ id: newId(), name: TRIO.name, from: JANE, billTo: TRIO }];
+  }
+}
+
+function writePresets(list: Preset[]) {
+  try { localStorage.setItem(PRESETS_KEY, JSON.stringify(list)); return true; } catch { return false; }
+}
+
+function PresetSidebar({ presets, activeId, onApply, onSaveNew, onOverwrite, onDelete, suggestName }: {
+  presets: Preset[]; activeId: string | null; suggestName: string;
+  onApply: (p: Preset) => void; onSaveNew: (name: string) => void;
+  onOverwrite: (id: string) => void; onDelete: (id: string) => void;
+}) {
+  const { t } = useAdminLang();
+  const [naming, setNaming] = useState<string | null>(null);
+  const [confirmDel, setConfirmDel] = useState<string | null>(null);
+  const [flash, setFlash] = useState("");
+
+  function done(msg: string) { setFlash(msg); window.setTimeout(() => setFlash(""), 2500); }
+  function commitNew() {
+    const name = (naming ?? "").trim();
+    if (!name) return;
+    onSaveNew(name); setNaming(null); done(t("invoice.saved"));
+  }
+
+  return (
+    <aside className="rounded-xl border-2 border-slate-300 bg-white p-4 space-y-3 xl:sticky xl:top-[calc(env(safe-area-inset-top,0px)+1rem)]">
+      <div>
+        <p className="text-sm font-semibold text-bark">{t("invoice.presets")}</p>
+        <p className="text-xs text-bark-light mt-1">{t("invoice.presetsHint")}</p>
+      </div>
+
+      {presets.length === 0 && <p className="text-sm text-bark-light">{t("invoice.presetsEmpty")}</p>}
+
+      <ul className="space-y-2">
+        {presets.map(p => {
+          const active = p.id === activeId;
+          if (confirmDel === p.id) return (
+            <li key={p.id} className="rounded-lg border-2 border-red-300 bg-red-50 p-3 space-y-2">
+              <p className="text-sm font-semibold text-red-900">{t("invoice.presetConfirmDelete")} “{p.name}”?</p>
+              <div className="flex gap-2">
+                <Btn small variant="danger" onClick={() => { onDelete(p.id); setConfirmDel(null); }}>{t("common.delete")}</Btn>
+                <Btn small variant="secondary" onClick={() => setConfirmDel(null)}>{t("invoice.cancel")}</Btn>
+              </div>
+            </li>
+          );
+          return (
+            <li key={p.id} className={`flex items-stretch rounded-lg border-2 ${active ? "border-slate-900 bg-slate-50" : "border-slate-200 hover:border-slate-400"}`}>
+              <button type="button" onClick={() => onApply(p)} className="flex-1 min-w-0 text-left px-3 py-2.5">
+                <span className="block text-sm font-semibold text-slate-900 truncate">{p.name}</span>
+                {p.billTo.name && p.billTo.name !== p.name && (
+                  <span className="block text-xs text-bark-light truncate">{p.billTo.name}</span>
+                )}
+              </button>
+              <button type="button" onClick={() => setConfirmDel(p.id)}
+                title={t("common.delete")} aria-label={`${t("common.delete")} ${p.name}`}
+                className="px-3 text-lg text-red-700 hover:bg-red-50 rounded-r-lg">×</button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {naming === null ? (
+        <div className="flex flex-col gap-2">
+          <Btn small variant="secondary" onClick={() => setNaming(suggestName)}>{t("invoice.presetSaveNew")}</Btn>
+          {activeId && (
+            <Btn small variant="secondary" onClick={() => { onOverwrite(activeId); done(t("invoice.saved")); }}>
+              {t("invoice.presetOverwrite")}
+            </Btn>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-2">
+          <input autoFocus value={naming} onChange={e => setNaming(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter") commitNew(); if (e.key === "Escape") setNaming(null); }}
+            placeholder={t("invoice.presetName")} aria-label={t("invoice.presetName")}
+            className="w-full border-2 border-slate-600 rounded-lg px-3 py-2 text-sm text-slate-950 focus:outline-none focus:ring-4 focus:ring-sky-200" />
+          <div className="flex gap-2">
+            <Btn small onClick={commitNew} disabled={!naming.trim()}>{t("invoice.presetSave")}</Btn>
+            <Btn small variant="secondary" onClick={() => setNaming(null)}>{t("invoice.cancel")}</Btn>
+          </div>
+        </div>
+      )}
+      {flash && <p className="text-sm text-sage">{flash}</p>}
+    </aside>
+  );
+}
+
 // ── main component ─────────────────────────────────────────────────────────
-const LS_KEY = "janeInvoiceDefaults_v1";
 
 export default function InvoiceTab() {
   const { t } = useAdminLang();
   const [inv, setInv] = useState<InvoiceState>(emptyState);
-  const [defaultsSaved, setDefaultsSaved] = useState(false);
+  const [presets, setPresets] = useState<Preset[]>([]);
+  const [activeId, setActiveId] = useState<string | null>(null);
+
+  // localStorage only exists in the browser, so read it after mount.
+  useEffect(() => {
+    const list = readPresets();
+    writePresets(list);
+    setPresets(list);
+  }, []);
 
   const totals = useMemo(() => {
     const its = inv.items;
@@ -321,28 +436,25 @@ export default function InvoiceTab() {
     setInv(s => ({ ...s, items: s.items.length > 1 ? s.items.filter((_, idx) => idx !== i) : s.items }));
   }
 
-  function saveDefaults() {
-    try {
-      localStorage.setItem(LS_KEY, JSON.stringify({ from: inv.from, billTo: inv.billTo }));
-      setDefaultsSaved(true);
-      window.setTimeout(() => setDefaultsSaved(false), 3000);
-    } catch {
-      alert(t("invoice.defaultsError"));
-    }
+  function storePresets(list: Preset[]) {
+    if (!writePresets(list)) { alert(t("invoice.defaultsError")); return; }
+    setPresets(list);
   }
-
-  function loadDefaults() {
-    try {
-      const raw = localStorage.getItem(LS_KEY);
-      const d = raw ? JSON.parse(raw) : { from: JANE, billTo: TRIO };
-      setInv(s => ({
-        ...s,
-        from: d.from ?? JANE,
-        billTo: d.billTo ?? TRIO,
-      }));
-    } catch {
-      setInv(s => ({ ...s, from: { ...JANE }, billTo: { ...TRIO } }));
-    }
+  function applyPreset(p: Preset) {
+    setInv(s => ({ ...s, from: { ...p.from }, billTo: { ...p.billTo } }));
+    setActiveId(p.id);
+  }
+  function saveNewPreset(name: string) {
+    const p: Preset = { id: newId(), name, from: { ...inv.from }, billTo: { ...inv.billTo } };
+    storePresets([...presets, p]);
+    setActiveId(p.id);
+  }
+  function overwritePreset(id: string) {
+    storePresets(presets.map(p => p.id === id ? { ...p, from: { ...inv.from }, billTo: { ...inv.billTo } } : p));
+  }
+  function deletePreset(id: string) {
+    storePresets(presets.filter(p => p.id !== id));
+    if (activeId === id) setActiveId(null);
   }
 
   function autoInvoiceNo() {
@@ -375,13 +487,19 @@ export default function InvoiceTab() {
           <p className="text-sm text-bark-light mt-1 max-w-xl">{t("invoice.intro")}</p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Btn variant="secondary" small onClick={loadDefaults}>{t("invoice.loadDefaults")}</Btn>
-          <Btn variant="secondary" small onClick={saveDefaults}>{t("invoice.saveDefaults")}</Btn>
-          {defaultsSaved && <span className="text-sm text-sage self-center">{t("invoice.saved")}</span>}
-          <Btn variant="secondary" small onClick={() => setInv(emptyState())}>{t("invoice.reset")}</Btn>
+          <Btn variant="secondary" small onClick={() => { setInv(emptyState()); setActiveId(null); }}>{t("invoice.reset")}</Btn>
         </div>
       </div>
 
+      <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_18rem] xl:items-start">
+      <div className="xl:order-2">
+        <PresetSidebar presets={presets} activeId={activeId}
+          suggestName={inv.billTo.name || inv.from.name}
+          onApply={applyPreset} onSaveNew={saveNewPreset}
+          onOverwrite={overwritePreset} onDelete={deletePreset} />
+      </div>
+
+      <div className="min-w-0 space-y-5 xl:order-1">
       {/* ── the sheet: same layout as the generated PDF ───────────────────── */}
       <div className="inv-shell">
         <div className="inv-sheet">
@@ -511,6 +629,8 @@ export default function InvoiceTab() {
       <div className="flex items-center justify-end gap-3 flex-wrap">
         <span className="text-sm text-bark-light">{t("invoice.reviewThen")}</span>
         <Btn onClick={generate} disabled={totals.due === 0}>{t("invoice.generate")}</Btn>
+      </div>
+      </div>
       </div>
     </div>
   );
