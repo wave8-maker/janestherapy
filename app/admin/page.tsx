@@ -97,6 +97,55 @@ function GripIcon() {
   );
 }
 
+// Where index `o` lands after the item at `from` is dragged to `to`.
+function movedIndex(o: number, from: number, to: number) {
+  if (o === from) return to;
+  if (from < to && o > from && o <= to) return o - 1;
+  if (from > to && o < from && o >= to) return o + 1;
+  return o;
+}
+
+// Ticked rows in a reorderable list, kept by index and carried along on drag.
+function useSelection() {
+  const [selected, setSelected] = useState<Set<number>>(new Set());
+  const toggle = (i: number) => setSelected(s => {
+    const next = new Set(s);
+    if (next.has(i)) next.delete(i); else next.add(i);
+    return next;
+  });
+  const move = (from: number, to: number) =>
+    setSelected(s => new Set([...s].map(o => movedIndex(o, from, to))));
+  const clear = () => setSelected(new Set());
+  const all = (count: number) => setSelected(new Set(Array.from({ length: count }, (_, i) => i)));
+  return { selected, toggle, move, clear, all };
+}
+
+function SelectBox({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <label className="flex items-center px-2 py-3 cursor-pointer">
+      <input type="checkbox" checked={checked} onChange={onChange}
+        className="h-5 w-5 accent-slate-900 cursor-pointer" />
+    </label>
+  );
+}
+
+function BulkBar({ count, total, onAll, onClear, onDelete }: {
+  count: number; total: number; onAll: () => void; onClear: () => void; onDelete: () => void;
+}) {
+  const { t } = useAdminLang();
+  if (count === 0) return null;
+  return (
+    <div className="sticky top-[env(safe-area-inset-top,0px)] z-10 flex flex-wrap items-center gap-3 rounded-xl border-2 border-red-300 bg-red-50 px-4 py-3">
+      <span className="font-semibold text-red-900">{t("bulk.selected").replace("{n}", String(count))}</span>
+      <div className="flex flex-wrap gap-2 ml-auto">
+        {count < total && <Btn small variant="secondary" onClick={onAll}>{t("bulk.selectAll")}</Btn>}
+        <Btn small variant="secondary" onClick={onClear}>{t("bulk.clear")}</Btn>
+        <Btn small variant="danger" onClick={onDelete}>{t("bulk.delete")}</Btn>
+      </div>
+    </div>
+  );
+}
+
 // ── SETTINGS TAB ─────────────────────────────────────────────────────────────
 function SettingsTab() {
   const { t } = useAdminLang();
@@ -166,6 +215,7 @@ function ServicesTab() {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
   const canDrag = useRef(false);
+  const sel = useSelection();
 
   const [error, setError] = useState("");
 
@@ -200,13 +250,8 @@ function ServicesTab() {
       next.splice(toIdx, 0, item);
       return next;
     });
-    setOpen(o => {
-      if (o === null) return null;
-      if (o === dragIdx) return toIdx;
-      if (dragIdx < toIdx && o > dragIdx && o <= toIdx) return o - 1;
-      if (dragIdx > toIdx && o < dragIdx && o >= toIdx) return o + 1;
-      return o;
-    });
+    setOpen(o => o === null ? null : movedIndex(o, dragIdx, toIdx));
+    sel.move(dragIdx, toIdx);
     setDragIdx(null); setDragOver(null);
   }
 
@@ -218,11 +263,20 @@ function ServicesTab() {
     if (!confirm(t("services.confirmRemove"))) return;
     setServices(s => s.filter((_, idx) => idx !== i));
     setOpen(null);
+    sel.clear();
+  }
+  function removeSelected() {
+    if (!confirm(t("services.confirmRemoveMany").replace("{n}", String(sel.selected.size)))) return;
+    setServices(s => s.filter((_, idx) => !sel.selected.has(idx)));
+    setOpen(null);
+    sel.clear();
   }
 
   return (
     <div className="space-y-2">
       <LoadError code={error} />
+      <BulkBar count={sel.selected.size} total={services.length}
+        onAll={() => sel.all(services.length)} onClear={sel.clear} onDelete={removeSelected} />
       {services.map((svc, i) => (
         <div key={i}
           draggable
@@ -239,6 +293,7 @@ function ServicesTab() {
             >
               <GripIcon />
             </span>
+            <SelectBox checked={sel.selected.has(i)} onChange={() => sel.toggle(i)} />
             <button onClick={() => setOpen(open === i ? null : i)}
               className="flex-1 flex items-center px-2 py-3 text-left">
               <span className="font-medium text-bark">{svc.name || t("common.untitled")}</span>
@@ -302,6 +357,7 @@ function AddonsTab() {
   const [dragIdx, setDragIdx] = useState<number | null>(null);
   const [dragOver, setDragOver] = useState<number | null>(null);
   const canDrag = useRef(false);
+  const sel = useSelection();
 
   const [error, setError] = useState("");
 
@@ -336,13 +392,8 @@ function AddonsTab() {
       next.splice(toIdx, 0, item);
       return next;
     });
-    setOpen(o => {
-      if (o === null) return null;
-      if (o === dragIdx) return toIdx;
-      if (dragIdx < toIdx && o > dragIdx && o <= toIdx) return o - 1;
-      if (dragIdx > toIdx && o < dragIdx && o >= toIdx) return o + 1;
-      return o;
-    });
+    setOpen(o => o === null ? null : movedIndex(o, dragIdx, toIdx));
+    sel.move(dragIdx, toIdx);
     setDragIdx(null); setDragOver(null);
   }
 
@@ -350,11 +401,20 @@ function AddonsTab() {
     if (!confirm(t("addons.confirmRemove"))) return;
     setAddons(a => a.filter((_, idx) => idx !== i));
     setOpen(null);
+    sel.clear();
+  }
+  function removeSelected() {
+    if (!confirm(t("addons.confirmRemoveMany").replace("{n}", String(sel.selected.size)))) return;
+    setAddons(a => a.filter((_, idx) => !sel.selected.has(idx)));
+    setOpen(null);
+    sel.clear();
   }
 
   return (
     <div className="space-y-2">
       <LoadError code={error} />
+      <BulkBar count={sel.selected.size} total={addons.length}
+        onAll={() => sel.all(addons.length)} onClear={sel.clear} onDelete={removeSelected} />
       {addons.map((addon, i) => (
         <div key={i}
           draggable
@@ -371,6 +431,7 @@ function AddonsTab() {
             >
               <GripIcon />
             </span>
+            <SelectBox checked={sel.selected.has(i)} onChange={() => sel.toggle(i)} />
             <button onClick={() => setOpen(open === i ? null : i)}
               className="flex-1 flex items-center px-2 py-3 text-left">
               <span className="font-medium text-bark">{addon.name || t("common.untitled")}</span>

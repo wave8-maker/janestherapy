@@ -71,6 +71,7 @@ const STRINGS = {
 
   // ── services ───────────────────────────────────────────────────────────────
   "services.confirmRemove": ["确认删除此服务？", "Remove this service?"],
+  "services.confirmRemoveMany": ["确认删除选中的 {n} 个服务？", "Remove the {n} selected services?"],
   "services.name": ["服务名称", "Service Name"],
   "services.badge": ["标签（可选）", "Badge (optional)"],
   "services.badgePlaceholder": ["如：Signature 👍", "e.g. Signature 👍"],
@@ -83,6 +84,13 @@ const STRINGS = {
 
   // ── add-ons ────────────────────────────────────────────────────────────────
   "addons.confirmRemove": ["确认删除此附加服务？", "Remove this add-on?"],
+  "addons.confirmRemoveMany": ["确认删除选中的 {n} 个附加服务？", "Remove the {n} selected add-ons?"],
+
+  // ── bulk select ────────────────────────────────────────────────────────────
+  "bulk.selected": ["已选 {n} 项", "{n} selected"],
+  "bulk.selectAll": ["全选", "Select all"],
+  "bulk.clear": ["取消选择", "Clear"],
+  "bulk.delete": ["删除所选", "Delete selected"],
   "addons.name": ["附加服务名称", "Add-on Name"],
   "addons.durationPlaceholder": ["时长（无则留空）", "Duration (blank if none)"],
   "addons.pricePlaceholder": ["价格，如 $30", "Price, e.g. $30"],
