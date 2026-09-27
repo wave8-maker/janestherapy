@@ -73,7 +73,7 @@ export default async function HomePage() {
               Massage Therapy · San Jose, CA
             </p>
             <h1 className="reveal reveal-2 font-display text-4xl sm:text-5xl lg:text-6xl font-semibold leading-[1.05] mt-5">
-              Therapeutic massage in San Jose, made personal.
+              Medical massage in San Jose, made personal.
             </h1>
             <p className="reveal reveal-3 mt-6 text-white/85 text-lg leading-relaxed max-w-md">
               Deep tissue, Swedish, lymphatic drainage, and Traditional Chinese
