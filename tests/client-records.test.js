@@ -140,6 +140,7 @@ test("admin API protects records and supports manual records and immutable intak
   };
   const types = load("app/lib/client-types.ts");
   const routes = load("app/api/admin/clients/route.ts", {
+    "@/app/lib/client-intakes": { syncClientIntakes: async () => {} },
     "@/app/lib/admin-auth": { isAdminAuthenticated: async () => authenticated },
     "@/app/lib/intake-storage": {
       getIntake: async (id) => (id === intake.id ? intake : null),
@@ -305,23 +306,164 @@ test("admin API protects records and supports manual records and immutable intak
   assert.equal(summary.sessions, undefined);
 });
 
-test('private Blob reads bypass cache, list every page, and use conditional writes', async () => {
-  const calls=[];
-  const blobStore=load('app/lib/client-storage.ts',{'@vercel/blob':{
-    get:async(key,options)=>{calls.push(['get',key,options]);return {stream:new Response(JSON.stringify({id:key})).body,blob:{etag:'version-1'}};},
-    put:async(key,value,options)=>{calls.push(['put',key,options]);if(options.ifMatch==='stale')throw new Error('Precondition failed');},
-    list:async(options)=>{calls.push(['list',options]);return options.cursor?{blobs:[{pathname:'clients/profiles/b.json'}],hasMore:false}:{blobs:[{pathname:'clients/profiles/a.json'}],hasMore:true,cursor:'page-2'};},
-  }});
-  process.env.BLOB_READ_WRITE_TOKEN='test-only-mock';
+test("private Blob reads bypass cache, list every page, and use conditional writes", async () => {
+  const calls = [];
+  const blobStore = load("app/lib/client-storage.ts", {
+    "@vercel/blob": {
+      get: async (key, options) => {
+        calls.push(["get", key, options]);
+        return {
+          stream: new Response(JSON.stringify({ id: key })).body,
+          blob: { etag: "version-1" },
+        };
+      },
+      put: async (key, value, options) => {
+        calls.push(["put", key, options]);
+        if (options.ifMatch === "stale") throw new Error("Precondition failed");
+      },
+      list: async (options) => {
+        calls.push(["list", options]);
+        return options.cursor
+          ? { blobs: [{ pathname: "clients/profiles/b.json" }], hasMore: false }
+          : {
+              blobs: [{ pathname: "clients/profiles/a.json" }],
+              hasMore: true,
+              cursor: "page-2",
+            };
+      },
+    },
+  });
+  process.env.BLOB_READ_WRITE_TOKEN = "test-only-mock";
   try {
-    assert.equal((await blobStore.listRecords('profiles')).length,2);
-    assert.equal(calls.filter(c=>c[0]==='list').length,2);
-    assert.ok(calls.filter(c=>c[0]==='get').every(c=>c[2].access==='private'&&c[2].useCache===false));
-    await blobStore.writeRecord('profiles/a',{name:'Changed'},'version-1');
-    const options=calls.find(c=>c[0]==='put')[2];
-    assert.equal(options.ifMatch,'version-1');assert.equal(options.allowOverwrite,true);assert.equal(options.access,'private');
-    await assert.rejects(blobStore.writeRecord('profiles/a',{},'stale'),blobStore.RecordConflict);
-    await blobStore.writeRecord('profiles/new',{});
-    assert.equal(calls.at(-1)[2].allowOverwrite,false);
-  } finally {delete process.env.BLOB_READ_WRITE_TOKEN;}
+    assert.equal((await blobStore.listRecords("profiles")).length, 2);
+    assert.equal(calls.filter((c) => c[0] === "list").length, 2);
+    assert.ok(
+      calls
+        .filter((c) => c[0] === "get")
+        .every((c) => c[2].access === "private" && c[2].useCache === false),
+    );
+    await blobStore.writeRecord("profiles/a", { name: "Changed" }, "version-1");
+    const options = calls.find((c) => c[0] === "put")[2];
+    assert.equal(options.ifMatch, "version-1");
+    assert.equal(options.allowOverwrite, true);
+    assert.equal(options.access, "private");
+    await assert.rejects(
+      blobStore.writeRecord("profiles/a", {}, "stale"),
+      blobStore.RecordConflict,
+    );
+    await blobStore.writeRecord("profiles/new", {});
+    assert.equal(calls.at(-1)[2].allowOverwrite, false);
+  } finally {
+    delete process.env.BLOB_READ_WRITE_TOKEN;
+  }
+});
+
+test("intakes become linked client profiles automatically without duplicating visits or overwriting notes", async () => {
+  const profiles = new Map();
+  const links = new Map();
+  const intakes = [
+    {
+      id: "form-1",
+      name: "Jane Example",
+      phone: "(408) 555-0101",
+      email: "Jane@example.com",
+      birthday: "01/02/1990",
+      submittedAt: "2026-01-01T00:00:00Z",
+    },
+    {
+      id: "form-2",
+      name: " jane example ",
+      phone: "4085550101",
+      email: "jane@example.com",
+      birthday: "01/02/1990",
+      submittedAt: "2026-02-01T00:00:00Z",
+    },
+    {
+      id: "form-3",
+      name: "Jane Example",
+      phone: "4085559999",
+      email: "other@example.com",
+      birthday: "01/02/1990",
+      submittedAt: "2026-03-01T00:00:00Z",
+    },
+  ];
+  const original = JSON.stringify(intakes);
+  const storage = {
+    RecordConflict: store.RecordConflict,
+    listRecords: async (kind) => [
+      ...(kind === "profiles" ? profiles : links).values(),
+    ],
+    readRecord: async (key) => {
+      const [kind, id] = key.split("/");
+      const value = (kind === "profiles" ? profiles : links).get(id);
+      return value ? { value, version: "v1" } : null;
+    },
+    writeRecord: async (key, value) => {
+      const [kind, id] = key.split("/");
+      const map = kind === "profiles" ? profiles : links;
+      if (map.has(id)) throw new store.RecordConflict();
+      map.set(id, value);
+    },
+  };
+  const sync = load("app/lib/client-intakes.ts", {
+    "@/app/lib/intake-storage": { listIntakes: async () => intakes },
+    "@/app/lib/client-storage": storage,
+  });
+  await sync.syncClientIntakes();
+  assert.equal(profiles.size, 2);
+  assert.equal(links.size, 3);
+  assert.equal(links.get("form-1").clientId, links.get("form-2").clientId);
+  assert.notEqual(links.get("form-1").clientId, links.get("form-3").clientId);
+  const client = profiles.get(links.get("form-1").clientId);
+  assert.equal(client.birthday, "1990-01-02");
+  assert.equal(client.sessions.length, 0);
+  client.notes.push({ text: "Existing staff note" });
+  await sync.syncClientIntakes();
+  assert.equal(profiles.size, 2);
+  assert.equal(client.notes[0].text, "Existing staff note");
+  assert.equal(JSON.stringify(intakes), original);
+  // Existing manual client with a unique matching identity is reused.
+  profiles.set("manual", {
+    ...client,
+    id: "manual",
+    name: "Manual client",
+    phone: "6505550101",
+    email: "manual@example.com",
+  });
+  intakes.push({
+    id: "form-manual",
+    name: "Manual client",
+    phone: "650-555-0101",
+    email: "manual@example.com",
+    birthday: "1990-01-02",
+    submittedAt: "2026-04-01T00:00:00Z",
+  });
+  await sync.syncClientIntakes();
+  assert.equal(links.get("form-manual").clientId, "manual");
+  // Interrupted sync (profile saved, link absent) resumes without another profile.
+  links.delete("form-3");
+  await sync.syncClientIntakes();
+  assert.equal(profiles.size, 3);
+});
+
+test('automatic intake matching keeps ambiguous and name-only matches separate', async () => {
+  const base={name:'Same Name',phone:'4085550100',email:'same@example.com',birthday:'',precautions:'',sessions:[],notes:[],revision:1};
+  const profiles=new Map([['one',{...base,id:'one'}],['two',{...base,id:'two'}]]);const links=new Map();
+  const storage={RecordConflict:store.RecordConflict,listRecords:async kind=>[...(kind==='profiles'?profiles:links).values()],readRecord:async key=>{const [kind,id]=key.split('/');const value=(kind==='profiles'?profiles:links).get(id);return value?{value,version:'v'}:null;},writeRecord:async(key,value)=>{const[kind,id]=key.split('/');const target=kind==='profiles'?profiles:links;if(target.has(id))throw new store.RecordConflict();target.set(id,value);}};
+  const forms=[{...base,id:'ambiguous',submittedAt:'2026-01-01'},{...base,phone:'',email:'',id:'name-only',submittedAt:'2026-01-02'}];
+  const sync=load('app/lib/client-intakes.ts',{'@/app/lib/client-storage':storage,'@/app/lib/intake-storage':{listIntakes:async()=>forms}});
+  await Promise.all([sync.syncClientIntakes(),sync.syncClientIntakes()]);
+  assert.equal(profiles.size,4);
+  assert.equal(links.size,2);
+  assert.ok(!['one','two'].includes(links.get('ambiguous').clientId));
+  assert.notEqual(links.get('ambiguous').clientId,links.get('name-only').clientId);
+});
+
+test('intake synchronization sees every page of private Blob submissions', async()=>{
+  const storage=load('app/lib/intake-storage.ts',{'./intake-types':{normalizeSubmission:value=>value},'@vercel/blob':{
+    list:async({cursor})=>cursor?{blobs:[{pathname:'intakes/second.json'}],hasMore:false}:{blobs:[{pathname:'intakes/first.json'}],hasMore:true,cursor:'next'},
+    get:async key=>({stream:new Response(JSON.stringify({id:key,submittedAt:'2026-01-01T00:00:00Z'})).body}),
+  }});
+  process.env.BLOB_READ_WRITE_TOKEN='mock-only';
+  try {assert.equal((await storage.listIntakes()).length,2);}finally{delete process.env.BLOB_READ_WRITE_TOKEN;}
 });

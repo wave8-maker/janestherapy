@@ -166,11 +166,19 @@ required), search by name/phone/email, editable massage records, and dated clien
 notes with optional pinning. Each massage needs a service date and at least one
 detail; date plus session notes is enough. No Square integration is involved.
 
-Open **Intake forms** and view a submission to link it to an existing client or
-create a new client from its contact details. Linking never modifies the signed
-submission and never counts it as a completed massage. A linked intake cannot be
-deleted from the intake tool. The client's Intake section reuses the existing
-viewer and Print/Save PDF action.
+Opening **Clients** automatically includes existing intake submissions. A unique
+match on normalized name plus phone or email reuses an existing profile, unless
+contact details or birthdays conflict. Otherwise a separate profile is created;
+name alone never merges people. Repeated loads are idempotent, and existing
+profile edits and notes are preserved. A new intake appears on the next client
+list load or refresh.
+
+The client list shows the number of linked forms. Inside the profile, the
+**Intake form / 登记表** section expands in place to show the original form and
+Print/Save PDF. There is no separate intake-management screen or manual linking
+step. Multiple submissions remain available by date. Intake submissions never
+count as completed massages. Signed originals are unchanged, and linked forms
+cannot be deleted through the legacy intake endpoint.
 
 Profiles, sessions, and notes are private Blob JSON records under
 `clients/profiles/`; intake links live under `clients/links/`. Local development

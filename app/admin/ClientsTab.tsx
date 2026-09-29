@@ -2,9 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAdminLang } from "./i18n";
-import IntakeTab, { IntakeDetail } from "./IntakeTab";
-import { buildIntakeHTML } from "./intakePrint";
-import type { IntakeSubmission } from "@/app/lib/intake-types";
+import ClientIntakeSection from "./ClientIntakeSection";
 import type {
   ClientRecord,
   ClientSummary,
@@ -32,7 +30,7 @@ type Editor =
   | { kind: "profile"; initial: ClientProfile }
   | { kind: "session"; id: string; initial: SessionInput }
   | { kind: "note"; id: string; initial: NoteInput };
-type DetailTab = "sessions" | "notes" | "intakes";
+type DetailTab = "sessions" | "notes";
 async function api(url: string, method = "GET", body?: unknown) {
   const response = await fetch(url, {
     method,
@@ -57,27 +55,17 @@ export default function ClientsTab({
   const [clients, setClients] = useState<ClientSummary[]>([]);
   const [links, setLinks] = useState<IntakeLink[]>([]);
   const [client, setClient] = useState<ClientRecord | null>(null);
-  const [screen, setScreen] = useState<
-    "list" | "detail" | "new" | "intake" | "link"
-  >("list");
+  const [screen, setScreen] = useState<"list" | "detail" | "new">("list");
   const [detailTab, setDetailTab] = useState<DetailTab>("sessions");
   const [query, setQuery] = useState("");
   const [editor, setEditor] = useState<Editor | null>(null);
   const [newId, setNewId] = useState("");
   const [newProfile, setNewProfile] = useState<ClientProfile>(emptyProfile);
-  const [sourceIntake, setSourceIntake] = useState<IntakeSubmission | null>(
-    null,
-  );
-  const [intakeDetail, setIntakeDetail] = useState<IntakeSubmission | null>(
-    null,
-  );
   const [busy, setBusy] = useState(false);
   const [loading, setLoading] = useState(true);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
-  const [linkQuery, setLinkQuery] = useState("");
-  const [selectedClientId, setSelectedClientId] = useState("");
   useEffect(() => {
     onDirtyChange?.(dirty);
     return () => onDirtyChange?.(false);
@@ -91,9 +79,17 @@ export default function ClientsTab({
     return () => window.removeEventListener("beforeunload", before);
   }, [dirty]);
   async function load() {
+    // Sync is explicit authenticated POST work; GET remains read-only.
+    let syncError: unknown;
+    try {
+      await api("/api/admin/clients", "POST", { action: "syncIntakes" });
+    } catch (error) {
+      syncError = error;
+    }
     const data = await api("/api/admin/clients");
     setClients(data.clients);
     setLinks(data.links);
+    if (syncError) throw syncError;
   }
   useEffect(() => {
     load()
@@ -149,31 +145,21 @@ export default function ClientsTab({
     await run(async () => {
       const data = await api(`/api/admin/clients?id=${encodeURIComponent(id)}`);
       setClient(data.client);
+      setLinks((old) => [
+        ...old.filter((link) => link.clientId !== id),
+        ...data.links,
+      ]);
       setScreen("detail");
       setDetailTab("sessions");
-      setIntakeDetail(null);
       setEditor(null);
       setDirty(false);
     });
   }
-  function startNew(intake?: IntakeSubmission) {
+  function startNew() {
     setNewId(crypto.randomUUID());
-    setNewProfile(
-      intake
-        ? {
-            ...emptyProfile,
-            name: intake.name,
-            phone: intake.phone,
-            email: intake.email,
-            birthday: /^\d{4}-\d{2}-\d{2}$/.test(intake.birthday)
-              ? intake.birthday
-              : "",
-          }
-        : { ...emptyProfile },
-    );
-    setSourceIntake(intake ?? null);
+    setNewProfile({ ...emptyProfile });
     setScreen("new");
-    setDirty(Boolean(intake));
+    setDirty(false);
   }
   async function create(profile: ClientProfile) {
     await run(async () => {
@@ -186,15 +172,7 @@ export default function ClientsTab({
       setDirty(false);
       setScreen("detail");
       setDetailTab("sessions");
-      if (sourceIntake) {
-        setScreen("link");
-        setSelectedClientId(data.client.id);
-        setNotice(
-          zh
-            ? "档案已建立，请确认关联这份 Intake。"
-            : "Client created. Confirm linking this intake.",
-        );
-      } else setNotice(zh ? "客户档案已建立。" : "Client created.");
+      setNotice(zh ? "客户档案已建立。" : "Client created.");
     });
   }
   async function save(
@@ -224,41 +202,7 @@ export default function ClientsTab({
   function begin(value: Editor) {
     if (canLeave()) {
       setEditor(value);
-      setIntakeDetail(null);
     }
-  }
-  function showLink(submission: IntakeSubmission) {
-    setSourceIntake(submission);
-    setSelectedClientId(
-      links.find((l) => l.intakeId === submission.id)?.clientId ?? "",
-    );
-    setLinkQuery("");
-    setScreen("link");
-  }
-  async function link() {
-    if (!sourceIntake || !selectedClientId) return;
-    await run(async () => {
-      await api("/api/admin/clients", "PATCH", {
-        id: selectedClientId,
-        action: "linkIntake",
-        intakeId: sourceIntake.id,
-      });
-      await load();
-      setNotice(
-        zh
-          ? "已关联，原始 Intake 保持不变。"
-          : "Linked. The original intake is unchanged.",
-      );
-    });
-  }
-  function print(submission: IntakeSubmission) {
-    const w = window.open("", "_blank");
-    if (!w) {
-      setError("popup");
-      return;
-    }
-    w.document.write(buildIntakeHTML(submission));
-    w.document.close();
   }
   const dateTime = (value: string) =>
     new Date(value).toLocaleString(zh ? "zh-CN" : "en-US");
@@ -285,7 +229,6 @@ export default function ClientsTab({
             onClick={() => {
               if (canLeave()) {
                 setScreen("list");
-                setSourceIntake(null);
                 void run(load);
               }
             }}
@@ -297,12 +240,11 @@ export default function ClientsTab({
             className={buttonClass}
             onClick={() => {
               if (canLeave()) {
-                setScreen("intake");
                 void run(load);
               }
             }}
           >
-            {zh ? "Intake 登记表" : "Intake forms"}
+            {zh ? "刷新" : "Refresh"}
           </button>
         </div>
       </div>
@@ -368,8 +310,8 @@ export default function ClientsTab({
               </div>
               <p className="text-sm text-slate-600">
                 {zh
-                  ? "手动管理客户与按摩记录。已有 Intake 可在登记表中关联或建立档案。"
-                  : "Manage clients and massage records manually. Link existing intake forms or create clients from them."}
+                  ? "登记表已直接归入客户档案，打开客户即可查看并添加按摩记录。"
+                  : "Intake forms are included in client profiles. Open a client to review the form and add massage records."}
               </p>
               {clients.filter((c) => matchesClient(c, query)).length === 0 && (
                 <div className={panelClass}>
@@ -396,6 +338,11 @@ export default function ClientsTab({
                     </div>
                     <div className="text-sm text-slate-600">
                       <p>
+                        {zh ? "登记表：" : "Intake: "}
+                        {links.filter((link) => link.clientId === c.id)
+                          .length || (zh ? "暂无" : "None")}
+                      </p>
+                      <p>
                         {zh ? "最近按摩：" : "Last visit: "}
                         {c.lastVisit || (zh ? "暂无" : "None")}
                       </p>
@@ -419,105 +366,12 @@ export default function ClientsTab({
               onDirty={() => setDirty(true)}
               onSave={create}
               onCancel={() => {
-                if (canLeave()) setScreen(sourceIntake ? "link" : "list");
+                if (canLeave()) setScreen("list");
               }}
               onUseClient={(id) => {
-                if (canLeave()) {
-                  if (sourceIntake) {
-                    setSelectedClientId(id);
-                    setScreen("link");
-                  } else void openClient(id);
-                }
+                if (canLeave()) void openClient(id);
               }}
             />
-          )}
-          {screen === "intake" && <IntakeTab onAssign={showLink} />}
-          {screen === "link" && sourceIntake && (
-            <div className={panelClass}>
-              <h3 className="text-lg font-bold">
-                {zh ? "关联 Intake" : "Link intake"} · {sourceIntake.name}
-              </h3>
-              <p className="text-sm text-slate-600">
-                {[
-                  sourceIntake.phone,
-                  sourceIntake.email,
-                  dateTime(sourceIntake.submittedAt),
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}
-              </p>
-              {links.some((l) => l.intakeId === sourceIntake.id) ? (
-                <button
-                  className={primaryClass}
-                  disabled={busy}
-                  onClick={() =>
-                    void openClient(
-                      links.find((l) => l.intakeId === sourceIntake.id)!
-                        .clientId,
-                    )
-                  }
-                >
-                  {zh ? "查看已关联客户" : "View linked client"}
-                </button>
-              ) : (
-                <>
-                  <FieldSearch
-                    value={linkQuery}
-                    onChange={setLinkQuery}
-                    zh={zh}
-                  />
-                  <label className="block space-y-2">
-                    <span>
-                      {zh
-                        ? "选择已有客户（请核对联系方式）"
-                        : "Choose a client (check contact details)"}
-                    </span>
-                    <select
-                      className={controlClass}
-                      value={selectedClientId}
-                      disabled={busy}
-                      onChange={(e) => setSelectedClientId(e.target.value)}
-                    >
-                      <option value="">
-                        {zh ? "请选择客户" : "Select a client"}
-                      </option>
-                      {clients
-                        .filter(
-                          (c) =>
-                            c.id === selectedClientId ||
-                            matchesClient(c, linkQuery),
-                        )
-                        .map((c) => (
-                          <option key={c.id} value={c.id}>
-                            {c.name} ·{" "}
-                            {c.phone ||
-                              c.email ||
-                              (zh ? "未填写联系方式" : "No contact details")}
-                          </option>
-                        ))}
-                    </select>
-                  </label>
-                  <div className="flex flex-wrap gap-3">
-                    <button
-                      className={primaryClass}
-                      disabled={busy || !selectedClientId}
-                      onClick={() => void link()}
-                    >
-                      {zh ? "确认关联" : "Confirm link"}
-                    </button>
-                    <button
-                      className={buttonClass}
-                      disabled={busy}
-                      onClick={() => startNew(sourceIntake)}
-                    >
-                      {zh
-                        ? "从这份 Intake 新建档案"
-                        : "Create client from this intake"}
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
           )}
           {screen === "detail" && client && (
             <>
@@ -586,6 +440,14 @@ export default function ClientsTab({
                   {dateTime(client.updatedAt)}
                 </p>
               </div>
+              {!editor && (
+                <ClientIntakeSection
+                  key={
+                    client.id + linked.map((link) => link.intakeId).join(",")
+                  }
+                  links={linked}
+                />
+              )}
               {editor?.kind === "profile" && (
                 <ProfileForm
                   key="profile"
@@ -631,7 +493,7 @@ export default function ClientsTab({
                     role="tablist"
                     aria-label={zh ? "客户档案内容" : "Client sections"}
                   >
-                    {(["sessions", "notes", "intakes"] as const).map((tab) => (
+                    {(["sessions", "notes"] as const).map((tab) => (
                       <button
                         key={tab}
                         role="tab"
@@ -642,24 +504,19 @@ export default function ClientsTab({
                         disabled={busy}
                         onClick={() => {
                           setDetailTab(tab);
-                          setIntakeDetail(null);
                         }}
                       >
                         {tab === "sessions"
                           ? zh
                             ? "按摩记录"
                             : "Massage records"
-                          : tab === "notes"
-                            ? zh
-                              ? "客户 Notes"
-                              : "Client notes"
-                            : "Intake"}{" "}
+                          : zh
+                            ? "客户 Notes"
+                            : "Client notes"}{" "}
                         (
                         {tab === "sessions"
                           ? client.sessions.length
-                          : tab === "notes"
-                            ? client.notes.length
-                            : linked.length}
+                          : client.notes.length}
                         )
                       </button>
                     ))}
@@ -777,55 +634,6 @@ export default function ClientsTab({
                       ))}
                     </>
                   )}
-                  {detailTab === "intakes" &&
-                    (intakeDetail ? (
-                      <IntakeDetail
-                        submission={intakeDetail}
-                        onBack={() => setIntakeDetail(null)}
-                        onPrint={() => print(intakeDetail)}
-                      />
-                    ) : (
-                      <>
-                        <p className="text-sm text-slate-600">
-                          {zh
-                            ? "原始登记与签署记录。查看历史申报时请留意提交日期。"
-                            : "Original intake and signing records. Check submission dates when reviewing disclosures."}
-                        </p>
-                        {!linked.length && (
-                          <p className={panelClass}>
-                            {zh
-                              ? "尚无关联的 Intake。可到「Intake 登记表」选择关联。"
-                              : "No linked intake. Choose Intake forms to link an existing submission."}
-                          </p>
-                        )}
-                        {[...linked]
-                          .sort((a, b) =>
-                            b.createdAt.localeCompare(a.createdAt),
-                          )
-                          .map((l) => (
-                            <button
-                              key={l.intakeId}
-                              className={`${buttonClass} block w-full text-left`}
-                              disabled={busy}
-                              onClick={() =>
-                                void run(async () => {
-                                  const data = await api(
-                                    "/api/admin/intake",
-                                    "POST",
-                                    { id: l.intakeId },
-                                  );
-                                  setIntakeDetail(data.submission);
-                                })
-                              }
-                            >
-                              {zh ? "查看 Intake" : "View intake"} ·{" "}
-                              {l.submittedAt
-                                ? dateTime(l.submittedAt)
-                                : `${zh ? "关联于 " : "Linked "}${dateTime(l.createdAt)}`}
-                            </button>
-                          ))}
-                      </>
-                    ))}
                 </>
               )}
             </>
@@ -833,26 +641,5 @@ export default function ClientsTab({
         </>
       )}
     </div>
-  );
-}
-function FieldSearch({
-  value,
-  onChange,
-  zh,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-  zh: boolean;
-}) {
-  return (
-    <label className="block space-y-1">
-      <span>{zh ? "搜索客户" : "Search clients"}</span>
-      <input
-        className={controlClass}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={zh ? "姓名、电话、邮箱" : "Name, phone, email"}
-      />
-    </label>
   );
 }

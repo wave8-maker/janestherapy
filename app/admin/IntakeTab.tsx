@@ -122,7 +122,7 @@ function BodyMarkers({ submission }: { submission: IntakeSubmission }) {
 
 export function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
   submission: IntakeSubmission;
-  onBack: () => void;
+  onBack?: () => void;
   onDelete?: () => void;
   onPrint: () => void;
 }) {
@@ -133,7 +133,7 @@ export function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between gap-2 flex-wrap">
-        <Btn variant="secondary" small onClick={onBack}>{t("intake.back")}</Btn>
+        {onBack && <Btn variant="secondary" small onClick={onBack}>{t("intake.back")}</Btn>}
         <div className="flex gap-2">
           <IconBtn onClick={onPrint} label={t("intake.print")}>
             <PrinterIcon />

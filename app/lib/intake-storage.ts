@@ -73,7 +73,13 @@ export async function saveIntake(
 
 export async function listIntakes(): Promise<IntakeSubmission[]> {
   if (useBlob()) {
-    const { blobs } = await list({ prefix: BLOB_PREFIX });
+    const blobs: { pathname: string }[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await list({ prefix: BLOB_PREFIX, cursor });
+      blobs.push(...page.blobs);
+      cursor = page.hasMore ? page.cursor : undefined;
+    } while (cursor);
     const submissions = await Promise.all(
       blobs.map(async (blob) => readBlobSubmission(blob.pathname))
     );

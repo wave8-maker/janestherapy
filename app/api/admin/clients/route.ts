@@ -1,4 +1,5 @@
 import { isAdminAuthenticated } from "@/app/lib/admin-auth";
+import { syncClientIntakes } from "@/app/lib/client-intakes";
 import { getIntake } from "@/app/lib/intake-storage";
 import {
   ClientInputError,
@@ -63,6 +64,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     if (!body || typeof body !== "object")
       throw new ClientInputError("Invalid input");
+    if (body.action === "syncIntakes") {
+      await syncClientIntakes();
+      return response({ ok: true });
+    }
     const clientId = id(body.id);
     const profile = validateProfile(body.profile);
     const now = new Date().toISOString();
