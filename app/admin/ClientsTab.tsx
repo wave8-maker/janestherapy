@@ -399,19 +399,6 @@ export default function ClientsTab({
                     >
                       {zh ? "编辑档案" : "Edit profile"}
                     </button>
-                    <button
-                      disabled={busy}
-                      className={primaryClass}
-                      onClick={() => {
-                        begin({
-                          kind: "session",
-                          id: crypto.randomUUID(),
-                          initial: emptySession(),
-                        });
-                      }}
-                    >
-                      {zh ? "＋ 按摩记录" : "＋ Massage record"}
-                    </button>
                   </div>
                 </div>
                 {client.precautions && (
@@ -523,6 +510,19 @@ export default function ClientsTab({
                   </div>
                   {detailTab === "sessions" && (
                     <>
+                      <button
+                        disabled={busy}
+                        className={primaryClass}
+                        onClick={() => {
+                          begin({
+                            kind: "session",
+                            id: crypto.randomUUID(),
+                            initial: emptySession(),
+                          });
+                        }}
+                      >
+                        {zh ? "＋ 按摩记录" : "＋ Massage record"}
+                      </button>
                       {!client.sessions.length && (
                         <p className={panelClass}>
                           {zh
