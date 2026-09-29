@@ -207,6 +207,21 @@ export default function ClientsTab({
     );
   return (
     <div className={styles.page}>
+      {screen !== "list" && (
+        <button
+          type="button"
+          disabled={busy}
+          className={styles.backLink}
+          onClick={() => {
+            if (canLeave()) {
+              setScreen("list");
+              void run(load);
+            }
+          }}
+        >
+          {zh ? "← 返回客户列表" : "← Back to client list"}
+        </button>
+      )}
       <div className={styles.pageHeader}>
         <div>
           <h2 className={styles.title}>{zh ? "客户档案" : "Clients"}</h2>
@@ -217,18 +232,6 @@ export default function ClientsTab({
           </p>
         </div>
         <div className="flex flex-wrap gap-2">
-          <button
-            disabled={busy}
-            className={buttonClass}
-            onClick={() => {
-              if (canLeave()) {
-                setScreen("list");
-                void run(load);
-              }
-            }}
-          >
-            {zh ? "客户列表" : "Client list"}
-          </button>
           <button
             disabled={busy}
             className={`${primaryClass} ${styles.refresh}`}
