@@ -6,9 +6,10 @@ import type { IntakeSubmission } from "@/app/lib/intake-types";
 import { IntakeDetail } from "./IntakeTab";
 import { buildIntakeHTML } from "./intakePrint";
 import { useAdminLang } from "./i18n";
-import { buttonClass, controlClass, panelClass } from "./ClientForms";
+import { ClientIcon, styles } from "./ClientLayout";
+import { buttonClass, controlClass } from "./ClientForms";
 
-/** Signed intake belongs to the client page, alongside notes and massage records. */
+/** Signed intake belongs to the client page, alongside massage records. */
 export default function ClientIntakeSection({
   links,
 }: {
@@ -61,28 +62,43 @@ export default function ClientIntakeSection({
     windowRef.document.write(buildIntakeHTML(submission));
     windowRef.document.close();
   }
+  const selectedLink =
+    ordered.find((link) => link.intakeId === selectedId) ?? ordered[0];
   return (
     <section
-      className={panelClass}
+      className={`${styles.card} ${styles.intake}`}
       aria-label={zh ? "客户登记表" : "Client intake"}
     >
-      <div className="flex flex-wrap justify-between items-center gap-3">
-        <div>
-          <h3 className="font-bold text-lg">
-            {zh ? "登记表" : "Intake form"}
-            {links.length ? ` (${links.length})` : ""}
-          </h3>
-          <p className="text-sm text-slate-600">
-            {links.length
-              ? zh
-                ? "已关联此客户，保留原始健康申报和签署记录。"
-                : "Linked to this client, with original health disclosures and signing records."
-              : zh
-                ? "此客户尚未填写登记表。"
-                : "No intake form for this client yet."}
-          </p>
-        </div>
-        {links.length > 0 && (
+      <div className={styles.sectionHeader}>
+        <h3 className={styles.sectionTitle}>
+          <ClientIcon kind="document" />
+          {zh ? "登记表" : "Intake form"}
+          {links.length > 1 ? ` (${links.length})` : ""}
+        </h3>
+      </div>
+      {!links.length && (
+        <p className={styles.subtitle}>
+          {zh ? "此客户尚未填写登记表。" : "No intake form for this client yet."}
+        </p>
+      )}
+      {selectedLink && (
+        <div className={styles.intakeMeta}>
+          <dl className={styles.summary}>
+            <dt>
+              {selectedLink.submittedAt
+                ? zh
+                  ? "提交日期"
+                  : "Submitted"
+                : zh
+                  ? "关联日期"
+                  : "Linked on"}
+            </dt>
+            <dd>
+              {new Date(
+                selectedLink.submittedAt || selectedLink.createdAt,
+              ).toLocaleString(zh ? "zh-CN" : "en-US")}
+            </dd>
+          </dl>
           <button
             className={buttonClass}
             aria-expanded={open}
@@ -96,10 +112,10 @@ export default function ClientIntakeSection({
                 ? "查看登记表"
                 : "View intake"}
           </button>
-        )}
-      </div>
+        </div>
+      )}
       {open && (
-        <div className="space-y-4">
+        <div className={`${styles.intakeBody} space-y-4`}>
           {links.length > 1 && (
             <label className="block space-y-1">
               <span>{zh ? "登记日期" : "Submission date"}</span>

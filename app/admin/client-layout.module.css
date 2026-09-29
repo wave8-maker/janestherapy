@@ -1,0 +1,275 @@
+.page {
+  --client-ink: #0c1933;
+  --client-muted: #526681;
+  --client-line: #dbe4ef;
+  --client-green: #16883d;
+  color: var(--client-ink);
+  max-width: 1120px;
+  display: grid;
+  gap: 1.6rem;
+}
+.pageHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.title {
+  font-size: 1.8em;
+  line-height: 1.2;
+  font-weight: 750;
+  letter-spacing: -0.035em;
+  margin: 0;
+}
+.subtitle {
+  color: var(--client-muted);
+  line-height: 1.65;
+  margin-top: 0.65rem;
+  font-size: 0.95em;
+}
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.card {
+  background: #fff;
+  border: 1px solid var(--client-line);
+  border-radius: 12px;
+  padding: clamp(1.15rem, 3vw, 2rem);
+  min-width: 0;
+}
+.profile {
+  display: grid;
+  gap: 1.1rem;
+}
+.profileHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+}
+.profileText {
+  min-width: 0;
+  flex: 1 1 22rem;
+}
+.clientName {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.85em;
+  line-height: 1.25;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.contact {
+  color: var(--client-muted);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.8rem;
+  margin-top: 0.5rem;
+  overflow-wrap: anywhere;
+}
+.contact span + span::before {
+  content: "·";
+  padding-right: 0.8rem;
+}
+.meta {
+  color: var(--client-muted);
+  margin-top: 0.85rem;
+  font-size: 0.94em;
+  line-height: 1.65;
+}
+.precautions {
+  background: #fffaf0;
+  border: 1px solid #f2dfb7;
+  padding: 1rem;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.button {
+  min-height: 3rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.65rem 1.15rem;
+  background: #fff;
+  border: 1.5px solid #91a5c1;
+  border-radius: 8px;
+  color: var(--client-ink, #0c1933);
+  font-size: 0.94em;
+  font-weight: 650;
+  line-height: 1.4;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.button:hover {
+  background: #f0f5fb;
+}
+.button:focus-visible {
+  outline: 3px solid #85b9ee;
+  outline-offset: 3px;
+}
+.button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.button svg {
+  width: 1.2em;
+  height: 1.2em;
+  flex-shrink: 0;
+}
+.primary {
+  background: #0c1933;
+  border-color: #0c1933;
+  color: white;
+  box-shadow: 0 2px 4px #0c193315;
+}
+.primary:hover {
+  background: #1b2f50;
+}
+.refresh svg {
+  color: #26a8e5;
+}
+.sectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  font-size: 1.3em;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.sectionTitle svg {
+  width: 1.3em;
+  height: 1.3em;
+  flex-shrink: 0;
+}
+.intake {
+  background: #f6fbf8;
+  border-color: #dceee6;
+  display: grid;
+  gap: 1.2rem;
+}
+.intakeMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 1.5rem;
+}
+.summary {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.65rem 1.5rem;
+  background: #f8fafd;
+  border: 1px solid var(--client-line);
+  border-radius: 9px;
+  padding: 1rem 1.15rem;
+  flex: 1 1 18rem;
+  font-size: 0.92em;
+}
+.summary dt {
+  color: var(--client-muted);
+}
+.summary dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.records {
+  display: grid;
+  gap: 1.3rem;
+}
+.empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  gap: 0.8rem;
+  min-height: 17rem;
+  border: 1px dashed #cddbed;
+  border-radius: 10px;
+  padding: 2rem 1rem;
+  color: var(--client-muted);
+}
+.empty svg {
+  width: 2.8em;
+  height: 2.8em;
+  color: #7e8ea5;
+  margin-bottom: 0.3rem;
+}
+.empty h4 {
+  font-size: 1.1em;
+  font-weight: 500;
+}
+.empty p {
+  font-size: 0.92em;
+  line-height: 1.7;
+}
+.record {
+  border-top: 1px solid var(--client-line);
+  padding-top: 1.4rem;
+  display: grid;
+  gap: 1rem;
+}
+.recordText {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.formArea {
+  padding-top: 0.4rem;
+}
+.formArea form {
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+.intakeBody {
+  border-top: 1px solid #dceee6;
+  padding-top: 1.25rem;
+}
+@media (max-width: 600px) {
+  .page {
+    gap: 1.1rem;
+  }
+  .title {
+    font-size: 1.55em;
+  }
+  .clientName {
+    font-size: 1.55em;
+  }
+  .sectionTitle {
+    font-size: 1.15em;
+    gap: 0.5rem;
+  }
+  .summary {
+    grid-template-columns: 1fr;
+    gap: 0.35rem;
+  }
+  .summary dd + dt {
+    margin-top: 0.4rem;
+  }
+  .empty {
+    min-height: 13rem;
+  }
+  .contact {
+    display: grid;
+  }
+  .contact span + span::before {
+    content: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .button {
+    transition: none;
+  }
+}

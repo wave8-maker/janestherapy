@@ -1,20 +1,18 @@
 "use client";
 
+import { styles } from "./ClientLayout";
 import { useState } from "react";
 import { useAdminLang } from "./i18n";
 import type {
   ClientProfile,
   ClientSummary,
   SessionInput,
-  NoteInput,
 } from "@/app/lib/client-types";
 import { matchesClient } from "@/app/lib/client-types";
 
-export const buttonClass =
-  "admin-button rounded-lg border-2 border-slate-400 bg-white px-4 py-2 font-semibold text-slate-900 hover:bg-slate-100 disabled:opacity-50";
-export const primaryClass = `${buttonClass} !bg-slate-900 !text-white !border-slate-900 hover:!bg-slate-700`;
-export const panelClass =
-  "admin-panel rounded-xl border border-slate-300 bg-white p-5 space-y-4";
+export const buttonClass = `admin-button ${styles.button}`;
+export const primaryClass = `${buttonClass} ${styles.primary}`;
+export const panelClass = `admin-panel ${styles.card} space-y-4`;
 export const controlClass =
   "admin-control w-full rounded-lg border-2 border-slate-500 bg-white px-3 py-2 text-slate-950 focus:outline-none focus:ring-4 focus:ring-sky-200";
 export const emptyProfile: ClientProfile = {
@@ -240,7 +238,7 @@ export function SessionForm({
     ["treatment", "按摩处理 / 部位 / 力度", "Treatment / areas / pressure"],
     ["feedback", "客户反馈", "Client feedback"],
     ["nextVisit", "下次注意事项", "Next visit"],
-    ["notes", "本次 Notes", "Session notes"],
+    ["notes", "本次备注", "Session notes"],
   ];
   return (
     <form
@@ -255,7 +253,7 @@ export function SessionForm({
       </h3>
       <p className="text-sm text-slate-600">
         {zh
-          ? "日期必填；其余可按需填写，也可以只写本次 notes。"
+          ? "日期必填；其余可按需填写，也可以只写本次备注。"
           : "Date is required. Add details as needed, or just session notes."}
       </p>
       <fieldset disabled={busy} className="space-y-4">
@@ -288,54 +286,6 @@ export function SessionForm({
             multiline
           />
         ))}
-      </fieldset>
-      <Actions busy={busy} onCancel={onCancel} />
-    </form>
-  );
-}
-export function NoteForm({
-  initial,
-  onSave,
-  onCancel,
-  busy,
-  onDirty,
-}: FormProps<NoteInput>) {
-  const { lang } = useAdminLang();
-  const zh = lang === "zh";
-  const [value, setValue] = useState(initial);
-  return (
-    <form
-      className={panelClass}
-      onSubmit={(e) => {
-        e.preventDefault();
-        void onSave(value);
-      }}
-    >
-      <h3 className="font-bold text-lg">
-        {zh ? "客户长期 Note" : "Client note"}
-      </h3>
-      <fieldset disabled={busy} className="space-y-4">
-        <Field
-          label={zh ? "内容 *" : "Note *"}
-          value={value.text}
-          onChange={(text) => {
-            setValue((old) => ({ ...old, text }));
-            onDirty();
-          }}
-          multiline
-          required
-        />
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={value.pinned}
-            onChange={(e) => {
-              setValue((old) => ({ ...old, pinned: e.target.checked }));
-              onDirty();
-            }}
-          />
-          {zh ? "置顶，方便按摩前查看" : "Pin for quick review"}
-        </label>
       </fieldset>
       <Actions busy={busy} onCancel={onCancel} />
     </form>

@@ -5,7 +5,7 @@ import {
   ClientInputError,
   validateProfile,
   validateSession,
-  validateNote,
+  clientForAdmin,
   summarizeClient,
 } from "@/app/lib/client-types";
 import type { ClientRecord, IntakeLink } from "@/app/lib/client-types";
@@ -45,7 +45,7 @@ export async function GET(req: Request) {
       const stored = await readRecord<ClientRecord>(`profiles/${id(clientId)}`);
       if (!stored) return response({ error: "notFound" }, 404);
       return response({
-        client: stored.value,
+        client: clientForAdmin(stored.value),
         links: links.filter((link) => link.clientId === clientId),
       });
     }
@@ -78,10 +78,9 @@ export async function POST(req: Request) {
       updatedAt: now,
       revision: 1,
       sessions: [],
-      notes: [],
     };
     await writeRecord(`profiles/${clientId}`, client);
-    return response({ client }, 201);
+    return response({ client: clientForAdmin(client) }, 201);
   } catch (error) {
     return failure(error);
   }
@@ -119,38 +118,24 @@ export async function PATCH(req: Request) {
     const now = new Date().toISOString();
     if (body.action === "profile")
       Object.assign(client, validateProfile(body.data));
-    else if (body.action === "session" || body.action === "note") {
+    else if (body.action === "session") {
       const recordId = id(body.recordId);
-      if (body.action === "session") {
-        const data = validateSession(body.data);
-        const previous = client.sessions.find((item) => item.id === recordId);
-        client.sessions = [
-          ...client.sessions.filter((item) => item.id !== recordId),
-          {
-            ...data,
-            id: recordId,
-            createdAt: previous?.createdAt ?? now,
-            updatedAt: now,
-          },
-        ];
-      } else {
-        const data = validateNote(body.data);
-        const previous = client.notes.find((item) => item.id === recordId);
-        client.notes = [
-          ...client.notes.filter((item) => item.id !== recordId),
-          {
-            ...data,
-            id: recordId,
-            createdAt: previous?.createdAt ?? now,
-            updatedAt: now,
-          },
-        ];
-      }
+      const data = validateSession(body.data);
+      const previous = client.sessions.find((item) => item.id === recordId);
+      client.sessions = [
+        ...client.sessions.filter((item) => item.id !== recordId),
+        {
+          ...data,
+          id: recordId,
+          createdAt: previous?.createdAt ?? now,
+          updatedAt: now,
+        },
+      ];
     } else throw new ClientInputError("Invalid action");
     client.updatedAt = now;
     client.revision += 1;
     await writeRecord(`profiles/${clientId}`, client, stored.version);
-    return response({ client });
+    return response({ client: clientForAdmin(client) });
   } catch (error) {
     return failure(error);
   }

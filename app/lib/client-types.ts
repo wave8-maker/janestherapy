@@ -15,21 +15,17 @@ export interface SessionInput {
   nextVisit: string;
   notes: string;
 }
-export interface NoteInput {
-  text: string;
-  pinned: boolean;
-}
 export interface RecordStamp {
   id: string;
   createdAt: string;
   updatedAt: string;
 }
 export type MassageSession = SessionInput & RecordStamp;
-export type ClientNote = NoteInput & RecordStamp;
 export interface ClientRecord extends ClientProfile, RecordStamp {
   revision: number;
   sessions: MassageSession[];
-  notes: ClientNote[];
+  /** Historical client notes are retained on disk, but are no longer editable or exposed. */
+  notes?: Array<RecordStamp & { text: string; pinned: boolean }>;
 }
 export interface ClientSummary extends ClientProfile {
   id: string;
@@ -111,15 +107,11 @@ export function validateSession(value: unknown): SessionInput {
     throw new ClientInputError("Add session details or notes");
   return session;
 }
-export function validateNote(value: unknown): NoteInput {
-  const data = object(value);
-  const valueText = text(data, "text");
-  if (
-    !valueText ||
-    (data.pinned !== undefined && typeof data.pinned !== "boolean")
-  )
-    throw new ClientInputError("Invalid note");
-  return { text: valueText, pinned: data.pinned === true };
+export function clientForAdmin(
+  client: ClientRecord,
+): Omit<ClientRecord, "notes"> {
+  const { notes: legacyNotes, ...visible } = client;
+  return visible;
 }
 export function matchesClient(
   client: Pick<ClientProfile, "name" | "phone" | "email">,

@@ -92,7 +92,6 @@ export async function syncClientIntakes(): Promise<void> {
         updatedAt: now,
         revision: 1,
         sessions: [],
-        notes: [],
       };
       try {
         await writeRecord(`profiles/${generatedId}`, client);

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useAdminLang } from "./i18n";
+import { ClientIcon, styles } from "./ClientLayout";
 import ClientIntakeSection from "./ClientIntakeSection";
 import type {
   ClientRecord,
@@ -9,15 +10,12 @@ import type {
   IntakeLink,
   ClientProfile,
   SessionInput,
-  NoteInput,
   MassageSession,
-  ClientNote,
 } from "@/app/lib/client-types";
 import { matchesClient, summarizeClient } from "@/app/lib/client-types";
 import {
   ProfileForm,
   SessionForm,
-  NoteForm,
   emptyProfile,
   emptySession,
   buttonClass,
@@ -28,9 +26,7 @@ import {
 
 type Editor =
   | { kind: "profile"; initial: ClientProfile }
-  | { kind: "session"; id: string; initial: SessionInput }
-  | { kind: "note"; id: string; initial: NoteInput };
-type DetailTab = "sessions" | "notes";
+  | { kind: "session"; id: string; initial: SessionInput };
 async function api(url: string, method = "GET", body?: unknown) {
   const response = await fetch(url, {
     method,
@@ -56,7 +52,6 @@ export default function ClientsTab({
   const [links, setLinks] = useState<IntakeLink[]>([]);
   const [client, setClient] = useState<ClientRecord | null>(null);
   const [screen, setScreen] = useState<"list" | "detail" | "new">("list");
-  const [detailTab, setDetailTab] = useState<DetailTab>("sessions");
   const [query, setQuery] = useState("");
   const [editor, setEditor] = useState<Editor | null>(null);
   const [newId, setNewId] = useState("");
@@ -150,7 +145,6 @@ export default function ClientsTab({
         ...data.links,
       ]);
       setScreen("detail");
-      setDetailTab("sessions");
       setEditor(null);
       setDirty(false);
     });
@@ -171,13 +165,12 @@ export default function ClientsTab({
       setClients((old) => [summarizeClient(data.client), ...old]);
       setDirty(false);
       setScreen("detail");
-      setDetailTab("sessions");
       setNotice(zh ? "客户档案已建立。" : "Client created.");
     });
   }
   async function save(
-    action: "profile" | "session" | "note",
-    data: ClientProfile | SessionInput | NoteInput,
+    action: "profile" | "session",
+    data: ClientProfile | SessionInput,
   ) {
     if (!client || !editor) return;
     await run(async () => {
@@ -212,16 +205,17 @@ export default function ClientsTab({
       (a, b) =>
         b.date.localeCompare(a.date) || b.createdAt.localeCompare(a.createdAt),
     );
-  const sortNotes = (items: ClientNote[]) =>
-    [...items].sort(
-      (a, b) =>
-        Number(b.pinned) - Number(a.pinned) ||
-        b.updatedAt.localeCompare(a.updatedAt),
-    );
   return (
-    <div className="space-y-5 max-w-6xl">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-2xl font-bold">{zh ? "客户档案" : "Clients"}</h2>
+    <div className={styles.page}>
+      <div className={styles.pageHeader}>
+        <div>
+          <h2 className={styles.title}>{zh ? "客户档案" : "Clients"}</h2>
+          <p className={styles.subtitle}>
+            {zh
+              ? "查看和管理客户的基本信息、登记记录和按摩记录。"
+              : "Manage client information, intake forms, and massage records."}
+          </p>
+        </div>
         <div className="flex flex-wrap gap-2">
           <button
             disabled={busy}
@@ -237,13 +231,14 @@ export default function ClientsTab({
           </button>
           <button
             disabled={busy}
-            className={buttonClass}
+            className={`${primaryClass} ${styles.refresh}`}
             onClick={() => {
               if (canLeave()) {
                 void run(load);
               }
             }}
           >
+            <ClientIcon kind="refresh" />
             {zh ? "刷新" : "Refresh"}
           </button>
         </div>
@@ -375,267 +370,173 @@ export default function ClientsTab({
           )}
           {screen === "detail" && client && (
             <>
-              <div className={panelClass}>
-                <div className="flex flex-wrap justify-between gap-3">
-                  <div>
-                    <h3 className="text-2xl font-bold">{client.name}</h3>
-                    <p className="text-slate-600">
-                      {[client.phone, client.email].filter(Boolean).join(" · ")}
-                    </p>
+              <section
+                className={`${styles.card} ${styles.profile}`}
+                aria-label={zh ? "客户基本信息" : "Client information"}
+              >
+                <div className={styles.profileHeader}>
+                  <div className={styles.profileText}>
+                    <h3 className={styles.clientName}>{client.name}</h3>
+                    <div className={styles.contact}>
+                      {[client.phone, client.email]
+                        .filter(Boolean)
+                        .map((value) => (
+                          <span key={value}>{value}</span>
+                        ))}
+                    </div>
                     {client.birthday && (
-                      <p className="text-sm text-slate-600">
-                        {zh ? "生日：" : "Birthday: "}
+                      <p className={styles.meta}>
+                        {zh ? "出生日期：" : "Date of birth: "}
                         {client.birthday}
                       </p>
                     )}
+                    <p className={styles.meta}>
+                      {zh ? "档案更新：" : "Updated: "}
+                      {dateTime(client.updatedAt)}
+                    </p>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <button
-                      disabled={busy}
-                      className={buttonClass}
-                      onClick={() =>
-                        begin({ kind: "profile", initial: client })
-                      }
-                    >
-                      {zh ? "编辑档案" : "Edit profile"}
-                    </button>
-                  </div>
+                  <button
+                    disabled={busy}
+                    className={buttonClass}
+                    onClick={() => begin({ kind: "profile", initial: client })}
+                  >
+                    <ClientIcon kind="edit" />
+                    {zh ? "编辑档案" : "Edit profile"}
+                  </button>
                 </div>
                 {client.precautions && (
-                  <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 whitespace-pre-wrap">
+                  <div className={styles.precautions}>
                     <strong>
-                      {zh
-                        ? "长期注意事项 / 偏好"
-                        : "Ongoing precautions / preferences"}
+                      {zh ? "长期注意事项 / 偏好" : "Precautions / preferences"}
                     </strong>
                     <p>{client.precautions}</p>
                   </div>
                 )}
-                {sortNotes(client.notes)
-                  .filter((n) => n.pinned)
-                  .map((n) => (
-                    <p
-                      key={n.id}
-                      className="whitespace-pre-wrap border-l-4 border-slate-400 pl-3"
-                    >
-                      <strong>{zh ? "置顶 Note：" : "Pinned note: "}</strong>
-                      {n.text}
-                    </p>
-                  ))}
-                <p className="text-xs text-slate-500">
-                  {zh ? "档案更新：" : "Profile updated: "}
-                  {dateTime(client.updatedAt)}
-                </p>
-              </div>
-              {!editor && (
-                <ClientIntakeSection
-                  key={
-                    client.id + linked.map((link) => link.intakeId).join(",")
-                  }
-                  links={linked}
-                />
-              )}
-              {editor?.kind === "profile" && (
-                <ProfileForm
-                  key="profile"
-                  initial={editor.initial}
-                  currentId={client.id}
-                  clients={clients}
-                  busy={busy}
-                  onDirty={() => setDirty(true)}
-                  onSave={(v) => save("profile", v)}
-                  onCancel={() => {
-                    canLeave();
-                  }}
-                />
-              )}
-              {editor?.kind === "session" && (
-                <SessionForm
-                  key={editor.id}
-                  initial={editor.initial}
-                  busy={busy}
-                  onDirty={() => setDirty(true)}
-                  onSave={(v) => save("session", v)}
-                  onCancel={() => {
-                    canLeave();
-                  }}
-                />
-              )}
-              {editor?.kind === "note" && (
-                <NoteForm
-                  key={editor.id}
-                  initial={editor.initial}
-                  busy={busy}
-                  onDirty={() => setDirty(true)}
-                  onSave={(v) => save("note", v)}
-                  onCancel={() => {
-                    canLeave();
-                  }}
-                />
-              )}
-              {!editor && (
-                <>
-                  <div
-                    className="flex flex-wrap gap-2"
-                    role="tablist"
-                    aria-label={zh ? "客户档案内容" : "Client sections"}
-                  >
-                    {(["sessions", "notes"] as const).map((tab) => (
-                      <button
-                        key={tab}
-                        role="tab"
-                        aria-selected={detailTab === tab}
-                        className={
-                          detailTab === tab ? primaryClass : buttonClass
-                        }
-                        disabled={busy}
-                        onClick={() => {
-                          setDetailTab(tab);
-                        }}
-                      >
-                        {tab === "sessions"
-                          ? zh
-                            ? "按摩记录"
-                            : "Massage records"
-                          : zh
-                            ? "客户 Notes"
-                            : "Client notes"}{" "}
-                        (
-                        {tab === "sessions"
-                          ? client.sessions.length
-                          : client.notes.length}
-                        )
-                      </button>
-                    ))}
+                {editor?.kind === "profile" && (
+                  <div className={styles.formArea}>
+                    <ProfileForm
+                      key="profile"
+                      initial={editor.initial}
+                      currentId={client.id}
+                      clients={clients}
+                      busy={busy}
+                      onDirty={() => setDirty(true)}
+                      onSave={(v) => save("profile", v)}
+                      onCancel={() => {
+                        canLeave();
+                      }}
+                    />
                   </div>
-                  {detailTab === "sessions" && (
-                    <>
-                      <button
-                        disabled={busy}
-                        className={primaryClass}
-                        onClick={() => {
-                          begin({
-                            kind: "session",
-                            id: crypto.randomUUID(),
-                            initial: emptySession(),
-                          });
-                        }}
-                      >
-                        {zh ? "＋ 按摩记录" : "＋ Massage record"}
-                      </button>
-                      {!client.sessions.length && (
-                        <p className={panelClass}>
-                          {zh
-                            ? "还没有按摩记录，点击「＋ 按摩记录」开始。"
-                            : "No massage records yet. Choose ＋ Massage record to start."}
-                        </p>
-                      )}
-                      {sortSessions(client.sessions).map((s) => (
-                        <article key={s.id} className={panelClass}>
-                          <div className="flex justify-between gap-3">
-                            <h4 className="font-bold">
-                              {s.date} ·{" "}
-                              {s.service || (zh ? "按摩" : "Massage")}
-                              {s.duration ? ` · ${s.duration} min` : ""}
-                            </h4>
-                            <button
-                              className={buttonClass}
-                              disabled={busy}
-                              onClick={() =>
-                                begin({ kind: "session", id: s.id, initial: s })
-                              }
-                            >
-                              {zh ? "编辑" : "Edit"}
-                            </button>
-                          </div>
-                          {(
-                            [
-                              ["concerns", "本次情况", "Concerns"],
-                              ["treatment", "按摩处理", "Treatment"],
-                              ["feedback", "客户反馈", "Feedback"],
-                              ["nextVisit", "下次注意事项", "Next visit"],
-                              ["notes", "本次 Notes", "Session notes"],
-                            ] as const
-                          ).map(
-                            ([key, cn, en]) =>
-                              s[key] && (
-                                <div key={key}>
-                                  <p className="text-sm font-bold text-slate-500">
-                                    {zh ? cn : en}
-                                  </p>
-                                  <p className="whitespace-pre-wrap break-words">
-                                    {s[key]}
-                                  </p>
-                                </div>
-                              ),
-                          )}
-                          <p className="text-xs text-slate-500">
-                            {zh ? "创建：" : "Created: "}
-                            {dateTime(s.createdAt)}
-                            {s.updatedAt !== s.createdAt &&
-                              ` · ${zh ? "更新：" : "Updated: "}${dateTime(s.updatedAt)}`}
-                          </p>
-                        </article>
-                      ))}
-                    </>
+                )}
+              </section>
+              <ClientIntakeSection
+                key={client.id + linked.map((link) => link.intakeId).join(",")}
+                links={linked}
+              />
+              <section
+                className={`${styles.card} ${styles.records}`}
+                aria-label={zh ? "按摩记录" : "Massage records"}
+              >
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>
+                    <ClientIcon kind="records" />
+                    {zh ? "按摩记录" : "Massage records"} (
+                    {client.sessions.length})
+                  </h3>
+                  {editor?.kind !== "session" && (
+                    <button
+                      disabled={busy}
+                      className={primaryClass}
+                      onClick={() =>
+                        begin({
+                          kind: "session",
+                          id: crypto.randomUUID(),
+                          initial: emptySession(),
+                        })
+                      }
+                    >
+                      <ClientIcon kind="plus" />
+                      {zh ? "按摩记录" : "Massage record"}
+                    </button>
                   )}
-                  {detailTab === "notes" && (
-                    <>
-                      <button
-                        className={primaryClass}
-                        onClick={() =>
-                          begin({
-                            kind: "note",
-                            id: crypto.randomUUID(),
-                            initial: { text: "", pinned: false },
-                          })
-                        }
-                      >
-                        {zh ? "＋ 客户 Note" : "＋ Client note"}
-                      </button>
-                      {!client.notes.length && (
-                        <p className={panelClass}>
+                </div>
+                {editor?.kind === "session" ? (
+                  <div className={styles.formArea}>
+                    <SessionForm
+                      key={editor.id}
+                      initial={editor.initial}
+                      busy={busy}
+                      onDirty={() => setDirty(true)}
+                      onSave={(v) => save("session", v)}
+                      onCancel={() => {
+                        canLeave();
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <>
+                    {!client.sessions.length && (
+                      <div className={styles.empty}>
+                        <ClientIcon kind="document" />
+                        <h4>
+                          {zh ? "还没有按摩记录" : "No massage records yet"}
+                        </h4>
+                        <p>
                           {zh
-                            ? "记录长期偏好或提醒；本次按摩内容请写在按摩记录中。"
-                            : "Use notes for ongoing preferences and reminders. Keep visit-specific details in massage records."}
+                            ? "点击右上方「＋ 按摩记录」开始。"
+                            : "Choose ＋ Massage record above to get started."}
                         </p>
-                      )}
-                      {sortNotes(client.notes).map((n) => (
-                        <article className={panelClass} key={n.id}>
-                          <div className="flex justify-between gap-3">
-                            <p className="text-sm font-bold text-slate-500">
-                              {n.pinned
-                                ? zh
-                                  ? "置顶"
-                                  : "Pinned"
-                                : zh
-                                  ? "客户 Note"
-                                  : "Client note"}
-                            </p>
-                            <button
-                              className={buttonClass}
-                              onClick={() =>
-                                begin({ kind: "note", id: n.id, initial: n })
-                              }
-                            >
-                              {zh ? "编辑" : "Edit"}
-                            </button>
-                          </div>
-                          <p className="whitespace-pre-wrap break-words">
-                            {n.text}
-                          </p>
-                          <p className="text-xs text-slate-500">
-                            {zh ? "创建：" : "Created: "}
-                            {dateTime(n.createdAt)}
-                            {n.updatedAt !== n.createdAt &&
-                              ` · ${zh ? "更新：" : "Updated: "}${dateTime(n.updatedAt)}`}
-                          </p>
-                        </article>
-                      ))}
-                    </>
-                  )}
-                </>
-              )}
+                      </div>
+                    )}
+                    {sortSessions(client.sessions).map((s) => (
+                      <article key={s.id} className={styles.record}>
+                        <div className="flex justify-between gap-3">
+                          <h4 className="font-bold">
+                            {s.date} · {s.service || (zh ? "按摩" : "Massage")}
+                            {s.duration ? ` · ${s.duration} min` : ""}
+                          </h4>
+                          <button
+                            className={buttonClass}
+                            disabled={busy}
+                            onClick={() =>
+                              begin({ kind: "session", id: s.id, initial: s })
+                            }
+                          >
+                            {zh ? "编辑" : "Edit"}
+                          </button>
+                        </div>
+                        {(
+                          [
+                            ["concerns", "本次情况", "Concerns"],
+                            ["treatment", "按摩处理", "Treatment"],
+                            ["feedback", "客户反馈", "Feedback"],
+                            ["nextVisit", "下次注意事项", "Next visit"],
+                            ["notes", "本次备注", "Session notes"],
+                          ] as const
+                        ).map(
+                          ([key, cn, en]) =>
+                            s[key] && (
+                              <div key={key}>
+                                <p className="text-sm font-bold text-slate-500">
+                                  {zh ? cn : en}
+                                </p>
+                                <p className="whitespace-pre-wrap break-words">
+                                  {s[key]}
+                                </p>
+                              </div>
+                            ),
+                        )}
+                        <p className="text-xs text-slate-500">
+                          {zh ? "创建：" : "Created: "}
+                          {dateTime(s.createdAt)}
+                          {s.updatedAt !== s.createdAt &&
+                            ` · ${zh ? "更新：" : "Updated: "}${dateTime(s.updatedAt)}`}
+                        </p>
+                      </article>
+                    ))}
+                  </>
+                )}
+              </section>
             </>
           )}
         </>

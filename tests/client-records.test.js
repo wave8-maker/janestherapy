@@ -25,7 +25,7 @@ function load(file, mocks = {}) {
   );
   return mod.exports;
 }
-const { validateProfile, validateSession, validateNote, matchesClient } = load(
+const { validateProfile, validateSession, matchesClient } = load(
   "app/lib/client-types.ts",
 );
 test("manual profile needs only a name; rejects missing names and invalid dates", () => {
@@ -48,14 +48,6 @@ test("massage can contain just a date and notes, but validates duration and cont
     validateSession({ date: "2026-09-28", duration: "-1", notes: "test" }),
   );
   assert.throws(() => validateSession({ date: "2026-09-28" }));
-});
-test("notes cannot be empty and pin must be a boolean", () => {
-  assert.throws(() => validateNote({ text: "   " }));
-  assert.throws(() => validateNote({ text: "test", pinned: "false" }));
-  assert.deepEqual(validateNote({ text: " Prefers quiet ", pinned: true }), {
-    text: "Prefers quiet",
-    pinned: true,
-  });
 });
 test("search ignores phone punctuation and email case", () => {
   const client = {
@@ -231,20 +223,44 @@ test("admin API protects records and supports manual records and immutable intak
   ).client;
   assert.equal(current.sessions.length, 1);
   assert.equal(current.sessions[0].createdAt, stamp);
+  const removedNote = await routes.PATCH(
+    request("PATCH", {
+      id: "api-client",
+      revision: current.revision,
+      action: "note",
+      recordId: "removed-note",
+      data: { text: "No longer supported" },
+    }),
+  );
+  assert.equal(removedNote.status, 400);
+  assert.equal(current.sessions[0].notes, "Edited");
+  const storedLegacy = await store.readRecord("profiles/api-client");
+  await store.writeRecord(
+    "profiles/api-client",
+    {
+      ...storedLegacy.value,
+      notes: [{ id: "legacy-note", text: "Historical note", pinned: true }],
+    },
+    storedLegacy.version,
+  );
   current = (
-    await (
-      await routes.PATCH(
-        request("PATCH", {
-          id: "api-client",
-          revision: current.revision,
-          action: "note",
-          recordId: "note-one",
-          data: { text: "Prefers quiet", pinned: true },
-        }),
-      )
-    ).json()
+    await (await routes.GET(request("GET", null, "?id=api-client"))).json()
   ).client;
-  assert.equal(current.notes[0].pinned, true);
+  assert.equal(current.notes, undefined);
+  const profileEdit = await routes.PATCH(
+    request("PATCH", {
+      id: "api-client",
+      revision: current.revision,
+      action: "profile",
+      data: { name: "API client updated" },
+    }),
+  );
+  assert.equal(profileEdit.status, 200);
+  assert.equal((await profileEdit.json()).client.notes, undefined);
+  assert.equal(
+    (await store.readRecord("profiles/api-client")).value.notes[0].text,
+    "Historical note",
+  );
   assert.equal(
     (
       await routes.PATCH(
@@ -417,7 +433,7 @@ test("intakes become linked client profiles automatically without duplicating vi
   const client = profiles.get(links.get("form-1").clientId);
   assert.equal(client.birthday, "1990-01-02");
   assert.equal(client.sessions.length, 0);
-  client.notes.push({ text: "Existing staff note" });
+  client.notes = [{ text: "Existing staff note" }];
   await sync.syncClientIntakes();
   assert.equal(profiles.size, 2);
   assert.equal(client.notes[0].text, "Existing staff note");
@@ -446,24 +462,86 @@ test("intakes become linked client profiles automatically without duplicating vi
   assert.equal(profiles.size, 3);
 });
 
-test('automatic intake matching keeps ambiguous and name-only matches separate', async () => {
-  const base={name:'Same Name',phone:'4085550100',email:'same@example.com',birthday:'',precautions:'',sessions:[],notes:[],revision:1};
-  const profiles=new Map([['one',{...base,id:'one'}],['two',{...base,id:'two'}]]);const links=new Map();
-  const storage={RecordConflict:store.RecordConflict,listRecords:async kind=>[...(kind==='profiles'?profiles:links).values()],readRecord:async key=>{const [kind,id]=key.split('/');const value=(kind==='profiles'?profiles:links).get(id);return value?{value,version:'v'}:null;},writeRecord:async(key,value)=>{const[kind,id]=key.split('/');const target=kind==='profiles'?profiles:links;if(target.has(id))throw new store.RecordConflict();target.set(id,value);}};
-  const forms=[{...base,id:'ambiguous',submittedAt:'2026-01-01'},{...base,phone:'',email:'',id:'name-only',submittedAt:'2026-01-02'}];
-  const sync=load('app/lib/client-intakes.ts',{'@/app/lib/client-storage':storage,'@/app/lib/intake-storage':{listIntakes:async()=>forms}});
-  await Promise.all([sync.syncClientIntakes(),sync.syncClientIntakes()]);
-  assert.equal(profiles.size,4);
-  assert.equal(links.size,2);
-  assert.ok(!['one','two'].includes(links.get('ambiguous').clientId));
-  assert.notEqual(links.get('ambiguous').clientId,links.get('name-only').clientId);
+test("automatic intake matching keeps ambiguous and name-only matches separate", async () => {
+  const base = {
+    name: "Same Name",
+    phone: "4085550100",
+    email: "same@example.com",
+    birthday: "",
+    precautions: "",
+    sessions: [],
+    notes: [],
+    revision: 1,
+  };
+  const profiles = new Map([
+    ["one", { ...base, id: "one" }],
+    ["two", { ...base, id: "two" }],
+  ]);
+  const links = new Map();
+  const storage = {
+    RecordConflict: store.RecordConflict,
+    listRecords: async (kind) => [
+      ...(kind === "profiles" ? profiles : links).values(),
+    ],
+    readRecord: async (key) => {
+      const [kind, id] = key.split("/");
+      const value = (kind === "profiles" ? profiles : links).get(id);
+      return value ? { value, version: "v" } : null;
+    },
+    writeRecord: async (key, value) => {
+      const [kind, id] = key.split("/");
+      const target = kind === "profiles" ? profiles : links;
+      if (target.has(id)) throw new store.RecordConflict();
+      target.set(id, value);
+    },
+  };
+  const forms = [
+    { ...base, id: "ambiguous", submittedAt: "2026-01-01" },
+    {
+      ...base,
+      phone: "",
+      email: "",
+      id: "name-only",
+      submittedAt: "2026-01-02",
+    },
+  ];
+  const sync = load("app/lib/client-intakes.ts", {
+    "@/app/lib/client-storage": storage,
+    "@/app/lib/intake-storage": { listIntakes: async () => forms },
+  });
+  await Promise.all([sync.syncClientIntakes(), sync.syncClientIntakes()]);
+  assert.equal(profiles.size, 4);
+  assert.equal(links.size, 2);
+  assert.ok(!["one", "two"].includes(links.get("ambiguous").clientId));
+  assert.notEqual(
+    links.get("ambiguous").clientId,
+    links.get("name-only").clientId,
+  );
 });
 
-test('intake synchronization sees every page of private Blob submissions', async()=>{
-  const storage=load('app/lib/intake-storage.ts',{'./intake-types':{normalizeSubmission:value=>value},'@vercel/blob':{
-    list:async({cursor})=>cursor?{blobs:[{pathname:'intakes/second.json'}],hasMore:false}:{blobs:[{pathname:'intakes/first.json'}],hasMore:true,cursor:'next'},
-    get:async key=>({stream:new Response(JSON.stringify({id:key,submittedAt:'2026-01-01T00:00:00Z'})).body}),
-  }});
-  process.env.BLOB_READ_WRITE_TOKEN='mock-only';
-  try {assert.equal((await storage.listIntakes()).length,2);}finally{delete process.env.BLOB_READ_WRITE_TOKEN;}
+test("intake synchronization sees every page of private Blob submissions", async () => {
+  const storage = load("app/lib/intake-storage.ts", {
+    "./intake-types": { normalizeSubmission: (value) => value },
+    "@vercel/blob": {
+      list: async ({ cursor }) =>
+        cursor
+          ? { blobs: [{ pathname: "intakes/second.json" }], hasMore: false }
+          : {
+              blobs: [{ pathname: "intakes/first.json" }],
+              hasMore: true,
+              cursor: "next",
+            },
+      get: async (key) => ({
+        stream: new Response(
+          JSON.stringify({ id: key, submittedAt: "2026-01-01T00:00:00Z" }),
+        ).body,
+      }),
+    },
+  });
+  process.env.BLOB_READ_WRITE_TOKEN = "mock-only";
+  try {
+    assert.equal((await storage.listIntakes()).length, 2);
+  } finally {
+    delete process.env.BLOB_READ_WRITE_TOKEN;
+  }
 });

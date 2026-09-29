@@ -162,15 +162,14 @@ keeps the Book Now button.
 ## Client profiles and massage records
 
 Admin → **客户档案 / Clients** supports manual client creation (only a name is
-required), search by name/phone/email, editable massage records, and dated client
-notes with optional pinning. Each massage needs a service date and at least one
+required), search by name/phone/email, and editable massage records. Each massage needs a service date and at least one
 detail; date plus session notes is enough. No Square integration is involved.
 
 Opening **Clients** automatically includes existing intake submissions. A unique
 match on normalized name plus phone or email reuses an existing profile, unless
 contact details or birthdays conflict. Otherwise a separate profile is created;
 name alone never merges people. Repeated loads are idempotent, and existing
-profile edits and notes are preserved. A new intake appears on the next client
+profile edits and historical data are preserved. A new intake appears on the next client
 list load or refresh.
 
 The client list shows the number of linked forms. Inside the profile, the
@@ -180,7 +179,7 @@ step. Multiple submissions remain available by date. Intake submissions never
 count as completed massages. Signed originals are unchanged, and linked forms
 cannot be deleted through the legacy intake endpoint.
 
-Profiles, sessions, and notes are private Blob JSON records under
+Profiles and sessions are private Blob JSON records under
 `clients/profiles/`; intake links live under `clients/links/`. Local development
 uses gitignored `data/clients/`. Updates use revision checks and conditional Blob
 writes (ETags), or an exclusive lock plus atomic file replacement locally, to
@@ -190,3 +189,9 @@ record before reapplying changes. Edits retain creation time and update the
 modification timestamp; this version does not provide a revision-history UI.
 
 Run the focused behavior tests with `node --test tests/client-records.test.js`.
+
+The client detail page uses three sections: client information, intake forms, and
+massage records. Client-level Notes and pinning have been removed from the UI and
+API. Historical client notes remain in stored profiles for preservation but are
+not returned to the admin UI. Notes within individual massage records are still
+supported. The massage editor opens inside the massage-records section.
