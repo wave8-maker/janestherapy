@@ -48,3 +48,6 @@ next-env.d.ts
 
 # local editor / agent config
 /.claude/
+
+# private client profiles and massage notes
+/data/clients/

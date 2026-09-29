@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminAuthenticated } from "@/app/lib/admin-auth";
 import { deleteIntake, getIntake, listIntakes } from "@/app/lib/intake-storage";
+import { readRecord } from "@/app/lib/client-storage";
 import { ALERT_CONDITIONS } from "@/app/lib/intake-types";
 
 export async function GET() {
@@ -32,6 +33,9 @@ export async function DELETE(req: Request) {
 
   const { id } = await req.json();
   if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+  if (typeof id !== "string" || !/^[a-zA-Z0-9-]{1,100}$/.test(id)) return NextResponse.json({ error: "Invalid id" }, { status: 400 });
+  if (await readRecord(`links/${id}`)) return NextResponse.json({ error: "linked" }, { status: 409 });
 
   const deleted = await deleteIntake(id);
   if (!deleted) return NextResponse.json({ error: "Not found" }, { status: 404 });

@@ -158,3 +158,27 @@ calendar (next 4 weeks), regenerated every 30 minutes. Configuration
 
 Unset/invalid credentials degrade gracefully: the page hides the calendar and
 keeps the Book Now button.
+
+## Client profiles and massage records
+
+Admin → **客户档案 / Clients** supports manual client creation (only a name is
+required), search by name/phone/email, editable massage records, and dated client
+notes with optional pinning. Each massage needs a service date and at least one
+detail; date plus session notes is enough. No Square integration is involved.
+
+Open **Intake forms** and view a submission to link it to an existing client or
+create a new client from its contact details. Linking never modifies the signed
+submission and never counts it as a completed massage. A linked intake cannot be
+deleted from the intake tool. The client's Intake section reuses the existing
+viewer and Print/Save PDF action.
+
+Profiles, sessions, and notes are private Blob JSON records under
+`clients/profiles/`; intake links live under `clients/links/`. Local development
+uses gitignored `data/clients/`. Updates use revision checks and conditional Blob
+writes (ETags), or an exclusive lock plus atomic file replacement locally, to
+reject overlapping edits. The browser keeps unsaved form input on save errors
+and warns before leaving an edited form. A conflict requires reviewing the latest
+record before reapplying changes. Edits retain creation time and update the
+modification timestamp; this version does not provide a revision-history UI.
+
+Run the focused behavior tests with `node --test tests/client-records.test.js`.

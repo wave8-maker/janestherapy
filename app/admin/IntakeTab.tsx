@@ -120,10 +120,10 @@ function BodyMarkers({ submission }: { submission: IntakeSubmission }) {
   );
 }
 
-function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
+export function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
   submission: IntakeSubmission;
   onBack: () => void;
-  onDelete: () => void;
+  onDelete?: () => void;
   onPrint: () => void;
 }) {
   const { t } = useAdminLang();
@@ -138,9 +138,9 @@ function IntakeDetail({ submission, onBack, onDelete, onPrint }: {
           <IconBtn onClick={onPrint} label={t("intake.print")}>
             <PrinterIcon />
           </IconBtn>
-          <IconBtn onClick={onDelete} label={t("common.delete")} danger>
+          {onDelete && <IconBtn onClick={onDelete} label={t("common.delete")} danger>
             <TrashIcon />
-          </IconBtn>
+          </IconBtn>}
         </div>
       </div>
       <div>
@@ -278,7 +278,7 @@ function LegalRecordNote({ submission }: { submission: IntakeSubmission }) {
   );
 }
 
-export default function IntakeTab() {
+export default function IntakeTab({ onAssign }: { onAssign?: (submission: IntakeSubmission) => void } = {}) {
   const { t } = useAdminLang();
   const [list, setList] = useState<IntakeSummary[]>([]);
   const [selected, setSelected] = useState<IntakeSubmission | null>(null);
@@ -286,37 +286,42 @@ export default function IntakeTab() {
 
   const loadList = useCallback(async () => {
     setLoading(true);
-    const r = await fetch("/api/admin/intake");
-    if (r.ok) {
+    try {
+      const r = await fetch("/api/admin/intake", { cache: "no-store" });
+      if (!r.ok) throw new Error("load");
       const data = await r.json();
       setList(data.submissions ?? []);
-    }
-    setLoading(false);
-  }, []);
+    } catch { alert(t("intake.loadError")); }
+    finally { setLoading(false); }
+  }, [t]);
 
-  useEffect(() => { loadList(); }, [loadList]);
+  useEffect(() => { void loadList(); }, [loadList]);
 
   async function openDetail(id: string) {
-    const r = await fetch("/api/admin/intake", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    if (r.ok) {
+    try {
+      const r = await fetch("/api/admin/intake", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!r.ok) throw new Error("load");
       const data = await r.json();
       setSelected(data.submission);
-    }
+    } catch { alert(t("intake.loadError")); }
   }
 
   async function handleDelete(id: string) {
     if (!confirm(t("intake.confirmDelete"))) return;
-    await fetch("/api/admin/intake", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id }),
-    });
-    setSelected(null);
-    loadList();
+    try {
+      const r = await fetch("/api/admin/intake", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id }),
+      });
+      if (!r.ok) throw new Error("delete");
+      setSelected(null);
+      void loadList();
+    } catch { alert(t("intake.deleteError")); }
   }
 
   function handlePrint(submission: IntakeSubmission) {
@@ -331,12 +336,15 @@ export default function IntakeTab() {
 
   if (selected) {
     return (
+      <div className="space-y-4">
+      {onAssign && <Btn onClick={() => onAssign(selected)}>{t("intake.assignClient")}</Btn>}
       <IntakeDetail
         submission={selected}
         onBack={() => setSelected(null)}
         onDelete={() => handleDelete(selected.id)}
         onPrint={() => handlePrint(selected)}
       />
+      </div>
     );
   }
 

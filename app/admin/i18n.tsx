@@ -22,7 +22,8 @@ const STRINGS = {
   "nav.services": ["服务项目", "Services"],
   "nav.addons": ["附加服务", "Add-ons"],
   "nav.blog": ["博客编辑", "Blog Editor"],
-  "nav.intake": ["客户登记", "Intake"],
+  "nav.intake": ["客户档案", "Clients"],
+  "intake.assignClient": ["关联 / 建立客户档案", "Link / create client"],
   "nav.invoice": ["发票", "Invoice"],
   "shell.admin": ["管理后台", "Admin"],
   "shell.language": ["语言", "Language"],
@@ -108,6 +109,8 @@ const STRINGS = {
   "blog.empty": ["暂无文章。", "No posts yet."],
 
   // ── intake ─────────────────────────────────────────────────────────────────
+  "intake.loadError": ["读取失败，请重试。登录过期时请重新登录。", "Unable to load. Retry, or sign in again if your session expired."],
+  "intake.deleteError": ["删除失败。已关联客户的登记表会保留，不能删除。", "Unable to delete. Intake forms linked to a client are preserved and cannot be deleted."],
   "intake.heading": ["客户登记表", "Client Intake Forms"],
   "intake.empty": ["暂无登记表。", "No intake forms yet."],
   "intake.back": ["← 返回列表", "← Back to list"],

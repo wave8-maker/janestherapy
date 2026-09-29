@@ -2,7 +2,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import RichEditor from "./RichEditor";
-import IntakeTab from "./IntakeTab";
+import ClientsTab from "./ClientsTab";
 import InvoiceTab from "./InvoiceTab";
 import { AdminLangProvider, useAdminLang } from "./i18n";
 
@@ -627,6 +627,7 @@ export default function AdminPage() {
 function AdminShell() {
   const { t, lang, setLang } = useAdminLang();
   const [tab, setTab] = useState<Tab>("settings");
+  const [clientDirty, setClientDirty] = useState(false);
   /** Desktop: narrow or wide. On a phone the sidebar is a drawer instead. */
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -648,11 +649,13 @@ function AdminShell() {
   const expanded = isMobile || sidebarOpen;
 
   function openTab(next: Tab) {
+    if (next !== tab && clientDirty && !confirm(lang === "zh" ? "有未保存的客户记录，确定离开？" : "Leave with unsaved client changes?")) return;
     setTab(next);
     setDrawerOpen(false);
   }
 
   async function logout() {
+    if (clientDirty && !confirm(lang === "zh" ? "有未保存的客户记录，确定退出？" : "Log out with unsaved client changes?")) return;
     await fetch("/api/admin/logout", { method: "POST" });
     router.push("/admin/login");
   }
@@ -864,7 +867,7 @@ function AdminShell() {
         {tab === "services" && <ServicesTab />}
         {tab === "addons" && <AddonsTab />}
         {tab === "blog" && <BlogTab />}
-        {tab === "intake" && <IntakeTab />}
+        {tab === "intake" && <ClientsTab onDirtyChange={setClientDirty} />}
         {tab === "invoice" && <InvoiceTab />}
       </main>
     </div>
