@@ -175,6 +175,7 @@ export interface ServiceMode {
   description: string;
   meta: string;
   areas?: string[];
+  highlights?: string[];
   note?: string;
 }
 

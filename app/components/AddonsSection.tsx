@@ -28,8 +28,8 @@ export default function AddonsSection({ addons }: { addons: Addon[] }) {
           <p className="eyebrow">Enhancements</p>
           <h2 className="font-display text-3xl text-bark mt-2 mb-2">Add-ons</h2>
           <p className="text-sm text-bark-light max-w-lg mx-auto">
-            Choose from our add-ons to enhance your massage. Simply let your
-            therapist know before or during your session.
+            Choose from our add-ons to enhance your massage. Simply book them
+            together with your regular service on the appointment page.
           </p>
         </div>
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">

@@ -1,6 +1,6 @@
 {
   "bookingUrl": "https://book.squareup.com/appointments/329wktefrjoh21/location/L148MHX709ZSA/services",
-  "eyebrow": "Two ways to unwind",
+  "eyebrow": "Three ways to unwind",
   "heading": "Come to the studio — or we come to you",
   "subheading": "The same one-on-one care with Jane, wherever you feel most at ease.",
   "modes": [
@@ -38,6 +38,20 @@
         "Fremont"
       ],
       "note": "A $50 travel fee covers Jane coming to you across the South Bay, Peninsula & East Bay — reduced to $25 for sessions of 2 hours or longer."
+    },
+    {
+      "key": "event",
+      "label": "Events",
+      "title": "Bring the spa to your celebration",
+      "description": "Make your gathering unforgettable — Jane sets up a relaxing massage experience for your guests at your home, venue, or office, so everyone gets a moment to unwind.",
+      "meta": "Typically 4–6 hours · custom quote based on guests & duration",
+      "highlights": [
+        "Birthday events",
+        "Bridal & bachelorette events",
+        "Corporate wellness events",
+        "Private parties"
+      ],
+      "note": "Tell us about your event — date, guest count, and location — and we'll put together a plan."
     }
   ]
 }

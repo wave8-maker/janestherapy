@@ -23,9 +23,20 @@ function MobileIcon() {
   );
 }
 
+function EventIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}
+      strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden>
+      <path d="M12 3v3M7 5l1.5 2.5M17 5l-1.5 2.5" />
+      <path d="M5 11h14v3a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3Z" />
+      <path d="M7 16v4h10v-4" />
+    </svg>
+  );
+}
+
 export default function ServiceModes({ className = "" }: { className?: string }) {
   const { bookingUrl, eyebrow, heading, subheading, modes } = getServiceModes();
-  const [studio, mobile] = modes;
+  const [studio, mobile, event] = modes;
 
   return (
     <div className={className}>
@@ -37,7 +48,7 @@ export default function ServiceModes({ className = "" }: { className?: string })
         <p className="mt-4 text-bark-light leading-relaxed">{subheading}</p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-6">
+      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Studio — clay accent */}
         <article className="card-soft p-8 flex flex-col">
           <div className="flex items-center gap-4">
@@ -106,6 +117,44 @@ export default function ServiceModes({ className = "" }: { className?: string })
             Book a mobile visit
           </Link>
         </article>
+
+        {/* Events — brand accent, group bookings go through contact */}
+        {event && (
+          <article className="card-soft p-8 flex flex-col">
+            <div className="flex items-center gap-4">
+              <span className="h-12 w-12 shrink-0 grid place-items-center rounded-full bg-brand-light text-brand-dark">
+                <EventIcon />
+              </span>
+              <p className="eyebrow !text-brand-dark">{event.label}</p>
+            </div>
+            <h3 className="font-display text-2xl text-bark mt-6 mb-3">{event.title}</h3>
+            <p className="text-bark-light leading-relaxed">{event.description}</p>
+            {event.highlights && event.highlights.length > 0 && (
+              <ul className="mt-5 flex flex-wrap gap-1.5">
+                {event.highlights.map((h) => (
+                  <li
+                    key={h}
+                    className="text-[0.72rem] bg-brand-light text-brand-dark px-2.5 py-1 rounded-full"
+                  >
+                    {h}
+                  </li>
+                ))}
+              </ul>
+            )}
+            {event.note && (
+              <div className="mt-5 rounded-xl bg-brand-light/60 border border-brand/20 px-4 py-3 text-sm text-bark-light leading-relaxed">
+                {event.note}
+              </div>
+            )}
+            <p className="mt-auto pt-6 text-sm text-bark-light flex items-start gap-2">
+              <span className="text-brand mt-px">◦</span>
+              <span>{event.meta}</span>
+            </p>
+            <Link href="/contact" className="btn btn-primary mt-6 w-full sm:w-fit px-8">
+              Message Jane
+            </Link>
+          </article>
+        )}
       </div>
     </div>
   );
