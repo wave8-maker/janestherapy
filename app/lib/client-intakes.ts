@@ -5,7 +5,7 @@ import type {
   IntakeLink,
 } from "@/app/lib/client-types";
 import type { IntakeSubmission } from "@/app/lib/intake-types";
-import { listIntakes } from "@/app/lib/intake-storage";
+import { getIntake, listIntakeIds } from "@/app/lib/intake-storage";
 import {
   listRecords,
   readRecord,
@@ -64,13 +64,22 @@ function sameIdentity(client: ClientProfile, incoming: ClientProfile): boolean {
 
 /** Repeated runs resume safely; signed originals and existing staff records never change. */
 export async function syncClientIntakes(): Promise<void> {
-  const [intakes, clients, links] = await Promise.all([
-    listIntakes(),
-    listRecords<ClientRecord>("profiles"),
+  // Only intakes without a link need their contents; most loads have none,
+  // so this avoids downloading every signed form on every visit.
+  const [intakeIds, links] = await Promise.all([
+    listIntakeIds(),
     listRecords<IntakeLink>("links"),
   ]);
   const linkedIds = new Set(links.map((link) => link.intakeId));
-  for (const intake of [...intakes].sort(
+  const pending = intakeIds.filter((intakeId) => !linkedIds.has(intakeId));
+  if (pending.length === 0) return;
+  const intakes: IntakeSubmission[] = [];
+  for (const intakeId of pending) {
+    const intake = await getIntake(intakeId);
+    if (intake) intakes.push(intake);
+  }
+  const clients = await listRecords<ClientRecord>("profiles");
+  for (const intake of intakes.sort(
     (a, b) =>
       a.submittedAt.localeCompare(b.submittedAt) || a.id.localeCompare(b.id),
   )) {

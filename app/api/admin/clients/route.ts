@@ -17,6 +17,8 @@ import {
 } from "@/app/lib/client-storage";
 
 export const runtime = "nodejs";
+// A stalled storage call should fail in a minute, not hold the page for five.
+export const maxDuration = 60;
 const response = (body: unknown, status = 200) =>
   Response.json(body, { status, headers: { "Cache-Control": "no-store" } });
 function id(value: unknown): string {

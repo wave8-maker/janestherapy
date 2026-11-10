@@ -102,6 +102,26 @@ export async function listIntakes(): Promise<IntakeSubmission[]> {
   );
 }
 
+/** Intake ids only — a listing, without downloading any submission. */
+export async function listIntakeIds(): Promise<string[]> {
+  const ids = (names: string[]) =>
+    names
+      .filter((name) => /^[^/]+\.json$/.test(name))
+      .map((name) => name.slice(0, -".json".length));
+  if (useBlob()) {
+    const names: string[] = [];
+    let cursor: string | undefined;
+    do {
+      const page = await list({ prefix: BLOB_PREFIX, cursor });
+      names.push(...page.blobs.map((b) => b.pathname.slice(BLOB_PREFIX.length)));
+      cursor = page.hasMore ? page.cursor : undefined;
+    } while (cursor);
+    return ids(names);
+  }
+  await ensureLocalDir();
+  return ids(await readdir(LOCAL_DIR));
+}
+
 async function readBlobSubmission(pathname: string): Promise<IntakeSubmission | null> {
   const result = await get(pathname, { access: "private" });
   if (!result) return null;

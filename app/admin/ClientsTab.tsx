@@ -27,10 +27,16 @@ import {
 type Editor =
   | { kind: "profile"; initial: ClientProfile }
   | { kind: "session"; id: string; initial: SessionInput };
-async function api(url: string, method = "GET", body?: unknown) {
+async function api(
+  url: string,
+  method = "GET",
+  body?: unknown,
+  timeoutMs?: number,
+) {
   const response = await fetch(url, {
     method,
     cache: "no-store",
+    signal: timeoutMs ? AbortSignal.timeout(timeoutMs) : undefined,
     headers: body ? { "Content-Type": "application/json" } : undefined,
     body: body ? JSON.stringify(body) : undefined,
   });
@@ -73,21 +79,34 @@ export default function ClientsTab({
     window.addEventListener("beforeunload", before);
     return () => window.removeEventListener("beforeunload", before);
   }, [dirty]);
-  async function load() {
-    // Sync is explicit authenticated POST work; GET remains read-only.
-    let syncError: unknown;
-    try {
-      await api("/api/admin/clients", "POST", { action: "syncIntakes" });
-    } catch (error) {
-      syncError = error;
-    }
+  async function fetchList() {
     const data = await api("/api/admin/clients");
     setClients(data.clients);
     setLinks(data.links);
-    if (syncError) throw syncError;
+  }
+  // Show what is stored first; importing new intakes must never hold the list hostage.
+  async function load(onListed?: () => void) {
+    await fetchList();
+    onListed?.();
+    // Sync is explicit authenticated POST work; GET remains read-only.
+    try {
+      await api(
+        "/api/admin/clients",
+        "POST",
+        { action: "syncIntakes" },
+        30_000,
+      );
+    } catch (e) {
+      throw new Error(
+        e instanceof Error && e.message === "unauthorized"
+          ? "unauthorized"
+          : "syncFailed",
+      );
+    }
+    await fetchList();
   }
   useEffect(() => {
-    load()
+    load(() => setLoading(false))
       .catch((e) => setError(e.message))
       .finally(() => setLoading(false));
   }, []);
@@ -107,6 +126,9 @@ export default function ClientsTab({
     notFound: zh
       ? "记录不存在，请刷新后重试。"
       : "Record not found. Refresh and retry.",
+    syncFailed: zh
+      ? "新的登记表暂时没能导入，现有客户档案不受影响。请稍后点“刷新”重试。"
+      : "New intake forms could not be imported right now. Existing clients are unaffected. Press Refresh to retry later.",
     storage: zh
       ? "读取或保存失败，请重试。尚未保存的输入仍保留。"
       : "Unable to load or save. Please retry. Unsaved input is preserved.",
