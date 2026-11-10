@@ -63,6 +63,7 @@ export default function ClientsTab({
   const [newId, setNewId] = useState("");
   const [newProfile, setNewProfile] = useState<ClientProfile>(emptyProfile);
   const [busy, setBusy] = useState(false);
+  const [openingId, setOpeningId] = useState("");
   const [loading, setLoading] = useState(true);
   const [dirty, setDirty] = useState(false);
   const [error, setError] = useState("");
@@ -159,6 +160,7 @@ export default function ClientsTab({
     return true;
   }
   async function openClient(id: string) {
+    setOpeningId(id);
     await run(async () => {
       const data = await api(`/api/admin/clients?id=${encodeURIComponent(id)}`);
       setClient(data.client);
@@ -170,6 +172,7 @@ export default function ClientsTab({
       setEditor(null);
       setDirty(false);
     });
+    setOpeningId("");
   }
   function startNew() {
     setNewId(crypto.randomUUID());
@@ -340,41 +343,51 @@ export default function ClientsTab({
                     : "No clients found. Choose New client to create a profile."}
                 </div>
               )}
-              {clients
-                .filter((c) => matchesClient(c, query))
-                .map((c) => (
-                  <button
-                    disabled={busy}
-                    key={c.id}
-                    className={`${panelClass} w-full text-left hover:border-slate-700 flex flex-wrap items-center justify-between gap-3`}
-                    onClick={() => void openClient(c.id)}
-                  >
-                    <div>
-                      <p className="text-lg font-bold">{c.name}</p>
-                      <p className="text-sm text-slate-600">
-                        {[c.phone, c.email].filter(Boolean).join(" · ") ||
-                          (zh ? "未填写联系方式" : "No contact details")}
-                      </p>
-                    </div>
-                    <div className="text-sm text-slate-600">
-                      <p>
-                        {zh ? "登记表：" : "Intake: "}
-                        {links.filter((link) => link.clientId === c.id)
-                          .length || (zh ? "暂无" : "None")}
-                      </p>
-                      <p>
-                        {zh ? "最近按摩：" : "Last visit: "}
-                        {c.lastVisit || (zh ? "暂无" : "None")}
-                      </p>
-                      <p>
-                        {c.sessionCount} {zh ? "次按摩" : "visits"}
-                        {c.precautions
-                          ? ` · ${zh ? "有注意事项" : "Precautions noted"}`
-                          : ""}
-                      </p>
-                    </div>
-                  </button>
-                ))}
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {clients
+                  .filter((c) => matchesClient(c, query))
+                  .map((c) => (
+                    <button
+                      disabled={busy}
+                      key={c.id}
+                      aria-busy={openingId === c.id}
+                      className={`${panelClass} w-full h-full text-left hover:border-slate-700 disabled:cursor-wait flex flex-col gap-3 ${openingId === c.id ? "border-slate-700 ring-2 ring-slate-300" : ""}`}
+                      onClick={() => void openClient(c.id)}
+                    >
+                      <div className="min-w-0">
+                        <p className="text-lg font-bold">
+                          {c.name}
+                          {openingId === c.id && (
+                            <span className="ml-2 text-sm font-normal text-slate-500">
+                              {zh ? "正在打开…" : "Opening…"}
+                            </span>
+                          )}
+                        </p>
+                        <p className="text-sm text-slate-600 [overflow-wrap:anywhere]">
+                          {[c.phone, c.email].filter(Boolean).join(" · ") ||
+                            (zh ? "未填写联系方式" : "No contact details")}
+                        </p>
+                      </div>
+                      <div className="mt-auto text-sm text-slate-600 border-t border-slate-100 pt-3">
+                        <p>
+                          {zh ? "登记表：" : "Intake: "}
+                          {links.filter((link) => link.clientId === c.id)
+                            .length || (zh ? "暂无" : "None")}
+                        </p>
+                        <p>
+                          {zh ? "最近按摩：" : "Last visit: "}
+                          {c.lastVisit || (zh ? "暂无" : "None")}
+                        </p>
+                        <p>
+                          {c.sessionCount} {zh ? "次按摩" : "visits"}
+                          {c.precautions
+                            ? ` · ${zh ? "有注意事项" : "Precautions noted"}`
+                            : ""}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+              </div>
             </>
           )}
           {screen === "new" && (

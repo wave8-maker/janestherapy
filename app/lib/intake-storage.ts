@@ -1,6 +1,7 @@
 import { mkdir, readdir, readFile, writeFile, unlink } from "fs/promises";
 import path from "path";
 import { get, list, put, del } from "@vercel/blob";
+import { blobRead } from "./blob-retry";
 import type { IntakeFormData, IntakeSubmission } from "./intake-types";
 import { normalizeSubmission } from "./intake-types";
 import type { ConsentItem } from "./consents";
@@ -27,7 +28,7 @@ function useBlob(): boolean {
   if (process.env.VERCEL) {
     throw new Error(
       "BLOB_READ_WRITE_TOKEN is not set. Intake records cannot be saved on Vercel, " +
-        "where the filesystem is read-only — connect a Blob store to the project."
+        "where the filesystem is read-only — connect a Blob store to the project.",
     );
   }
   return false;
@@ -47,7 +48,7 @@ async function ensureLocalDir() {
 
 export async function saveIntake(
   data: IntakeFormData,
-  evidence: SigningEvidence
+  evidence: SigningEvidence,
 ): Promise<IntakeSubmission> {
   const submission: IntakeSubmission = {
     ...data,
@@ -65,7 +66,11 @@ export async function saveIntake(
     });
   } else {
     await ensureLocalDir();
-    await writeFile(path.join(LOCAL_DIR, `${submission.id}.json`), content, "utf-8");
+    await writeFile(
+      path.join(LOCAL_DIR, `${submission.id}.json`),
+      content,
+      "utf-8",
+    );
   }
 
   return submission;
@@ -76,16 +81,19 @@ export async function listIntakes(): Promise<IntakeSubmission[]> {
     const blobs: { pathname: string }[] = [];
     let cursor: string | undefined;
     do {
-      const page = await list({ prefix: BLOB_PREFIX, cursor });
+      const page = await blobRead((abortSignal) =>
+        list({ prefix: BLOB_PREFIX, cursor, abortSignal }),
+      );
       blobs.push(...page.blobs);
       cursor = page.hasMore ? page.cursor : undefined;
     } while (cursor);
     const submissions = await Promise.all(
-      blobs.map(async (blob) => readBlobSubmission(blob.pathname))
+      blobs.map(async (blob) => readBlobSubmission(blob.pathname)),
     );
     const valid = submissions.filter((s): s is IntakeSubmission => s !== null);
     return valid.sort(
-      (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+      (a, b) =>
+        new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
     );
   }
 
@@ -95,10 +103,11 @@ export async function listIntakes(): Promise<IntakeSubmission[]> {
     files.map(async (file) => {
       const raw = await readFile(path.join(LOCAL_DIR, file), "utf-8");
       return normalizeSubmission(JSON.parse(raw));
-    })
+    }),
   );
   return submissions.sort(
-    (a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime()
+    (a, b) =>
+      new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime(),
   );
 }
 
@@ -112,8 +121,12 @@ export async function listIntakeIds(): Promise<string[]> {
     const names: string[] = [];
     let cursor: string | undefined;
     do {
-      const page = await list({ prefix: BLOB_PREFIX, cursor });
-      names.push(...page.blobs.map((b) => b.pathname.slice(BLOB_PREFIX.length)));
+      const page = await blobRead((abortSignal) =>
+        list({ prefix: BLOB_PREFIX, cursor, abortSignal }),
+      );
+      names.push(
+        ...page.blobs.map((b) => b.pathname.slice(BLOB_PREFIX.length)),
+      );
       cursor = page.hasMore ? page.cursor : undefined;
     } while (cursor);
     return ids(names);
@@ -122,10 +135,14 @@ export async function listIntakeIds(): Promise<string[]> {
   return ids(await readdir(LOCAL_DIR));
 }
 
-async function readBlobSubmission(pathname: string): Promise<IntakeSubmission | null> {
-  const result = await get(pathname, { access: "private" });
-  if (!result) return null;
-  const text = await new Response(result.stream).text();
+async function readBlobSubmission(
+  pathname: string,
+): Promise<IntakeSubmission | null> {
+  const text = await blobRead(async (abortSignal) => {
+    const result = await get(pathname, { access: "private", abortSignal });
+    return result ? new Response(result.stream).text() : null;
+  });
+  if (text === null) return null;
   return normalizeSubmission(JSON.parse(text));
 }
 

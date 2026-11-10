@@ -9,6 +9,7 @@ import {
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { get, list, put } from "@vercel/blob";
+import { blobRead, blobWrite } from "./blob-retry";
 
 export class RecordConflict extends Error {}
 export interface Stored<T> {
@@ -29,15 +30,20 @@ function safeKey(key: string) {
 export async function readRecord<T>(key: string): Promise<Stored<T> | null> {
   const filename = safeKey(key);
   if (blobEnabled()) {
-    const result = await get(`clients/${filename}`, {
-      access: "private",
-      useCache: false,
+    const loaded = await blobRead(async (abortSignal) => {
+      const result = await get(`clients/${filename}`, {
+        access: "private",
+        useCache: false,
+        abortSignal,
+      });
+      if (!result) return null;
+      return {
+        text: await new Response(result.stream).text(),
+        etag: result.blob.etag,
+      };
     });
-    if (!result) return null;
-    return {
-      value: JSON.parse(await new Response(result.stream).text()),
-      version: result.blob.etag,
-    };
+    if (!loaded) return null;
+    return { value: JSON.parse(loaded.text), version: loaded.etag };
   }
   try {
     const source = await readFile(path.join(root, filename), "utf8");
@@ -56,13 +62,16 @@ export async function writeRecord<T>(
   const content = JSON.stringify(value);
   if (blobEnabled()) {
     try {
-      await put(`clients/${filename}`, content, {
-        access: "private",
-        addRandomSuffix: false,
-        contentType: "application/json",
-        allowOverwrite: version !== undefined,
-        ...(version !== undefined ? { ifMatch: version } : {}),
-      });
+      await blobWrite((abortSignal) =>
+        put(`clients/${filename}`, content, {
+          access: "private",
+          addRandomSuffix: false,
+          contentType: "application/json",
+          allowOverwrite: version !== undefined,
+          ...(version !== undefined ? { ifMatch: version } : {}),
+          abortSignal,
+        }),
+      );
     } catch (error) {
       if (
         /precondition|already exists|etag|condition.*fail/i.test(String(error))
@@ -101,7 +110,9 @@ export async function listRecords<T>(kind: "profiles" | "links"): Promise<T[]> {
     keys = [];
     let cursor: string | undefined;
     do {
-      const page = await list({ prefix: `clients/${kind}/`, cursor });
+      const page = await blobRead((abortSignal) =>
+        list({ prefix: `clients/${kind}/`, cursor, abortSignal }),
+      );
       keys.push(
         ...page.blobs.map((b) =>
           b.pathname.replace(/^clients\//, "").replace(/\.json$/, ""),
