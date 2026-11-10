@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { TABS, tabFromPath, tabHref, type Tab } from "./tabs";
 import RichEditor from "./RichEditor";
 import ClientsTab from "./ClientsTab";
 import InvoiceTab from "./InvoiceTab";
@@ -600,15 +601,6 @@ function TextArea({ label, value, onChange, rows = 4, mono, placeholder }: {
 }
 
 // ── ROOT PAGE ─────────────────────────────────────────────────────────────────
-const TABS = [
-  { key: "settings", label: "nav.settings" },
-  { key: "services", label: "nav.services" },
-  { key: "addons", label: "nav.addons" },
-  { key: "blog", label: "nav.blog" },
-  { key: "intake", label: "nav.intake" },
-  { key: "invoice", label: "nav.invoice" },
-] as const;
-type Tab = typeof TABS[number]["key"];
 type FontSize = "small" | "medium" | "large";
 const FONT_SIZE_OPTIONS = [
   { value: "small", label: "shell.font.small" },
@@ -626,7 +618,8 @@ export default function AdminPage() {
 
 function AdminShell() {
   const { t, lang, setLang } = useAdminLang();
-  const [tab, setTab] = useState<Tab>("settings");
+  // The address is the source of truth, so refresh, links and Back all land on the same section.
+  const tab = tabFromPath(usePathname());
   const [clientDirty, setClientDirty] = useState(false);
   /** Desktop: narrow or wide. On a phone the sidebar is a drawer instead. */
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -650,7 +643,7 @@ function AdminShell() {
 
   function openTab(next: Tab) {
     if (next !== tab && clientDirty && !confirm(lang === "zh" ? "有未保存的客户记录，确定离开？" : "Leave with unsaved client changes?")) return;
-    setTab(next);
+    if (next !== tab) window.history.pushState(null, "", tabHref(next));
     setDrawerOpen(false);
   }
 
@@ -788,15 +781,21 @@ function AdminShell() {
           {TABS.map(item => {
             const label = t(item.label);
             return (
-              <button
+              <a
                 key={item.key}
-                type="button"
-                onClick={() => openTab(item.key)}
+                href={tabHref(item.key)}
+                aria-current={tab === item.key ? "page" : undefined}
+                onClick={e => {
+                  // Let Cmd/Ctrl/middle-click open the section in a new tab.
+                  if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+                  e.preventDefault();
+                  openTab(item.key);
+                }}
                 title={expanded ? undefined : label}
                 className={`w-full min-h-14 rounded-lg px-4 text-sm font-bold transition-colors flex items-center border-2 ${expanded ? "justify-start text-left" : "justify-center"} ${tab === item.key ? "bg-slate-900 border-slate-900 text-white shadow-sm" : "bg-white border-transparent text-slate-800 hover:text-slate-950 hover:bg-slate-100 hover:border-slate-300"}`}
               >
                 {expanded ? label : label.slice(0, 1)}
-              </button>
+              </a>
             );
           })}
         </nav>
