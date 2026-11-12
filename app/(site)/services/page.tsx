@@ -12,7 +12,7 @@ const GIFT_URL = "https://app.squareup.com/gift/MLXZ54Y84T053/order";
 export const metadata = pageMeta({
   title: "Massage Services",
   description:
-    "Swedish, Clinical Deep Tissue, Lymphatic Drainage, Glow from Head to Toe, prenatal, and more — one-on-one with Jane Zhang, CMT. In-studio or mobile massage across San Jose, CA.",
+    "Swedish, Clinical Deep Tissue, Lymphatic Drainage, Sculpting Facial Myofascial Release, prenatal, and more — one-on-one with Jane Zhang, CMT. In-studio or mobile massage across San Jose, CA.",
   path: "/services",
 });
 
