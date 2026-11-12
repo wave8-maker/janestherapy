@@ -11,12 +11,6 @@ const nextConfig: NextConfig = {
     return [
       // The page moved when its hours section graduated to /availability.
       { source: "/location", destination: "/contact", permanent: true },
-      // The signature service was reworked into a one-hour facial session.
-      {
-        source: "/services/glow-from-head-to-toe",
-        destination: "/services/sculpting-facial-myofascial-release",
-        permanent: true,
-      },
     ];
   },
 };
